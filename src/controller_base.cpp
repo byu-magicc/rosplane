@@ -1,6 +1,8 @@
 #include "controller_base.h"
 #include "controller_example.h"
 
+namespace rosplane {
+
 controller_base::controller_base():
     nh_(ros::NodeHandle()),
     nh_private_(ros::NodeHandle())
@@ -102,9 +104,11 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
     _actuators_pub.publish(actuators);
 }
 
+} //end namespace
+
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "fcu_common_joy");
-  controller_base* cont = new controller_example();
+  ros::init(argc, argv, "ros_plane_controller");
+  rosplane::controller_base* cont = new rosplane::controller_example();
 
   ros::spin();
 

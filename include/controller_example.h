@@ -3,6 +3,9 @@
 
 #include "controller_base.h"
 
+namespace rosplane
+{
+
 enum class alt_state {
     TakeOffZone,
     ClimbZone,
@@ -53,5 +56,6 @@ private:
 
     float sat(float value, float up_limit, float low_limit);
 };
+} //end namespace
 
 #endif // CONTROLLER_EXAMPLE_H

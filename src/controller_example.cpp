@@ -1,5 +1,7 @@
 #include "controller_example.h"
 
+namespace rosplane {
+
 controller_example::controller_example() : controller_base()
 {
     state = alt_state::TakeOffZone;
@@ -250,3 +252,5 @@ float controller_example::sat(float value, float up_limit, float low_limit)
 
     return rVal;
 }
+
+} //end namespace

@@ -14,6 +14,8 @@
 #include <fcu_common/FW_Controller_Commands.h>
 #include <fcu_common/Command.h>
 
+namespace rosplane {
+
 class controller_base
 {
 public:
@@ -113,5 +115,6 @@ private:
     */
     void actuator_controls_publish(const ros::TimerEvent &);
 };
+} //end namespace
 
 #endif // CONTROLLER_BASE_H
