@@ -5,8 +5,9 @@ find_package(catkin REQUIRED COMPONENTS
   fcu_common
   roscpp
   rospy
+  cmake_modules
 )
-
+find_package(Eigen REQUIRED)
 ###################################
 ## catkin specific configuration ##
 ###################################
@@ -29,6 +30,7 @@ add_definitions(-std=c++11)
 include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${EIGEN_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -50,5 +52,21 @@ add_executable(ros_plane_controller src/controller_base.cpp src/controller_examp
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(ros_plane_controller
+  ${catkin_LIBRARIES}
+)
+
+
+## Declare a C++ executable
+add_executable(ros_plane_estimator
+            src/estimator_base.cpp
+            src/estimator_example.cpp
+)
+
+## Add cmake target dependencies of the executable
+## same as for the library above
+add_dependencies(ros_plane_estimator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(ros_plane_estimator
   ${catkin_LIBRARIES}
 )
