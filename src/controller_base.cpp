@@ -50,6 +50,9 @@ controller_base::controller_base():
     nh_private_.param<float>("MAX_R", _params.max_r, 0.523f);
     nh_private_.param<float>("MAX_T", _params.max_t, 1.0f);
 
+    _func = boost::bind(&controller_base::reconfigure_callback, this, _1, _2);
+    _server.setCallback(_func);
+
     _actuators_pub = nh_.advertise<fcu_common::Command>("command",10);
     _act_pub_timer = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
 }
@@ -61,7 +64,44 @@ void controller_base::vehicle_state_callback(const fcu_common::FW_StateConstPtr&
 
 void controller_base::controller_commands_callback(const fcu_common::FW_Controller_CommandsConstPtr& msg)
 {
-    _controller_commands = *msg;
+  _controller_commands = *msg;
+}
+
+void controller_base::reconfigure_callback(ros_plane::ControllerConfig &config, uint32_t level)
+{
+  _params.trim_e = config.TRIM_E;
+  _params.trim_a = config.TRIM_A;
+  _params.trim_r = config.TRIM_R;
+  _params.trim_t = config.TRIM_T;
+
+  _params.c_kp = config.COURSE_KP;
+  _params.c_kd = config.COURSE_KD;
+  _params.c_ki = config.COURSE_KI;
+
+  _params.r_kp = config.ROLL_KP;
+  _params.r_kd = config.ROLL_KD;
+  _params.r_ki = config.ROLL_KI;
+
+  _params.p_kp = config.PITCH_KP;
+  _params.p_kd = config.PITCH_KD;
+  _params.p_ki = config.PITCH_KI;
+  _params.p_ff = config.PITCH_FF;
+
+  _params.a_p_kp = config.AS_PITCH_KP;
+  _params.a_p_kd = config.AS_PITCH_KD;
+  _params.a_p_ki = config.AS_PITCH_KI;
+
+  _params.a_t_kp = config.AS_THR_KP;
+  _params.a_t_kd = config.AS_THR_KD;
+  _params.a_t_ki = config.AS_THR_KI;
+
+  _params.a_kp = config.ALT_KP;
+  _params.a_kd = config.ALT_KD;
+  _params.a_ki = config.ALT_KI;
+
+  _params.b_kp = config.BETA_KP;
+  _params.b_kd = config.BETA_KD;
+  _params.b_ki = config.BETA_KI;
 }
 
 void controller_base::convert_to_pwm(controller_base::output_s &output)

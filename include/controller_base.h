@@ -14,6 +14,9 @@
 #include <fcu_common/FW_Controller_Commands.h>
 #include <fcu_common/Command.h>
 
+#include <dynamic_reconfigure/server.h>
+#include <ros_plane/ControllerConfig.h>
+
 namespace rosplane {
 
 class controller_base
@@ -104,6 +107,11 @@ private:
 
     void vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg);
     void controller_commands_callback(const fcu_common::FW_Controller_CommandsConstPtr& msg);
+
+    dynamic_reconfigure::Server<ros_plane::ControllerConfig> _server;
+    dynamic_reconfigure::Server<ros_plane::ControllerConfig>::CallbackType _func;
+
+    void reconfigure_callback(ros_plane::ControllerConfig &config, uint32_t level);
 
     /**
     * Convert from deflection angle to pwm
