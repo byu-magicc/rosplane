@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   cmake_modules
   dynamic_reconfigure
+  sensor_msgs
 )
 find_package(Eigen REQUIRED)
 

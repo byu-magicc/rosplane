@@ -11,6 +11,10 @@
 
 #include <ros/ros.h>
 #include <fcu_common/FW_State.h>
+#include <fcu_common/GPS.h>
+#include <sensor_msgs/Imu.h>
+#include <std_msgs/Float32.h>
+#include <sensor_msgs/FluidPressure.h>
 #include <math.h>
 #include <Eigen/Eigen>
 
@@ -33,7 +37,7 @@ protected:
         float accel_x;
         float accel_y;
         float accel_z;
-        float static_pres;
+        float baro_alt;
         float diff_pres;
         bool gps_new;
         float gps_n;
@@ -41,7 +45,6 @@ protected:
         float gps_h;
         float gps_Vg;
         float gps_course;
-        float Ts;
     };
 
     struct output_s{
@@ -71,6 +74,7 @@ protected:
         float sigma_e_gps;
         float sigma_Vg_gps;
         float sigma_course_gps;
+        float Ts;
     };
 
     virtual void estimate(const struct params_s &params, const struct input_s &input, struct output_s &output) = 0;
@@ -78,18 +82,21 @@ protected:
 private:
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
-    ros::Publisher _vehicle_state_pub;
+    ros::Publisher vehicle_state_pub_;
 //    ros::Subscriber _vehicle_state_sub;
 //    ros::Subscriber _controller_commands_sub;
 
+    void update(const ros::TimerEvent &);
+    void gpsCallback(const fcu_common::GPS &msg);
+    void imuCallback(const sensor_msgs::Imu &msg);
+    void baroAltCallback(const std_msgs::Float32 &msg);
+    void airspeedCallback(const sensor_msgs::FluidPressure &msg);
 
-
-    int _sensor_combined_sub;
-//    int _airspeed_sub;
-    int _gps_sub;
-
-    int poll_error_counter;
-
+    float update_rate_;
+    std::string gps_topic_;
+    std::string imu_topic_;
+    std::string baro_topic_;
+    std::string airspeed_topic_;
 
     bool                            _gps_new;
     bool                            _gps_init;
@@ -99,13 +106,8 @@ private:
     bool                            _baro_init;
     float                           _init_static; /**< Initial static pressure (mbar)  */
 
-    struct params_s                 _params;
-
-
-    /**
-    * Publish the outputs
-    */
-    void vehicle_state_publish(struct output_s &output);
+    struct params_s                 params_;
+    struct input_s                  input_;
 };
 } //end namespace
 

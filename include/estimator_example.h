@@ -18,44 +18,26 @@ private:
 
 //    float alpha;
 //    float alpha1;
-//    float lpf_gyro_x;
-//    float lpf_gyro_y;
-//    float lpf_gyro_z;
-//    float lpf_static;
-//    float lpf_diff;
-//    float lpf_accel_x;
-//    float lpf_accel_y;
-//    float lpf_accel_z;
-//    math::Vector<2> xhat_a;
-//    math::Matrix<2,2> P_a;
-//    math::Vector<7> xhat_p;
-//    math::Matrix<7,7> P_p;
+
 //    float gps_n_old;
 //    float gps_e_old;
 //    float gps_Vg_old;
 //    float gps_course_old;
 
-//    math::Matrix<2,2> Q_a;
-//    math::Matrix<1,1> R_accel;
-//    math::Vector<2> f_a;
-//    math::Matrix<2,2> A_a;
-//    math::Matrix<2,2> I;
-//    float h_a;
-//    math::Matrix<1,2> C_a;
-//    math::Matrix<2,1> C_a_t;
-//    math::Matrix<2,1> L_a;
-
-//    math::Matrix<7,7> Q_p;
-//    math::Matrix<6,6> R_p;
-//    math::Vector<7> f_p;
-//    math::Matrix<7,7> A_p;
-//    float h_p;
-//    math::Matrix<1,7> C_p;
-//    math::Matrix<7,1> C_p_t;
-//    math::Matrix<7,1> L_p;
     double lpf_a_;
     float alpha;
+    float alpha1;
     int N_;
+
+    float lpf_gyro_x;
+    float lpf_gyro_y;
+    float lpf_gyro_z;
+//    float lpf_static;
+    float lpf_diff;
+    float lpf_accel_x;
+    float lpf_accel_y;
+    float lpf_accel_z;
+
     float phat;
     float qhat;
     float rhat;
@@ -63,8 +45,19 @@ private:
     float phihat;
     float thetahat;
     float psihat;
+    Eigen::Vector2f xhat_a; // 2
+    Eigen::Matrix2f P_a;  // 2x2
+
     Eigen::VectorXf xhat_p; // 7
     Eigen::MatrixXf P_p;  // 7x7
+
+    Eigen::Matrix2f Q_a;  // 2x2
+    float R_accel;
+    Eigen::Vector2f f_a;  // 2
+    Eigen::Matrix2f A_a;  // 2x2
+    float h_a;
+    Eigen::Vector2f C_a;  // 2
+    Eigen::Vector2f L_a;  // 2
 
     Eigen::MatrixXf Q_p;  // 7x7
     Eigen::MatrixXf R_p;  // 6x6
@@ -73,6 +66,8 @@ private:
     float h_p;
     Eigen::VectorXf C_p;  // 7
     Eigen::VectorXf L_p;  // 7
+
+    void check_xhat_a();
 
 };
 } //end namespace
