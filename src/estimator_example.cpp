@@ -66,7 +66,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
         R_p(5,5) = 0.001;
 
         float lpf_a = 50;
-        float lpf_a1 = 2;
+        float lpf_a1 = 8;
         alpha = exp(-lpf_a*params.Ts);
         alpha1 = exp(-lpf_a1*params.Ts);
     }
@@ -106,7 +106,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
     lpf_accel_y = alpha*lpf_accel_y + (1-alpha)*input.accel_y;
     lpf_accel_z = alpha*lpf_accel_z + (1-alpha)*input.accel_z;
 
-    // inplement continuous-discrete EKF to estimate roll and pitch angles
+    // implement continuous-discrete EKF to estimate roll and pitch angles
 
     // prediction step
     float cp; // cos(phi)
@@ -166,11 +166,11 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
     P_a = (I - L_a*C_a.transpose())*P_a;
     xhat_a += L_a *(lpf_accel_z - h_a);//input.accel_z - h_a);
 
-    check_xhat_a();
+    //check_xhat_a();
 
     float phihat = xhat_a(0);
     float thetahat = xhat_a(1);
-/*
+
     // implement continous-discrete EKF to estimate pn, pe, chi, Vg
     // prediction step
     float psidot, tmp, Vgdot;
@@ -242,7 +242,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
         // gps ground speed
         h_p = xhat_p(2);
         C_p = Eigen::VectorXf::Zero(7);
-        C_p(0,2) = 1;
+        C_p(2) = 1;
         L_p = (P_p*C_p) / (R_p(2,2) + (C_p.transpose()*P_p*C_p));
         P_p = (I_p - L_p*C_p.transpose())*P_p;
         xhat_p = xhat_p + L_p*(input.gps_Vg - h_p);
@@ -255,7 +255,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
         while(gps_course - xhat_p(3) < radians(-180.0f)) gps_course = gps_course + radians(360.0f);
         h_p = xhat_p(3);
         C_p = Eigen::VectorXf::Zero(7);
-        C_p(0,3) = 1;
+        C_p(3) = 1;
         L_p = (P_p*C_p) / (R_p(3,3) + (C_p.transpose()*P_p*C_p));
         P_p = (I_p - L_p*C_p.transpose())*P_p;
         xhat_p = xhat_p + L_p*(gps_course - h_p);
@@ -307,7 +307,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
 //            ROS_WARN("problem 15");
 //            xhat_p(6) = input.gps_course;
 //        }
-    }*/
+    }
 
     bool problem = false;
     int prob_index;
@@ -354,7 +354,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
     if(xhat_p(6) - xhat_p(3) > radians(360.0f) || xhat_p(6) - xhat_p(3) < radians(-360.0f))
     {
         //xhat_p(3) = fmodf(xhat_p(3),radians(360.0f));
-        xhat_p(6) = fmodf(xhat_p(6),radians(360.0f));
+        xhat_p(6) = fmodf(xhat_p(6),M_PI);
     }
 
     float pnhat = xhat_p(0);

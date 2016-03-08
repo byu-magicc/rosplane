@@ -7,21 +7,33 @@ estimator_base::estimator_base():
     nh_(ros::NodeHandle()),
     nh_private_(ros::NodeHandle("~"))
 {
-    nh_private_.param<std::string>("gps_topic", gps_topic_, "fix");
-    nh_private_.param<std::string>("imu_topic", imu_topic_, "imu");
-    nh_private_.param<std::string>("baro_topic", baro_topic_, "baro");
-    nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "airspeed");
+    nh_private_.param<std::string>("gps_topic", gps_topic_, "/gps/data");
+    nh_private_.param<std::string>("imu_topic", imu_topic_, "/imu/data");
+    nh_private_.param<std::string>("baro_topic", baro_topic_, "/baro/data");
+    nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "/airspeed/data");
     nh_private_.param<float>("update_rate", update_rate_, 100.0f);
     params_.Ts = 1.0f/update_rate_;
+    params_.gravity = 9.8;
+    nh_private_.param<float>("rho", params_.rho, 1.225f);
+    nh_private_.param<float>("sigma_accel", params_.sigma_accel, 100.0f);
+    nh_private_.param<float>("sigma_n_gps", params_.sigma_n_gps, 0.21f);
+    nh_private_.param<float>("sigma_e_gps", params_.sigma_e_gps, 0.21f);
+    nh_private_.param<float>("sigma_Vg_gps", params_.sigma_Vg_gps, 0.0500f);
+    nh_private_.param<float>("sigma_couse_gps", params_.sigma_course_gps, 0.0045f);
 
+    gps_sub_ = nh_.subscribe(gps_topic_, 10, &estimator_base::gpsCallback, this);
+    imu_sub_ = nh_.subscribe(imu_topic_, 10, &estimator_base::imuCallback, this);
+    baro_sub_ = nh_.subscribe(baro_topic_, 10, &estimator_base::baroAltCallback, this);
+    airspeed_sub_ = nh_.subscribe(airspeed_topic_, 10, &estimator_base::airspeedCallback, this);
+    update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &estimator_base::update, this);
     vehicle_state_pub_ = nh_.advertise<fcu_common::FW_State>("state",10);
-    nh_.createTimer(ros::Duration(update_rate_), &estimator_base::update, this);
 }
 
 void estimator_base::update(const ros::TimerEvent&)
 {
     struct output_s output;
     estimate(params_, input_, output);
+    input_.gps_new = false;
 
     fcu_common::FW_State msg;
     msg.position[0] = output.pn;
@@ -47,13 +59,24 @@ void estimator_base::update(const ros::TimerEvent&)
 
 void estimator_base::gpsCallback(const fcu_common::GPS &msg)
 {
-    input_.gps_course = msg.ground_course;
-    input_.gps_n;   // Todo: add this...
-    input_.gps_e;   // Todo: add this...
-    input_.gps_h = msg.altitude; //- init_alt;
-    input_.gps_Vg = msg.speed;
-    if(msg.fix == true && msg.NumSat >= 4)
-        input_.gps_new = true;
+    if(!gps_init_)
+    {
+        gps_init_ = true;
+        init_alt_ = msg.altitude;
+        init_lat_ = msg.latitude;
+        init_lon_ = msg.longitude;
+    }
+    else
+    {
+        input_.gps_n = EARTH_RADIUS*(msg.latitude - init_lat_)*M_PI/180.0;
+        input_.gps_e = EARTH_RADIUS*cos(init_lat_*M_PI/180.0)*(msg.longitude - init_lon_)*M_PI/180.0;
+        input_.gps_h = msg.altitude - init_alt_;
+        input_.gps_Vg = msg.speed;
+        if(msg.speed > 0.3)
+            input_.gps_course = msg.ground_course;
+        if(msg.fix == true && msg.NumSat >= 4)
+            input_.gps_new = true;
+    }
 }
 
 void estimator_base::imuCallback(const sensor_msgs::Imu &msg)

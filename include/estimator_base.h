@@ -83,8 +83,10 @@ private:
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
     ros::Publisher vehicle_state_pub_;
-//    ros::Subscriber _vehicle_state_sub;
-//    ros::Subscriber _controller_commands_sub;
+    ros::Subscriber gps_sub_;
+    ros::Subscriber imu_sub_;
+    ros::Subscriber baro_sub_;
+    ros::Subscriber airspeed_sub_;
 
     void update(const ros::TimerEvent &);
     void gpsCallback(const fcu_common::GPS &msg);
@@ -93,18 +95,19 @@ private:
     void airspeedCallback(const sensor_msgs::FluidPressure &msg);
 
     float update_rate_;
+    ros::Timer update_timer_;
     std::string gps_topic_;
     std::string imu_topic_;
     std::string baro_topic_;
     std::string airspeed_topic_;
 
-    bool                            _gps_new;
-    bool                            _gps_init;
-    double                          _init_lat;	/**< Initial latitude in 1E-7 degrees */
-    double                          _init_lon;	/**< Initial longitude in 1E-7 degrees */
-    float                           _init_alt;	/**< Initial altitude in 1E-3 meters (millimeters) above MSL  */
-    bool                            _baro_init;
-    float                           _init_static; /**< Initial static pressure (mbar)  */
+    bool                            gps_new_;
+    bool                            gps_init_;
+    double                          init_lat_;	/**< Initial latitude in degrees */
+    double                          init_lon_;	/**< Initial longitude in degrees */
+    float                           init_alt_;	/**< Initial altitude in meters above MSL  */
+//    bool                            _baro_init;
+//    float                           _init_static; /**< Initial static pressure (mbar)  */
 
     struct params_s                 params_;
     struct input_s                  input_;
