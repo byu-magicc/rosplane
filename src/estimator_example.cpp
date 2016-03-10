@@ -19,10 +19,10 @@ estimator_example::estimator_example() :
     C_p(7),
     L_p(7)
 {
-    P_a *= powf(radians(20.0f),2);
+    P_a *= powf(radians(5.0f),2);
 
-    Q_a(0,0) = 0.0000001;
-    Q_a(1,1) = 0.0000001;
+    Q_a(0,0) = 0.00000001;
+    Q_a(1,1) = 0.00000001;
 
     P_p = Eigen::MatrixXf::Identity(7,7);
     P_p(0,0) = .03;
@@ -282,12 +282,12 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
 //        P_p = (I_p - L_p*C_p.transpose())*P_p;
 //        xhat_p = xhat_p + L_p*(0 - h_p);
 
-        if(xhat_p(0) > 1000 || xhat_p(0) < -1000)
+        if(xhat_p(0) > 10000 || xhat_p(0) < -10000)
         {
             ROS_WARN("gps n problem");
             xhat_p(0) = input.gps_n;
         }
-        if(xhat_p(1) > 1000 || xhat_p(1) < -1000)
+        if(xhat_p(1) > 10000 || xhat_p(1) < -10000)
         {
             ROS_WARN("gps e problem");
             xhat_p(1) = input.gps_e;

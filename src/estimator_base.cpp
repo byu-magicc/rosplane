@@ -15,7 +15,7 @@ estimator_base::estimator_base():
     params_.Ts = 1.0f/update_rate_;
     params_.gravity = 9.8;
     nh_private_.param<float>("rho", params_.rho, 1.225f);
-    nh_private_.param<float>("sigma_accel", params_.sigma_accel, 100.0f);
+    nh_private_.param<float>("sigma_accel", params_.sigma_accel, 0.0245f);
     nh_private_.param<float>("sigma_n_gps", params_.sigma_n_gps, 0.21f);
     nh_private_.param<float>("sigma_e_gps", params_.sigma_e_gps, 0.21f);
     nh_private_.param<float>("sigma_Vg_gps", params_.sigma_Vg_gps, 0.0500f);
