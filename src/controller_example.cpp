@@ -25,6 +25,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
 
     switch(state) {
     case alt_state::TakeOffZone:
+        output.delta_a = roll_hold(0.0, input.phi, input.p, params, input.Ts);
         output.delta_t = params.max_t;
         output.theta_c = 15*3.14/180;
         if(input.h >= params.alt_toz) {

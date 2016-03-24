@@ -55,6 +55,8 @@ controller_base::controller_base():
 
     _actuators_pub = nh_.advertise<fcu_common::Command>("command",10);
     _act_pub_timer = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
+
+    _command_recieved = false;
 }
 
 void controller_base::vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg)
@@ -64,7 +66,8 @@ void controller_base::vehicle_state_callback(const fcu_common::FW_StateConstPtr&
 
 void controller_base::controller_commands_callback(const fcu_common::FW_Controller_CommandsConstPtr& msg)
 {
-  _controller_commands = *msg;
+    _command_recieved = true;
+    _controller_commands = *msg;
 }
 
 void controller_base::reconfigure_callback(ros_plane::ControllerConfig &config, uint32_t level)
@@ -128,20 +131,22 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
     input.Ts = 0.01f;
 
     struct output_s output;
+    if(_command_recieved == true)
+    {
+        control(_params, input, output);
 
-    control(_params, input, output);
+        convert_to_pwm(output);
 
-    convert_to_pwm(output);
+        fcu_common::Command actuators;
+        /* publish actuator controls */
 
-    fcu_common::Command actuators;
-    /* publish actuator controls */
+        actuators.normalized_roll = output.delta_a;//(isfinite(output.delta_a)) ? output.delta_a : 0.0f;
+        actuators.normalized_pitch = -1.0*output.delta_e;//(isfinite(output.delta_e)) ? output.delta_e : 0.0f;
+        actuators.normalized_yaw = output.delta_r;//(isfinite(output.delta_r)) ? output.delta_r : 0.0f;
+        actuators.normalized_throttle = output.delta_t;//(isfinite(output.delta_t)) ? output.delta_t : 0.0f;
 
-    actuators.normalized_roll = output.delta_a;//(isfinite(output.delta_a)) ? output.delta_a : 0.0f;
-    actuators.normalized_pitch = output.delta_e;//(isfinite(output.delta_e)) ? output.delta_e : 0.0f;
-    actuators.normalized_yaw = output.delta_r;//(isfinite(output.delta_r)) ? output.delta_r : 0.0f;
-    actuators.normalized_throttle = output.delta_t;//(isfinite(output.delta_t)) ? output.delta_t : 0.0f;
-
-    _actuators_pub.publish(actuators);
+        _actuators_pub.publish(actuators);
+    }
 }
 
 } //end namespace

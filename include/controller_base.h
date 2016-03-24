@@ -107,6 +107,7 @@ private:
 
     void vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg);
     void controller_commands_callback(const fcu_common::FW_Controller_CommandsConstPtr& msg);
+    bool _command_recieved;
 
     dynamic_reconfigure::Server<ros_plane::ControllerConfig> _server;
     dynamic_reconfigure::Server<ros_plane::ControllerConfig>::CallbackType _func;
