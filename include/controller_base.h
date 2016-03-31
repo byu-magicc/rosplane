@@ -53,42 +53,42 @@ protected:
     };
 
     struct params_s {
-        float alt_hz;           /**< altitude hold zone */
-        float alt_toz;          /**< altitude takeoff zone */
-        float tau;
-        float c_kp;
-        float c_kd;
-        float c_ki;
-        float r_kp;
-        float r_kd;
-        float r_ki;
-        float p_kp;
-        float p_kd;
-        float p_ki;
-        float p_ff;
-        float a_p_kp;
-        float a_p_kd;
-        float a_p_ki;
-        float a_t_kp;
-        float a_t_kd;
-        float a_t_ki;
-        float a_kp;
-        float a_kd;
-        float a_ki;
-        float b_kp;
-        float b_kd;
-        float b_ki;
-        float trim_e;
-        float trim_a;
-        float trim_r;
-        float trim_t;
-        float max_e;
-        float max_a;
-        float max_r;
-        float max_t;
-        float pwm_rad_e;
-        float pwm_rad_a;
-        float pwm_rad_r;
+        double alt_hz;           /**< altitude hold zone */
+        double alt_toz;          /**< altitude takeoff zone */
+        double tau;
+        double c_kp;
+        double c_kd;
+        double c_ki;
+        double r_kp;
+        double r_kd;
+        double r_ki;
+        double p_kp;
+        double p_kd;
+        double p_ki;
+        double p_ff;
+        double a_p_kp;
+        double a_p_kd;
+        double a_p_ki;
+        double a_t_kp;
+        double a_t_kd;
+        double a_t_ki;
+        double a_kp;
+        double a_kd;
+        double a_ki;
+        double b_kp;
+        double b_kd;
+        double b_ki;
+        double trim_e;
+        double trim_a;
+        double trim_r;
+        double trim_t;
+        double max_e;
+        double max_a;
+        double max_r;
+        double max_t;
+        double pwm_rad_e;
+        double pwm_rad_a;
+        double pwm_rad_r;
     };
 
     virtual void control(const struct params_s &params, const struct input_s &input, struct output_s &output) = 0;
