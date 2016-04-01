@@ -95,11 +95,11 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
 //        ROS_WARN("problem 20");
 //        hhat = 10;
 //    }
-//    if(!std::isfinite(Vahat) || Vahat < 0 || Vahat > 25)
-//    {
+    if(!std::isfinite(Vahat) || Vahat <= 0 || Vahat > 25)
+    {
 //        ROS_WARN("problem 21");
-//        Vahat = 9;
-//    }
+        Vahat = 9;
+    }
 
     // low pass filter accelerometers
     lpf_accel_x = alpha*lpf_accel_x + (1-alpha)*input.accel_x;

@@ -1,0 +1,35 @@
+<launch>
+
+ <rosparam subst_value="True">
+  naze:           { imu_pub_rate: 100.0,
+                    rc_send_rate: 50.0,
+                    timeout: 20 }
+
+ </rosparam>  
+
+ <rosparam command="load" file="$(find fcu_io)/param/rc.yaml"/>
+ 
+ <node name="naze"  pkg="fcu_io"  type="fcu_io_node" output="screen">
+ 	<param name="serial_port" value="/dev/ttyUSB1"/>
+ </node>
+ 
+
+ <node name="estimator" pkg="ros_plane" type="ros_plane_estimator"/>
+ 
+ <node name="controller" pkg="ros_plane" type="ros_plane_controller">
+	<param name="PWM_RAD_E" value="2.8"/>
+	<param name="PWM_RAD_A" value="-1.6"/>
+	<param name="PWM_RAD_R" value="1.8"/>
+ </node>
+
+ <!-- GPS -->
+ <node name="gps_driver" pkg="nmea_navsat_driver" type="nmea_serial_driver">
+	<param name="port" value="/dev/ttyUSB0"/>
+	<param name="baud" value="9600"/>
+ </node>
+
+ <node name="gps_conversion" pkg="fcu_common" type="fcu_common_gps"/>
+
+</launch>
+
+

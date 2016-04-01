@@ -9,7 +9,7 @@ estimator_base::estimator_base():
 {
     nh_private_.param<std::string>("gps_topic", gps_topic_, "/gps/data");
     nh_private_.param<std::string>("imu_topic", imu_topic_, "/imu/data");
-    nh_private_.param<std::string>("baro_topic", baro_topic_, "/baro/data");
+    nh_private_.param<std::string>("baro_topic", baro_topic_, "/baro/alt");
     nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "/airspeed/data");
     nh_private_.param<double>("update_rate", update_rate_, 100.0);
     params_.Ts = 1.0f/update_rate_;
