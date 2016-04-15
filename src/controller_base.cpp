@@ -1,5 +1,6 @@
 #include "controller_base.h"
 #include "controller_example.h"
+#include "controller_tecs.h"
 
 namespace rosplane {
 
@@ -153,7 +154,7 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "ros_plane_controller");
-  rosplane::controller_base* cont = new rosplane::controller_example();
+  rosplane::controller_base* cont = new rosplane::controller_tecs();
 
   ros::spin();
 

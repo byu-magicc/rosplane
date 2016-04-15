@@ -67,7 +67,7 @@ include_directories(
 # add_dependencies(ros_plane ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(ros_plane_controller src/controller_base.cpp src/controller_example.cpp)
+add_executable(ros_plane_controller src/controller_base.cpp src/controller_example.cpp src/controller_tecs.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
