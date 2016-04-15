@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ros_plane)
 
+
 find_package(catkin REQUIRED COMPONENTS
   fcu_common
   roscpp
