@@ -118,7 +118,7 @@ target_link_libraries(path_manager
   ${catkin_LIBRARIES}
 )
 
-add_executable(ros_plane_follower src/path_follower.cpp)
+add_executable(ros_plane_follower src/path_follower.cpp src/path_follower_base.cpp)
 target_link_libraries(ros_plane_follower
   ${catkin_LIBRARIES}
 )
