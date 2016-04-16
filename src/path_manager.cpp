@@ -69,7 +69,7 @@ void path_manager::current_path_publish(const ros::TimerEvent&)
 } //end namespace
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "ros_plane_controller");
+  ros::init(argc, argv, "ros_plane_path_manager");
   rosplane::path_manager path;
   ros::spin();
 
