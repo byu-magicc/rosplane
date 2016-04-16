@@ -38,7 +38,7 @@ protected:
         double c_e;
         double c_d;
         double rho;
-        int lambda;
+        bool lambda;
     };
 
 private:
