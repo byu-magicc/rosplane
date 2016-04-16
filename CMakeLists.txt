@@ -92,3 +92,10 @@ add_dependencies(ros_plane_estimator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catki
 target_link_libraries(ros_plane_estimator
   ${catkin_LIBRARIES}
 )
+
+## Declare a C++ executable
+add_executable(ros_plane_follower src/path_follower.cpp)
+target_link_libraries(ros_plane_follower
+  ${catkin_LIBRARIES}
+)
+add_dependencies(ros_plane_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
