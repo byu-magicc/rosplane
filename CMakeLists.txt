@@ -28,6 +28,7 @@ find_package(Eigen REQUIRED)
 # Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
   cfg/Controller.cfg
+  cfg/Manager.cfg
 )
 
 ###################################
@@ -66,10 +67,16 @@ include_directories(
 # add_dependencies(ros_plane ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(ros_plane_controller src/controller_base.cpp src/controller_example.cpp)
+add_executable(ros_plane_controller
+            src/controller_base.cpp
+            src/controller_example.cpp
+            include/controller_base.h
+            include/controller_example.h
+)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
+add_dependencies(ros_plane_controller ${PROJECT_NAME}_gencfg)
 add_dependencies(ros_plane_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
@@ -82,6 +89,8 @@ target_link_libraries(ros_plane_controller
 add_executable(ros_plane_estimator
             src/estimator_base.cpp
             src/estimator_example.cpp
+            include/estimator_base.h
+            include/estimator_example.h
 )
 
 ## Add cmake target dependencies of the executable
@@ -90,5 +99,21 @@ add_dependencies(ros_plane_estimator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catki
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(ros_plane_estimator
+  ${catkin_LIBRARIES}
+)
+
+## Declare a C++ executable
+add_executable(path_manager
+            src/path_manager.cpp
+            include/path_manager.h
+)
+
+## Add cmake target dependencies of the executable
+## same as for the library above
+add_dependencies(path_manager ${PROJECT_NAME}_gencfg)
+add_dependencies(path_manager ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(path_manager
   ${catkin_LIBRARIES}
 )
