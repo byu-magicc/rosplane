@@ -16,6 +16,33 @@ class path_follower
 {
 public:
   path_follower();
+  float spin();
+  virtual int getstate() = 0;
+
+protected:
+
+  struct inputs{
+    int flag;           // Straight path or orbit
+    float Va_d;          // desired airspeed
+    float r_path;
+    float q_path;
+    float c_orbit;
+    float rho_orbit;
+    float lam_orbit;
+    float pn;
+    float pe;
+    float chi;              /** course angle */
+  };
+
+  struct outputs{
+    float Va_c;         // commanded airspeed
+    float h_c;          // commanded altitude
+    float chi_c;        // commanded course
+    float phi_ff;       // phi feed forward term for orbit
+  };
+
+private:
+
 };
 
 } //end namespace
