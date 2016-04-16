@@ -103,7 +103,6 @@ target_link_libraries(ros_plane_estimator
 )
 
 ## Declare a C++ executable
-<<<<<<< HEAD
 add_executable(path_manager
             src/path_manager.cpp
             include/path_manager.h
@@ -118,10 +117,9 @@ add_dependencies(path_manager ${${PROJECT_NAME}_EXPORTED_TARGETS})
 target_link_libraries(path_manager
   ${catkin_LIBRARIES}
 )
-=======
+
 add_executable(ros_plane_follower src/path_follower.cpp)
 target_link_libraries(ros_plane_follower
   ${catkin_LIBRARIES}
 )
 add_dependencies(ros_plane_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
->>>>>>> feb643d3cc3bbe098f666543753d6bd1126b035c
