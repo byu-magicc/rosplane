@@ -18,7 +18,7 @@ path_manager::path_manager():
     nh_private_.param<double>("C_E", _params.c_e, 1.0);
     nh_private_.param<double>("C_D", _params.c_d, -100.0);
     nh_private_.param<double>("RHO", _params.rho, 400.0);
-    nh_private_.param<int>("LAMBDA", _params.lambda, -1);
+    nh_private_.param<bool>("LAMBDA", _params.lambda, true);
 
     _func = boost::bind(&path_manager::reconfigure_callback, this, _1, _2);
     _server.setCallback(_func);
@@ -61,7 +61,14 @@ void path_manager::current_path_publish(const ros::TimerEvent&)
     current_path.c[1] = _params.c_e;
     current_path.c[2] = _params.c_d;
     current_path.rho = _params.rho;
-    current_path.lambda = _params.lambda;
+    if (_params.lambda == true)
+    {
+        current_path.lambda = 1;
+    }
+    else
+    {
+        current_path.lambda = -1;
+    }
 
     _current_path_pub.publish(current_path);
 }
