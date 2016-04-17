@@ -1,4 +1,7 @@
 #include "path_follower_base.h"
+#include "path_follower.h"
+
+namespace rosplane {
 
 path_follower_base::path_follower_base()
 {
@@ -134,4 +137,15 @@ void path_follower_base::controller_commands_publish(output_s &output)
     } else {
         _controller_commands_pub = orb_advertise(ORB_ID(controller_commands), &_controller_commands);
     }
+}
+
+} //end namespace
+
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "ros_plane_follower");
+  rosplane::path_follower_base* cont = new rosplane::path_follower();
+
+  ros::spin();
+
+  return 0;
 }

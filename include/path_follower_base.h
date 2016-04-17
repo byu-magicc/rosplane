@@ -1,6 +1,45 @@
 #ifndef PATH_FOLLOWER_BASE_H
 #define PATH_FOLLOWER_BASE_H
 
+#include <ros/ros.h>
+#include <fcu_common/FW_State.h>
+#include <fcu_common/FW_Controller_Commands.h>
+#include <fcu_common/Command.h>
+#include <dynamic_reconfigure/server.h>
+#include <ros_plane/ControllerConfig.h>
+
+//#include <nuttx/config.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <poll.h>
+//#include <drivers/drv_hrt.h>
+#include <fcntl.h>
+//#include <nuttx/sched.h>
+//#include <sys/prctl.h>
+#include <termios.h>
+#include <errno.h>
+#include <limits.h>
+#include <math.h>
+#include <float.h>
+
+//#include <uORB/uORB.h>
+//#include <uORB/topics/parameter_update.h>
+//#include <uORB/topics/vehicle_state.h>
+//#include <uORB/topics/new_waypoint.h>
+//#include <uORB/topics/current_path.h>
+
+//#include <systemlib/param/param.h>
+//#include <systemlib/err.h>
+//#include <systemlib/perf_counter.h>
+//#include <systemlib/systemlib.h>
+//#include <lib/mathlib/mathlib.h>
+//#include <lib/geo/geo.h>
+
+namespace rosplane {
+
+
 class path_follower_base
 {
 public:
@@ -86,5 +125,7 @@ private:
     */
     void controller_commands_publish(struct output_s &output);
 };
+
+} // end namespace
 
 #endif // PATH_FOLLOWER_BASE_H
