@@ -9,6 +9,14 @@
 #include <ros_plane/ControllerConfig.h>
 #include <fcu_common/FW_Current_Path.h>
 #include <fcu_common/FW_Waypoint.h>
+#include <fcu_common/GPS.h>
+#include <sensor_msgs/Imu.h>
+#include <std_msgs/Float32.h>
+#include <std_msgs/Float32MultiArray.h>
+#include <sensor_msgs/FluidPressure.h>
+#include <math.h>
+#include <Eigen/Eigen>
+#include <ros_plane/ControllerConfig.h>
 
 //#include <nuttx/config.h>
 #include <unistd.h>
@@ -84,14 +92,14 @@ protected:
 
 private:
     int _params_sub;            /**< parameter updates subscription */
-    int _vehicle_state_sub;     /**< vehicle state subscription */
+//    int _vehicle_state_sub;     /**< vehicle state subscription */
     int _current_path_sub;      /**< current path subscription */
     struct pollfd fds[1];
     int poll_error_counter;
 
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
-//    ros::Subscriber _vehicle_state_sub;
+    ros::Subscriber _vehicle_state_sub;
     ros::Subscriber _current_path;
     ros::Publisher _controller_commands_pub;
 //    orb_advert_t _controller_commands_pub; /**< controller commands publication */
@@ -112,27 +120,27 @@ private:
     /**
     * Update our local parameter cache.
     */
-    int parameters_update();
-
+//    int parameters_update();
+    void vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg);
     /**
     * Check for parameter update and handle it.
     */
-    void parameter_update_poll();
+//    void parameter_update_poll();
 
     /**
     * Check for changes in vehicle state.
     */
-    void vehicle_state_poll();
+//    void vehicle_state_poll();
 
     /**
     * Check for changes in current path.
     */
-    void current_path_poll();
+//    void current_path_poll();
 
     /**
     * Publish the outputs
     */
-    void controller_commands_publish(struct output_s &output);
+//    void controller_commands_publish(struct output_s &output);
 };
 
 } // end namespace

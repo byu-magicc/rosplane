@@ -1,15 +1,21 @@
 #include "path_follower_base.h"
 #include "path_follower.h"
+#include "path_manager_base.h"
+#include "path_manager_example.h"
 
 namespace rosplane {
 
-path_follower_base::path_follower_base()
+path_follower_base::path_follower_base():
+  nh_(ros::NodeHandle()), /** nh_ stuff added here */
+  nh_private_(ros::NodeHandle("~"))
 {
-    _params_sub = orb_subscribe(ORB_ID(parameter_update));
-    _vehicle_state_sub = orb_subscribe(ORB_ID(vehicle_state));
-    _current_path_sub = orb_subscribe(ORB_ID(current_path));
-    fds[0].fd = _vehicle_state_sub;
-    fds[0].events = POLLIN;
+//    _params_sub = orb_subscribe(ORB_ID(parameter_update));
+//    _vehicle_state_sub = orb_subscribe(ORB_ID(vehicle_state));
+    _vehicle_state_sub = nh_.subscribe("state", 10, &path_follower_base::vehicle_state_callback, this);
+//    _current_path_sub = orb_subscribe(ORB_ID(current_path));
+    _current_path_sub = nh_.subscribe<fcu_common::FW_Current_Path>("current_path",10);
+//    fds[0].fd = _vehicle_state_sub;
+//    fds[0].events = POLLIN;
     poll_error_counter = 0;
 
     memset(&_vehicle_state, 0, sizeof(_vehicle_state));
@@ -17,13 +23,13 @@ path_follower_base::path_follower_base()
     memset(&_controller_commands, 0, sizeof(_controller_commands));
     memset(&_params, 0, sizeof(_params));
 
-    _params_handles.chi_infty      = param_find("UAVBOOK_CHI_INFTY");
-    _params_handles.k_path         = param_find("UAVBOOK_K_PATH");
-    _params_handles.k_orbit        = param_find("UAVBOOK_K_ORBIT");
+//    _params_handles.chi_infty      = param_find("UAVBOOK_CHI_INFTY");
+//    _params_handles.k_path         = param_find("UAVBOOK_K_PATH");
+//    _params_handles.k_orbit        = param_find("UAVBOOK_K_ORBIT");
 
-    parameters_update();
+//    parameters_update();
 
-    _controller_commands_pub = orb_advertise(ORB_ID(controller_commands), &_controller_commands);
+//    _controller_commands_pub = orb_advertise(ORB_ID(controller_commands), &_controller_commands);
 }
 
 float path_follower_base::spin()
@@ -42,9 +48,9 @@ float path_follower_base::spin()
         return -1;
     } else {
 
-        parameter_update_poll();
-        vehicle_state_poll();
-        current_path_poll();
+//        parameter_update_poll();
+//        vehicle_state_poll();
+//        current_path_poll();
 
         struct input_s input;
         input.flag = _current_path.flag;
@@ -70,82 +76,100 @@ float path_follower_base::spin()
 
         follow(_params, input, output);
 
-        controller_commands_publish(output);
+//        controller_commands_publish(output);
         return input.h;
     }
 }
 
-int path_follower_base::parameters_update()
+void path_follower_base::vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg)
 {
-    param_get(_params_handles.chi_infty, &_params.chi_infty);
-    param_get(_params_handles.k_path, &_params.k_path);
-    param_get(_params_handles.k_orbit, &_params.k_orbit);
+    _vehicle_state = *msg;
+    struct input_s input;
+    input.pn = _vehicle_state.position[0];               /** position north */
+//    ROS_ERROR_STREAM("States: \n pn: " << input.pn);
+    input.pe = _vehicle_state.position[1];               /** position east */
+    input.h =  _vehicle_state.position[2];                /** altitude */
+    input.chi = _vehicle_state.chi;
 
-    return OK;
+//    ROS_ERROR_STREAM("I'm about to manage some stuff");
+
+    struct output_s outputs;
+    struct params_s params;
+    follow(params, input, outputs);
+//    current_path_publish(outputs);
 }
 
-void path_follower_base::parameter_update_poll()
-{
-  bool updated;
+//int path_follower_base::parameters_update()
+//{
+//    param_get(_params_handles.chi_infty, &_params.chi_infty);
+//    param_get(_params_handles.k_path, &_params.k_path);
+//    param_get(_params_handles.k_orbit, &_params.k_orbit);
 
-  /* Check if param status has changed */
-  orb_check(_params_sub, &updated);
+//    return OK;
+//}
 
-  if (updated) {
-    struct parameter_update_s param_update;
-    orb_copy(ORB_ID(parameter_update), _params_sub, &param_update);
-    parameters_update();
-  }
-}
+//void path_follower_base::parameter_update_poll()
+//{
+//  bool updated;
 
-void path_follower_base::vehicle_state_poll()
-{
-    bool updated;
+//  /* Check if param status has changed */
+//  orb_check(_params_sub, &updated);
 
-    /* get the state */
-    orb_check(_vehicle_state_sub, &updated);
+//  if (updated) {
+//    struct parameter_update_s param_update;
+//    orb_copy(ORB_ID(parameter_update), _params_sub, &param_update);
+//    parameters_update();
+//  }
+//}
 
-    if (updated) {
-        orb_copy(ORB_ID(vehicle_state), _vehicle_state_sub, &_vehicle_state);
-    }
-}
+//void path_follower_base::vehicle_state_poll()
+//{
+//    bool updated;
 
-void path_follower_base::current_path_poll()
-{
-    bool updated;
+//    /* get the state */
+//    orb_check(_vehicle_state_sub, &updated);
 
-    /* get the state */
-    orb_check(_current_path_sub, &updated);
+//    if (updated) {
+//        orb_copy(ORB_ID(vehicle_state), _vehicle_state_sub, &_vehicle_state);
+//    }
+//}
 
-    if (updated) {
-        orb_copy(ORB_ID(current_path), _current_path_sub, &_current_path);
-    }
-}
+//void path_follower_base::current_path_poll()
+//{
+//    bool updated;
 
-void path_follower_base::controller_commands_publish(output_s &output)
-{
-    /* publish actuator controls */
-    _controller_commands.Va_c = (isfinite(output.Va_c) ? output.Va_c : 9.5f);
-    _controller_commands.h_c = (isfinite(output.h_c) ? output.h_c : 25.0f);
-    _controller_commands.chi_c = (isfinite(output.chi_c) ? output.chi_c : 0.0f);
+//    /* get the state */
+//    orb_check(_current_path_sub, &updated);
 
-    _controller_commands.timestamp = hrt_absolute_time();
+//    if (updated) {
+//        orb_copy(ORB_ID(current_path), _current_path_sub, &_current_path);
+//    }
+//}
 
-    if (_controller_commands_pub > 0) {
-        orb_publish(ORB_ID(controller_commands), _controller_commands_pub, &_controller_commands);
+//void path_follower_base::controller_commands_publish(output_s &output)
+//{
+//    /* publish actuator controls */
+//    _controller_commands.Va_c = (isfinite(output.Va_c) ? output.Va_c : 9.5f);
+//    _controller_commands.h_c = (isfinite(output.h_c) ? output.h_c : 25.0f);
+//    _controller_commands.chi_c = (isfinite(output.chi_c) ? output.chi_c : 0.0f);
 
-    } else {
-        _controller_commands_pub = orb_advertise(ORB_ID(controller_commands), &_controller_commands);
-    }
-}
+//    _controller_commands.timestamp = hrt_absolute_time();
+
+//    if (_controller_commands_pub > 0) {
+//        orb_publish(ORB_ID(controller_commands), _controller_commands_pub, &_controller_commands);
+
+//    } else {
+//        _controller_commands_pub = orb_advertise(ORB_ID(controller_commands), &_controller_commands);
+//    }
+//}
 
 } //end namespace
 
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "ros_plane_follower");
-  rosplane::path_follower_base* cont = new rosplane::path_follower();
+//int main(int argc, char** argv) {
+//  ros::init(argc, argv, "ros_plane_follower");
+//  rosplane::path_follower_base* cont = new rosplane::path_follower();
 
-  ros::spin();
+//  ros::spin();
 
-  return 0;
-}
+//  return 0;
+//}
