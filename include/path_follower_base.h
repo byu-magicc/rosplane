@@ -83,9 +83,9 @@ protected:
     };
 
     struct params_s {
-        float chi_infty;
-        float k_path;
-        float k_orbit;
+        double chi_infty;
+        double k_path;
+        double k_orbit;
     };
 
     virtual void follow(const struct params_s &params, const struct input_s &input, struct output_s &output) = 0;
@@ -93,14 +93,15 @@ protected:
 private:
     int _params_sub;            /**< parameter updates subscription */
 //    int _vehicle_state_sub;     /**< vehicle state subscription */
-    int _current_path_sub;      /**< current path subscription */
+//    int _current_path_sub;      /**< current path subscription */
     struct pollfd fds[1];
     int poll_error_counter;
 
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
     ros::Subscriber _vehicle_state_sub;
-    ros::Subscriber _current_path;
+    ros::Subscriber _current_path_sub;
+
     ros::Publisher _controller_commands_pub;
 //    orb_advert_t _controller_commands_pub; /**< controller commands publication */
 
@@ -110,7 +111,7 @@ private:
         double k_orbit;
     }; /**< handles for interesting parameters */
     fcu_common::FW_State _vehicle_state;
-    fcu_common::FW_Current_Path _current_path_s;
+    fcu_common::FW_Current_Path _current_path;
     fcu_common::FW_Controller_Commands _controller_commands;
 //    struct vehicle_state_s _vehicle_state;     /**< vehicle state */
 //    struct current_path_s              _current_path;      /**< current path */
@@ -122,6 +123,10 @@ private:
     */
 //    int parameters_update();
     void vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg);
+    void current_path_callback(const fcu_common::FW_Current_PathConstPtr& msg);
+
+    dynamic_reconfigure::Server<ros_plane::ControllerConfig> _server;
+    dynamic_reconfigure::Server<ros_plane::ControllerConfig>::CallbackType _func;
     /**
     * Check for parameter update and handle it.
     */

@@ -11,17 +11,24 @@ path_follower_base::path_follower_base():
 {
 //    _params_sub = orb_subscribe(ORB_ID(parameter_update));
 //    _vehicle_state_sub = orb_subscribe(ORB_ID(vehicle_state));
-    _vehicle_state_sub = nh_.subscribe("state", 10, &path_follower_base::vehicle_state_callback, this);
+    _vehicle_state_sub = nh_.subscribe<fcu_common::FW_State>("state", 10, &path_follower_base::vehicle_state_callback, this);
 //    _current_path_sub = orb_subscribe(ORB_ID(current_path));
-    _current_path_sub = nh_.subscribe<fcu_common::FW_Current_Path>("current_path",10);
+    _current_path_sub = nh_.subscribe<fcu_common::FW_Current_Path>("current_path",10, &path_follower_base::current_path_callback, this);
 //    fds[0].fd = _vehicle_state_sub;
 //    fds[0].events = POLLIN;
     poll_error_counter = 0;
 
+    nh_private_.param<double>("CHI_INFTY", _params.chi_infty,0.0);
+    nh_private_.param<double>("K_PATH", _params.k_path,0.0);
+    nh_private_.param<double>("K_ORBIT", _params.k_orbit,0.0);
+
+    _func = boost::bind(&path_follower_base::reconfigure_callback, this, _1, _2);
+    _server.setCallback(_func);
+
     memset(&_vehicle_state, 0, sizeof(_vehicle_state));
     memset(&_current_path, 0, sizeof(_current_path));
-    memset(&_controller_commands, 0, sizeof(_controller_commands));
-    memset(&_params, 0, sizeof(_params));
+//    memset(&_controller_commands, 0, sizeof(_controller_commands));
+//    memset(&_params, 0, sizeof(_params));
 
 //    _params_handles.chi_infty      = param_find("UAVBOOK_CHI_INFTY");
 //    _params_handles.k_path         = param_find("UAVBOOK_K_PATH");
@@ -53,16 +60,16 @@ float path_follower_base::spin()
 //        current_path_poll();
 
         struct input_s input;
-        input.flag = _current_path.flag;
-        input.Va_d = _current_path.Va_d;
-        for(int i=0;i<3;i++)
-        {
-            input.r_path[i] = _current_path.r[i];
-            input.q_path[i] = _current_path.q[i];
-            input.c_orbit[i] = _current_path.c[i];
-        }
-        input.rho_orbit = _current_path.rho;
-        input.lam_orbit = _current_path.lambda;
+//        input.flag = _current_path.flag;
+//        input.Va_d = _current_path.Va_d;
+//        for(int i=0;i<3;i++)
+//        {
+//            input.r_path[i] = _current_path.r[i];
+//            input.q_path[i] = _current_path.q[i];
+//            input.c_orbit[i] = _current_path.c[i];
+//        }
+//        input.rho_orbit = _current_path.rho;
+//        input.lam_orbit = _current_path.lambda;
         input.pn = _vehicle_state.position[0];               /** position north */
         input.pe = _vehicle_state.position[1];               /** position east */
         input.h = _vehicle_state.position[2];                /** altitude */
@@ -97,6 +104,22 @@ void path_follower_base::vehicle_state_callback(const fcu_common::FW_StateConstP
     struct params_s params;
     follow(params, input, outputs);
 //    current_path_publish(outputs);
+}
+
+void path_follower_base::current_path_callback(const fcu_common::FW_Current_PathConstPtr& msg)
+{
+    _current_path = *msg;
+    struct input_s input;
+    input.flag = _current_path.flag;
+    input.Va_d = _current_path.Va_d;
+    for(int i=0;i<3;i++)
+    {
+        input.r_path[i] = _current_path.r[i];
+        input.q_path[i] = _current_path.q[i];
+        input.c_orbit[i] = _current_path.c[i];
+    }
+    input.rho_orbit = _current_path.rho;
+    input.lam_orbit = _current_path.lambda;
 }
 
 //int path_follower_base::parameters_update()
