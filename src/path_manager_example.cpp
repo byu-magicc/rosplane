@@ -13,7 +13,7 @@ void path_manager_example::manage(const params_s &params, const input_s &input, 
 {
     //    ROS_ERROR_STREAM("Waypoint 5 =\t" << _waypoints[_num_waypoints -1].w[0] );
     //    ROS_ERROR_STREAM("Num_Waypoints=\t" << _num_waypoints );
-        ROS_ERROR_STREAM("I got into the MAIN manage function");
+//        ROS_ERROR_STREAM("I got into the MAIN manage function");
 
     if(_num_waypoints < 2)
     {
@@ -44,7 +44,7 @@ void path_manager_example::manage(const params_s &params, const input_s &input, 
 
 void path_manager_example::manage_line(const params_s &params, const input_s &input, output_s &output)
 {
-    ROS_ERROR_STREAM("I got into the manage LINE function");
+//    ROS_ERROR_STREAM("I got into the manage LINE function");
 
     Eigen::Vector3f p;
     p(0) = input.pn;
@@ -111,7 +111,7 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
 void path_manager_example::manage_fillet(const params_s &params, const input_s &input, output_s &output)
 {
 
-   ROS_ERROR_STREAM("I got into the manage FILLET function");
+//   ROS_ERROR_STREAM("I got into the manage FILLET function");
 
     Eigen::Vector3f p;
     p(0) = input.pn;

@@ -16,7 +16,7 @@
 #include <sensor_msgs/FluidPressure.h>
 #include <math.h>
 #include <Eigen/Eigen>
-#include <ros_plane/ControllerConfig.h>
+#include <ros_plane/FollowerConfig.h>
 
 //#include <nuttx/config.h>
 #include <unistd.h>
@@ -77,9 +77,9 @@ protected:
     };
 
     struct output_s{
-        float Va_c;             /** commanded airspeed (m/s) */
-        float h_c;              /** commanded altitude (m) */
-        float chi_c;            /** commanded course (rad) */
+        double Va_c;             /** commanded airspeed (m/s) */
+        double h_c;              /** commanded altitude (m) */
+        double chi_c;            /** commanded course (rad) */
     };
 
     struct params_s {
@@ -102,7 +102,10 @@ private:
     ros::Subscriber _vehicle_state_sub;
     ros::Subscriber _current_path_sub;
 
-    ros::Publisher _controller_commands_pub;
+    ros::Publisher controller_commands_pub_;
+
+    double update_rate_ = 100.0;
+    ros::Timer update_timer_;
 //    orb_advert_t _controller_commands_pub; /**< controller commands publication */
 
     struct _params_handles {
@@ -116,7 +119,8 @@ private:
 //    struct vehicle_state_s _vehicle_state;     /**< vehicle state */
 //    struct current_path_s              _current_path;      /**< current path */
 //    struct controller_commands_s       _controller_commands;/**< controller commands */
-    struct params_s                    _params;            /**< params */
+    struct params_s  _params;            /**< params */
+    struct input_s _input;
 
     /**
     * Update our local parameter cache.
@@ -125,8 +129,10 @@ private:
     void vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg);
     void current_path_callback(const fcu_common::FW_Current_PathConstPtr& msg);
 
-    dynamic_reconfigure::Server<ros_plane::ControllerConfig> _server;
-    dynamic_reconfigure::Server<ros_plane::ControllerConfig>::CallbackType _func;
+    dynamic_reconfigure::Server<ros_plane::FollowerConfig> _server;
+    dynamic_reconfigure::Server<ros_plane::FollowerConfig>::CallbackType _func;
+    void reconfigure_callback(ros_plane::FollowerConfig &config, uint32_t level);
+    void update(const ros::TimerEvent &);
     /**
     * Check for parameter update and handle it.
     */

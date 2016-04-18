@@ -29,6 +29,7 @@ find_package(Eigen REQUIRED)
 generate_dynamic_reconfigure_options(
   cfg/Controller.cfg
   cfg/Manager.cfg
+  cfg/Follower.cfg
 )
 
 ###################################
@@ -123,6 +124,7 @@ target_link_libraries(ros_plane_follower
   ${catkin_LIBRARIES}
 )
 add_dependencies(ros_plane_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(ros_plane_follower ${PROJECT_NAME}_gencfg)
 
 ## ADDED THIS:  COPPIED FROM ABOVE
 ## Declare a C++ executable
@@ -138,3 +140,5 @@ add_dependencies(ros_plane_path_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${ca
 target_link_libraries(ros_plane_path_manager
   ${catkin_LIBRARIES}
 )
+
+

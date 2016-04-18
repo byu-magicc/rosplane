@@ -29,19 +29,19 @@ path_manager::path_manager():
 
 void path_manager::reconfigure_callback(ros_plane::ManagerConfig &config, uint32_t level)
 {
-  _params.flag = config.FLAG;
-  _params.va_d = config.VA_D;
-  _params.r_n = config.RN;
-  _params.r_e = config.RE;
-  _params.r_d = config.RD;
-  _params.q_n = config.QN;
-  _params.q_e = config.QE;
-  _params.q_d = config.QD;
-  _params.c_n = config.CN;
-  _params.c_e = config.CE;
-  _params.c_d = config.CD;
-  _params.rho = config.RHO;
-  _params.lambda = config.LAMBDA;
+//  _params.flag = config.FLAG;
+//  _params.va_d = config.VA_D;
+//  _params.r_n = config.RN;
+//  _params.r_e = config.RE;
+//  _params.r_d = config.RD;
+//  _params.q_n = config.QN;
+//  _params.q_e = config.QE;
+//  _params.q_d = config.QD;
+//  _params.c_n = config.CN;
+//  _params.c_e = config.CE;
+//  _params.c_d = config.CD;
+//  _params.rho = config.RHO;
+//  _params.lambda = config.LAMBDA;
 }
 
 void path_manager::current_path_publish(const ros::TimerEvent&)

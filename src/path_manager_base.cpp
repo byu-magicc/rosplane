@@ -185,7 +185,7 @@ void path_manager_base::waypoint_init()
     _waypoints[_num_waypoints].w[2]      = -100;
     _waypoints[_num_waypoints].chi_d     = -9999;
     _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 35;
+    _waypoints[_num_waypoints].Va_d      = 30;
     _num_waypoints++;
 
     _waypoints[_num_waypoints].w[0]      = 1000;
@@ -193,7 +193,7 @@ void path_manager_base::waypoint_init()
     _waypoints[_num_waypoints].w[2]      = -100;
     _waypoints[_num_waypoints].chi_d     = -9999;
     _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 35;
+    _waypoints[_num_waypoints].Va_d      = 30;
     _num_waypoints++;
 
     _waypoints[_num_waypoints].w[0]      = 0;
@@ -201,7 +201,7 @@ void path_manager_base::waypoint_init()
     _waypoints[_num_waypoints].w[2]      = -100;
     _waypoints[_num_waypoints].chi_d     = -9999;
     _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 35;
+    _waypoints[_num_waypoints].Va_d      = 30;
     _num_waypoints++;
 
     _waypoints[_num_waypoints].w[0]      = 1000;
@@ -209,7 +209,7 @@ void path_manager_base::waypoint_init()
     _waypoints[_num_waypoints].w[2]      = -100;
     _waypoints[_num_waypoints].chi_d     = -9999;
     _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 35;
+    _waypoints[_num_waypoints].Va_d      = 30;
     _num_waypoints++;
 
     _waypoints[_num_waypoints].w[0]      = 0;
@@ -217,7 +217,7 @@ void path_manager_base::waypoint_init()
     _waypoints[_num_waypoints].w[2]      = -100;
     _waypoints[_num_waypoints].chi_d     = -9999;
     _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 35;
+    _waypoints[_num_waypoints].Va_d      = 30;
     _num_waypoints++;
 
 
