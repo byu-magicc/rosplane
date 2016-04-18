@@ -18,6 +18,8 @@
 #include <fcu_common/FW_Controller_Commands.h>
 #include <fcu_common/Command.h>
 #include <fcu_common/GPS.h>
+#include <fcu_common/FW_Current_Path.h>
+#include <fcu_common/FW_Waypoint.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Float32MultiArray.h>
@@ -66,8 +68,8 @@ class path_manager_base
 {
 public:
     path_manager_base();
-    float spin();
-
+    //    float spin();
+    void waypoint_init();
 protected:
 
     struct waypoint_s{
@@ -110,7 +112,7 @@ private:
     */
     ros::NodeHandle nh_; /** ADDED NH_ STUFF */
     ros::NodeHandle nh_private_;
-//    ros::Subscriber _params_sub;     //NEEDED??       /**< parameter updates subscription */
+    //    ros::Subscriber _params_sub;     //NEEDED??       /**< parameter updates subscription */
     ros::Subscriber _vehicle_state_sub;     /**< vehicle state subscription */
     ros::Subscriber _new_waypoint_sub;      /**< new waypoint subscription */
     ros::Publisher  _current_path_pub;      /**< controller commands publication */
@@ -126,9 +128,9 @@ private:
     UNSURE WHAT PARAM_T IS.  IS THIS NEEDED??
     */
     struct params_s                 params_;
-//    struct {
-//        param_t R_min;
-//    } _params_handles; /**< handles for interesting parameters */
+    //    struct {
+    //        param_t R_min;
+    //    } _params_handles; /**< handles for interesting parameters */
 
     /**
     TRYING TO MAKE THESE ROS VARAIBLES.
@@ -137,8 +139,8 @@ private:
     /**
     HOW TO MAKE THESE ROS VARIABLES?? DO WE EVEN NEED THESE??
     */
-//    struct current_path_s              _current_path;      /**< current path */
-//    struct params_s                    _params;            /**< params */
+    //    struct current_path_s              _current_path;      /**< current path */
+    //    struct params_s                    _params;            /**< params */
 
     //    struct vehicle_state_s             _vehicle_state;     /**< vehicle state */
     //    struct current_path_s              _current_path;      /**< current path */
@@ -148,13 +150,13 @@ private:
     TRYING TO MAKE THESE CALLBACKS FROM SUBSCRIBERS AND PUBLISHERS.
     */
     //Update our local parameter cache.
-//    int parameters_update();  /** WHAT ARE THE LOCAL PARAMETERS?*/
+    //    int parameters_update();  /** WHAT ARE THE LOCAL PARAMETERS?*/
 
     /**
       SWAPPED _POLL's FOR CALLBACK's
     */
     //Check for parameter update and handle it.
-//    void parameter_update_callback(); /** WHAT IS NEEDED IN PARENTHASES HERE??*/
+    //    void parameter_update_callback(); /** WHAT IS NEEDED IN PARENTHASES HERE??*/
     //void parameter_update_poll();
 
     //Check for changes in vehicle state.
@@ -162,7 +164,8 @@ private:
     //    void vehicle_state_poll();
 
     //Check for new waypoints.
-    void new_waypoint_callback(const std_msgs::Float32MultiArray &msg);  /** ADDED SUBSCRIBER IN .CPP*/
+    //LOOK HERE AT LACK OF CONSTPTR.  WHY IS THIS NOT THE SAME AS STATE SUBSCRIBER??
+    void new_waypoint_callback(const fcu_common::FW_Waypoint &msg);  /** ADDED SUBSCRIBER IN .CPP*/
     //    void new_waypoint_poll();
 
 

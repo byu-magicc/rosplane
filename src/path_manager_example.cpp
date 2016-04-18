@@ -11,6 +11,10 @@ path_manager_example::path_manager_example() : path_manager_base()
 
 void path_manager_example::manage(const params_s &params, const input_s &input, output_s &output)
 {
+    //    ROS_ERROR_STREAM("Waypoint 5 =\t" << _waypoints[_num_waypoints -1].w[0] );
+    //    ROS_ERROR_STREAM("Num_Waypoints=\t" << _num_waypoints );
+        ROS_ERROR_STREAM("I got into the MAIN manage function");
+
     if(_num_waypoints < 2)
     {
         output.flag = true;
@@ -32,19 +36,21 @@ void path_manager_example::manage(const params_s &params, const input_s &input, 
         {
             manage_dubins(params, input, output);
         } else {
-            //manage_line(params, input, output);
-            manage_fillet(params, input, output);
+            manage_line(params, input, output);
+//            manage_fillet(params, input, output);
         }
     }
 }
 
 void path_manager_example::manage_line(const params_s &params, const input_s &input, output_s &output)
 {
+    ROS_ERROR_STREAM("I got into the manage LINE function");
+
     Eigen::Vector3f p;
     p(0) = input.pn;
     p(1) = input.pe;
     p(2) = -input.h;
-
+    ROS_ERROR_STREAM("The Input States Are:\n pn = " << input.pn << "\n pe = " << input.pe<<"\n h = "<<input.h);
     waypoint_s* ptr_b;
     waypoint_s* ptr_c;
     if(_ptr_a == &_waypoints[_num_waypoints - 1])
@@ -104,6 +110,9 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
 
 void path_manager_example::manage_fillet(const params_s &params, const input_s &input, output_s &output)
 {
+
+   ROS_ERROR_STREAM("I got into the manage FILLET function");
+
     Eigen::Vector3f p;
     p(0) = input.pn;
     p(1) = input.pe;
@@ -339,7 +348,7 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
 Eigen::Matrix3f path_manager_example::rotz(float theta)
 {
     Eigen::Matrix3f R;
-//    R.zero();
+    //    R.zero();
     R(0,0) = cosf(theta);
     R(0,1) = -sinf(theta);
     R(1,0) = sinf(theta);
@@ -399,7 +408,7 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
         // compute L1
         theta = atan2f(cre(1) - crs(1), cre(0) - crs(0));
         float L1 = (crs - cre).size() + R*mo(2*M_PI_F + mo(theta - M_PI_2_F) - mo(_dubinspath.chis - M_PI_2_F))
-                                        + R*mo(2*M_PI_F + mo(_dubinspath.chie - M_PI_2_F) - mo(theta - M_PI_2_F));
+                + R*mo(2*M_PI_F + mo(_dubinspath.chie - M_PI_2_F) - mo(theta - M_PI_2_F));
 
         // compute L2
         ell = (cle - crs).size();
@@ -411,7 +420,7 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
         {
             theta2 = theta - M_PI_2_F + asinf(2*R/ell);
             L2 = sqrtf(ell*ell - 4*R*R) + R*mo(2*M_PI_F + mo(theta2) - mo(_dubinspath.chis - M_PI_2_F))
-                                        + R*mo(2*M_PI_F + mo(theta2 + M_PI_F) - mo(_dubinspath.chie + M_PI_2_F));
+                    + R*mo(2*M_PI_F + mo(theta2 + M_PI_F) - mo(_dubinspath.chie + M_PI_2_F));
         }
 
         // compute L3
@@ -424,13 +433,13 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
         {
             theta2 = acosf(2*R/ell);
             L3 = sqrtf(ell*ell - 4*R*R) + R*mo(2*M_PI_F + mo(_dubinspath.chis + M_PI_2_F) - mo(theta + theta2))
-                                        + R*mo(2*M_PI_F + mo(_dubinspath.chie - M_PI_2_F) - mo(theta + theta2 - M_PI_F));
+                    + R*mo(2*M_PI_F + mo(_dubinspath.chie - M_PI_2_F) - mo(theta + theta2 - M_PI_F));
         }
 
         // compute L4
         theta = atan2f(cle(1) - cls(1), cle(0) - cls(0));
         float L4 = (cls - cle).size() + R*mo(2*M_PI_F + mo(_dubinspath.chis + M_PI_2_F) - mo(theta + M_PI_2_F))
-                                        + R*mo(2*M_PI_F + mo(theta + M_PI_2_F) - mo(_dubinspath.chie + M_PI_2_F));
+                + R*mo(2*M_PI_F + mo(theta + M_PI_2_F) - mo(_dubinspath.chie + M_PI_2_F));
 
         // L is the minimum distance
         int idx = 1;
@@ -443,7 +452,7 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
         { _dubinspath.L = L4; idx = 4; }
 
         Eigen::Vector3f e1;
-//        e1.zero();
+        //        e1.zero();
         e1(0) = 1;
         switch(idx) {
         case 1:

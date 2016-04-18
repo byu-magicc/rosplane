@@ -9,7 +9,9 @@ path_manager_base::path_manager_base():
     nh_(ros::NodeHandle()), /** nh_ stuff added here */
     nh_private_(ros::NodeHandle("~"))
 {
-//    nh_private_.param<double>("R_min", params_.R_min, 20);
+    //    run();
+
+    //    nh_private_.param<double>("R_min", params_.R_min, 20);
 
     _vehicle_state_sub = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
     // Replaced by: _vehicle_state_sub = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
@@ -22,7 +24,7 @@ path_manager_base::path_manager_base():
     /**
       Publisher added for current path.  Assumes Path Planner Publishes "current_path" topic with message type Float32MultiArray
       */
-    _current_path_pub = nh_.advertise<std_msgs::Float32MultiArray>("current_path",10);
+    _current_path_pub = nh_.advertise<fcu_common::FW_Current_Path>("current_path",10);
 
     // ORB_ID Generates a pointer to the uORB metadata structure for a given topic
     // orb_subscribe Subscribe to a topic.
@@ -33,6 +35,7 @@ path_manager_base::path_manager_base():
     //    fds[0].events = POLLIN; // I have no Idea what POLLIN is not in header
     //    poll_error_counter = 0;
 
+    /** check this-----------------------------------------------------*/
     //    memset(&_vehicle_state, 0, sizeof(_vehicle_state));
     //    memset(&_current_path, 0, sizeof(_current_path));
     //    memset(&_params, 0, sizeof(_params));
@@ -42,14 +45,16 @@ path_manager_base::path_manager_base():
     //        memset(&_waypoints[i], 0, sizeof(_waypoints[i]));
     //        _waypoints[i].w[2] = 30.0f;
     //    }
+    /** end check this-----------------------------------------------------*/
 
     _num_waypoints = 0;
     _ptr_a = &_waypoints[0];
+    waypoint_init();
 
     /** How do we get R_min in here? Can we just hard code it?*/
-//    _params_handles.R_min      = param_find("UAVBOOK_R_MIN");
+    //    _params_handles.R_min      = param_find("UAVBOOK_R_MIN");
 
-//    parameters_update();
+    //    parameters_update();
 
     //    _current_path_pub = orb_advertise(ORB_ID(current_path), &_current_path);
 }
@@ -74,7 +79,7 @@ path_manager_base::path_manager_base():
 
 //        parameter_update_poll();
 
-//        _vehicle_state_sub = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
+//        Replaced by: _vehicle_state_sub = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
 //        vehicle_state_poll();
 
 //         Replaced by: new_waypoint = nh_.subscribe("new_waypoint", 10, &path_manager_base::new_waypoint_callback, this);
@@ -116,7 +121,7 @@ path_manager_base::path_manager_base():
 //    }
 //}
 
-/* Judd thinks this is covered by path_manager_base::vehicle_state_callback
+/* replaced by path_manager_base::vehicle_state_callback
 
 void path_manager_base::vehicle_state_poll()
 {
@@ -134,6 +139,19 @@ void path_manager_base::vehicle_state_poll()
 void path_manager_base::vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg)
 {
     _vehicle_state = *msg;
+    struct input_s input;
+    input.pn = _vehicle_state.position[0];               /** position north */
+//    ROS_ERROR_STREAM("States: \n pn: " << input.pn);
+    input.pe = _vehicle_state.position[1];               /** position east */
+    input.h =  _vehicle_state.position[2];                /** altitude */
+    input.chi = _vehicle_state.chi;
+
+//    ROS_ERROR_STREAM("I'm about to manage some stuff");
+
+    struct output_s outputs;
+    struct params_s params;
+    manage(params, input, outputs);
+    current_path_publish(outputs);
 }
 
 /*  void path_manager_base::new_waypoint_poll()
@@ -160,15 +178,62 @@ estimator
     }
 }*/
 
-//msg should be a pointer??
-void path_manager_base::new_waypoint_callback(const std_msgs::Float32MultiArray &msg)
+void path_manager_base::waypoint_init()
 {
-    _waypoints[_num_waypoints].w[0]      = msg.data[0];
-    _waypoints[_num_waypoints].w[1]      = msg.data[1];
-    _waypoints[_num_waypoints].w[2]      = msg.data[2];
-    _waypoints[_num_waypoints].chi_d     = msg.data[3];
-    _waypoints[_num_waypoints].chi_valid = msg.data[4];
-    _waypoints[_num_waypoints].Va_d      = msg.data[5];
+    _waypoints[_num_waypoints].w[0]      = 0;
+    _waypoints[_num_waypoints].w[1]      = 0;
+    _waypoints[_num_waypoints].w[2]      = -100;
+    _waypoints[_num_waypoints].chi_d     = -9999;
+    _waypoints[_num_waypoints].chi_valid = 0;
+    _waypoints[_num_waypoints].Va_d      = 35;
+    _num_waypoints++;
+
+    _waypoints[_num_waypoints].w[0]      = 1000;
+    _waypoints[_num_waypoints].w[1]      = 0;
+    _waypoints[_num_waypoints].w[2]      = -100;
+    _waypoints[_num_waypoints].chi_d     = -9999;
+    _waypoints[_num_waypoints].chi_valid = 0;
+    _waypoints[_num_waypoints].Va_d      = 35;
+    _num_waypoints++;
+
+    _waypoints[_num_waypoints].w[0]      = 0;
+    _waypoints[_num_waypoints].w[1]      = 100;
+    _waypoints[_num_waypoints].w[2]      = -100;
+    _waypoints[_num_waypoints].chi_d     = -9999;
+    _waypoints[_num_waypoints].chi_valid = 0;
+    _waypoints[_num_waypoints].Va_d      = 35;
+    _num_waypoints++;
+
+    _waypoints[_num_waypoints].w[0]      = 1000;
+    _waypoints[_num_waypoints].w[1]      = 1000;
+    _waypoints[_num_waypoints].w[2]      = -100;
+    _waypoints[_num_waypoints].chi_d     = -9999;
+    _waypoints[_num_waypoints].chi_valid = 0;
+    _waypoints[_num_waypoints].Va_d      = 35;
+    _num_waypoints++;
+
+    _waypoints[_num_waypoints].w[0]      = 0;
+    _waypoints[_num_waypoints].w[1]      = 0;
+    _waypoints[_num_waypoints].w[2]      = -100;
+    _waypoints[_num_waypoints].chi_d     = -9999;
+    _waypoints[_num_waypoints].chi_valid = 0;
+    _waypoints[_num_waypoints].Va_d      = 35;
+    _num_waypoints++;
+
+
+
+}
+
+//msg should be a pointer??
+void path_manager_base::new_waypoint_callback(const fcu_common::FW_Waypoint& msg)
+{
+    _waypoints[_num_waypoints].w[0]      = msg.w[0];
+    _waypoints[_num_waypoints].w[1]      = msg.w[1];
+    _waypoints[_num_waypoints].w[2]      = msg.w[2];
+    _waypoints[_num_waypoints].chi_d     = msg.chi_d;
+    _waypoints[_num_waypoints].chi_valid = msg.chi_valid;
+    _waypoints[_num_waypoints].Va_d      = msg.Va_d;
+    _num_waypoints++;
 }
 
 
@@ -195,28 +260,18 @@ void path_manager_base::current_path_publish(output_s &output)
     } else {
         _current_path_pub = orb_advertise(ORB_ID(current_path), &_current_path);
     }*/
-    std_msgs::Float32MultiArray current_path;
+    fcu_common::FW_Current_Path current_path;
 
-    current_path.data.push_back(output.flag);
-    current_path.data.push_back(output.Va_d);
-
-    /** COULDN'T FIND BETTER SOLUTION WITH GIVE ROS MESSAGE TYPES AND OUR KNOWLEDGE
-     * SO WE ARE JUST USING A ONE DIMENSIONAL ARRAY */
+    current_path.flag = output.flag;
+    current_path.Va_d = output.Va_d;
     for(int i=0;i<3;i++)
     {
-        current_path.data.push_back(output.r[i]);
+        current_path.r[i] = output.r[i];
+        current_path.q[i] = output.q[i];
+        current_path.c[i] = output.c[i];
     }
-    for(int i=0;i<3;i++)
-    {
-        current_path.data.push_back(output.q[i]);
-    }
-    for(int i=0;i<3;i++)
-    {
-        current_path.data.push_back(output.c[i]);
-    }
-
-    current_path.data.push_back(output.rho);
-    current_path.data.push_back(output.lambda);
+    current_path.rho = output.rho;
+    current_path.lambda = output.lambda;
 
     _current_path_pub.publish(current_path);
 }
@@ -227,10 +282,10 @@ void path_manager_base::current_path_publish(output_s &output)
  * ADDED THIS INT MAIN STUFF
  */
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "ros_plane_path_manager");
-  rosplane::path_manager_base* est = new rosplane::path_manager_example();
+    ros::init(argc, argv, "ros_plane_path_manager");
+    rosplane::path_manager_base* est = new rosplane::path_manager_example();
 
-  ros::spin();
+    ros::spin();
 
-  return 0;
+    return 0;
 }

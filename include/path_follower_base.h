@@ -7,6 +7,8 @@
 #include <fcu_common/Command.h>
 #include <dynamic_reconfigure/server.h>
 #include <ros_plane/ControllerConfig.h>
+#include <fcu_common/FW_Current_Path.h>
+#include <fcu_common/FW_Waypoint.h>
 
 //#include <nuttx/config.h>
 #include <unistd.h>
@@ -87,17 +89,24 @@ private:
     struct pollfd fds[1];
     int poll_error_counter;
 
-    orb_advert_t _controller_commands_pub; /**< controller commands publication */
+    ros::NodeHandle nh_;
+    ros::NodeHandle nh_private_;
+//    ros::Subscriber _vehicle_state_sub;
+    ros::Subscriber _current_path;
+    ros::Publisher _controller_commands_pub;
+//    orb_advert_t _controller_commands_pub; /**< controller commands publication */
 
-    struct {
-        param_t chi_infty;
-        param_t k_path;
-        param_t k_orbit;
-    } _params_handles; /**< handles for interesting parameters */
-
-    struct vehicle_state_s             _vehicle_state;     /**< vehicle state */
-    struct current_path_s              _current_path;      /**< current path */
-    struct controller_commands_s       _controller_commands;/**< controller commands */
+    struct _params_handles {
+        double chi_infty;
+        double k_path;
+        double k_orbit;
+    }; /**< handles for interesting parameters */
+    fcu_common::FW_State _vehicle_state;
+    fcu_common::FW_Current_Path _current_path_s;
+    fcu_common::FW_Controller_Commands _controller_commands;
+//    struct vehicle_state_s _vehicle_state;     /**< vehicle state */
+//    struct current_path_s              _current_path;      /**< current path */
+//    struct controller_commands_s       _controller_commands;/**< controller commands */
     struct params_s                    _params;            /**< params */
 
     /**
