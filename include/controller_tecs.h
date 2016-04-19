@@ -2,7 +2,7 @@
 #define CONTROLLER_TECS_H
 
 #include "controller_base.h"
-#include "controller_example.h"
+// #include "controller_example.h"
 
 namespace rosplane
 {
@@ -13,8 +13,39 @@ public:
     controller_tecs();
 private:
     virtual void control(const struct params_s &params, const struct input_s &input, struct output_s &output);
-    virtual int getstate();
-    alt_state state;
+    //virtual int getstate();
+    // alt_state state;
+    
+    bool reset;
+
+    struct m_s{
+        float ydot;
+        float y_d1;
+        // float step;
+        float integ;
+    };
+    
+    m_s m1;
+    m_s m2;
+    m_s m_a;
+    m_s m_b;
+    // m_s m_a;
+
+    // float derivitive(float Va, m1& m, bool rst, float Ts);
+    float dirtyDerivitive(float y, m_s& m, bool rst, float Ts, float tau);
+
+    float kv;
+    float kh;
+
+    float Etdot_c;
+    float Eddot_c;
+
+    float TECS_Et(float Etdot_c, float Etdot, bool rst, const struct params_s& params, struct output_s& output);
+    float TECS_Ed(float Eddot_c, float Eddot, bool rst, const struct params_s& params, struct output_s& output);
+    
+    float integrate(float value, float integ, bool rst, double Ts); 
+
+    float pid_ctrl(float y_d, float y, float ydot, m_s& m, bool rst, const struct gains_s &gains, const struct params_s &params);
 
     float course_hold(float chi_c, float chi, float r, const struct params_s &params, float Ts);
     float c_error;

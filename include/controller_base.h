@@ -24,7 +24,7 @@ class controller_base
 public:
     controller_base();
     float spin();
-    virtual int getstate() = 0;
+    //virtual int getstate() = 0;
 
 protected:
 
@@ -50,6 +50,12 @@ protected:
         float delta_a;
         float delta_r;
         float delta_t;
+    };
+
+    struct gains_s{
+        double P;
+        double I;
+        double uMax;
     };
 
     struct params_s {
@@ -89,6 +95,12 @@ protected:
         double pwm_rad_e;
         double pwm_rad_a;
         double pwm_rad_r;
+        double Ts;
+        double DC_theta;
+        double gravity;
+        double Va_trim;
+        gains_s gains_Et;
+        gains_s gains_Ed;
     };
 
     virtual void control(const struct params_s &params, const struct input_s &input, struct output_s &output) = 0;
