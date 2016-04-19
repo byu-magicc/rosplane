@@ -147,7 +147,7 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
     w_ip1(1) = ptr_c->w[1];
     w_ip1(2) = ptr_c->w[2];
 
-    float R = 10;
+    float R = 200;
     float R_min = R;
 
     output.Va_d = _ptr_a->Va_d;
