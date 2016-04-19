@@ -54,11 +54,11 @@ controller_base::controller_base():
     nh_private_.param<double>("VA_TRIM", _params.Va_trim, 35);
     nh_private_.param<double>("SAMPLE_TIME", _params.Ts, 0.01);
     nh_private_.param<double>("DC_THETA", _params.DC_theta, 0.85);
-    nh_private_.param<double>("GAINS_ET_P", _params.gains_Et.P, 400.0);
-    nh_private_.param<double>("GAINS_ET_I", _params.gains_Et.I, 400.0);
+    nh_private_.param<double>("GAINS_ET_P", _params.gains_Et.P, 2.0);
+    nh_private_.param<double>("GAINS_ET_I", _params.gains_Et.I, 0.20);
     nh_private_.param<double>("GAINS_ED_P", _params.gains_Ed.P, 1.0);
-    nh_private_.param<double>("GAINS_ED_I", _params.gains_Ed.I, 1.0);
-    nh_private_.param<double>("GAINS_ET_UMAX", _params.gains_Et.uMax, 1000.0);
+    nh_private_.param<double>("GAINS_ED_I", _params.gains_Ed.I, 0.10);
+    nh_private_.param<double>("GAINS_ET_UMAX", _params.gains_Et.uMax, 10.0);
     nh_private_.param<double>("GAINS_ED_UMAX", _params.gains_Ed.uMax, 0.297); //17 degrees
 
 

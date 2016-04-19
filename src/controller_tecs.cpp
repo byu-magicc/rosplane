@@ -12,7 +12,7 @@ controller_tecs::controller_tecs() : controller_base()
     r_integrator = 0;
     p_error = 0;
     p_integrator = 0;
-    reset = true;
+    reset = false;
     kv = 1;
     kh = 1;
 
@@ -48,8 +48,8 @@ void controller_tecs::control(const params_s &params, const input_s &input, outp
     float Vadot;
     float hdot;
 
-    Vadot = controller_tecs::dirtyDerivitive(input.va, m1, reset, params.Ts, params.Ts*10);
-    hdot = controller_tecs::dirtyDerivitive(input.h, m2, reset, params.Ts, params.Ts*10);
+    Vadot = controller_tecs::dirtyDerivitive(input.va, m1, reset, params.Ts, params.Ts*5);
+    hdot = controller_tecs::dirtyDerivitive(input.h, m2, reset, params.Ts, params.Ts*5);
 
     
     float Vadot_c;
@@ -66,7 +66,10 @@ void controller_tecs::control(const params_s &params, const input_s &input, outp
     Etdot = Vadot/params.gravity + hdot/params.Va_trim;
     Eddot = -Vadot/params.gravity + hdot/params.Va_trim;
     output.delta_t = TECS_Et(Etdot_c, Etdot, reset, params, output);
+    // cout << "Delta_t" + ouptut.delta_t;
+    // printf("Delta_t: %f \n", output.delta_t);
     output.theta_c = TECS_Ed(Eddot_c, Eddot, reset, params, output);
+    // printf("theta_c: %f \n", output.theta_c);
     
     
     // output.delta_e = pitch_hold(output.theta_c, input.theta, input.q, params);
@@ -155,6 +158,9 @@ float controller_tecs::TECS_Et(float Etdot_c, float Etdot, bool rst, const struc
     // float delta_t = 0;
     //static m_s m_a;
     output.delta_t = pid_ctrl(Etdot_c, Etdot, 0, m_a, rst, params.gains_Et, params);
+    // printf("Etdot_c: %f \n", Etdot_c);
+    // printf("Etdot: %f \n", Etdot);
+    // printf("Delta_t before: %f \n", output.delta_t);
     output.delta_t = output.delta_t + params.trim_t;
     if(output.delta_t > 1)
     {
@@ -172,7 +178,6 @@ float controller_tecs::TECS_Ed(float Eddot_c, float Eddot, bool rst, const struc
     //static m_s m; //?
     output.theta_c = pid_ctrl(Eddot_c, Eddot, 0, m_b, rst, params.gains_Ed, params);
 
-    
     output.theta_c = output.theta_c*params.DC_theta + 0.128;
 
     return output.theta_c;
@@ -180,11 +185,11 @@ float controller_tecs::TECS_Ed(float Eddot_c, float Eddot, bool rst, const struc
 
 float controller_tecs::dirtyDerivitive(float y, m_s& m, bool rst, float Ts, float tau)
 {
-    if (rst)
-    {
-        m.ydot = 0;
-        m.y_d1 = y;
-    }
+    // if (rst)
+    // {
+    //     m.ydot = 0;
+    //     m.y_d1 = y;
+    // }
 
     m.ydot = (2*tau-Ts)/(2*tau+Ts)*m.ydot + 2/(2*tau+Ts)*(y - m.y_d1);
     m.y_d1 = y;
@@ -196,22 +201,24 @@ float controller_tecs::pid_ctrl(float y_d, float y, float ydot, m_s& m, bool rst
 {
     float u = 0;
 
-    if(rst)
-    {
-        m.integ = 0;
-    }
+    // if(rst)
+    // {
+    //     m.integ = 0;
+    // }
     
     //PD control
         
     u = u + gains.P*(y_d - y);
+    // printf("U: %f %f %f %f \n", u, gains.P, y_d, y);
+
 
     // Integrator + antiwindup
-    u = controller_tecs::sat(u, -gains.uMax, gains.uMax); //Ensure that we don't inversly integrate saturation caused by PD control
-    
+    u = controller_tecs::sat(u, gains.uMax, -gains.uMax); //Ensure that we don't inversly integrate saturation caused by PD control
+    // printf("u_after_sat: %f \n", u);
     m.integ = controller_tecs::integrate(gains.I * (y_d - y), m.integ, rst, params.Ts);
     float u_unsat;
     u_unsat = u + m.integ;
-    u = controller_tecs::sat(u_unsat, -gains.uMax, gains.uMax);
+    u = controller_tecs::sat(u_unsat, gains.uMax, -gains.uMax);
     m.integ = m.integ - (u_unsat - u);
 
     return u;       

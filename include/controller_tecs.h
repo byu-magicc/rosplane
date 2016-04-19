@@ -45,7 +45,7 @@ private:
     
     float integrate(float value, float integ, bool rst, double Ts); 
 
-    float pid_ctrl(float y_d, float y, float ydot, m_s& m, bool rst, const struct gains_s &gains, const struct params_s &params);
+    float pid_ctrl(float y, float y_d, float ydot, m_s& m, bool rst, const struct gains_s &gains, const struct params_s &params);
 
     float course_hold(float chi_c, float chi, float r, const struct params_s &params, float Ts);
     float c_error;
