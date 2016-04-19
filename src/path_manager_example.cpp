@@ -36,8 +36,8 @@ void path_manager_example::manage(const params_s &params, const input_s &input, 
         {
             manage_dubins(params, input, output);
         } else {
-            manage_line(params, input, output);
-//            manage_fillet(params, input, output);
+//            manage_line(params, input, output);
+            manage_fillet(params, input, output);
         }
     }
 }
@@ -147,7 +147,7 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
     w_ip1(1) = ptr_c->w[1];
     w_ip1(2) = ptr_c->w[2];
 
-    float R = 20;
+    float R = 10;
     float R_min = R;
 
     output.Va_d = _ptr_a->Va_d;
