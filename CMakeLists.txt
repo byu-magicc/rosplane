@@ -120,11 +120,13 @@ target_link_libraries(path_manager
 )
 
 add_executable(ros_plane_follower src/path_follower.cpp src/path_follower_base.cpp)
+
+add_dependencies(ros_plane_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(ros_plane_follower ${PROJECT_NAME}_gencfg)
+
 target_link_libraries(ros_plane_follower
   ${catkin_LIBRARIES}
 )
-add_dependencies(ros_plane_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(ros_plane_follower ${PROJECT_NAME}_gencfg)
 
 ## ADDED THIS:  COPPIED FROM ABOVE
 ## Declare a C++ executable

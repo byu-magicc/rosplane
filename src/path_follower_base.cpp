@@ -6,12 +6,12 @@
 namespace rosplane {
 
   path_follower_base::path_follower_base():
-    nh_(ros::NodeHandle()), /** nh_ stuff added here */
+    nh_(ros::NodeHandle()),
     nh_private_(ros::NodeHandle("~"))
   {
     _vehicle_state_sub = nh_.subscribe<fcu_common::FW_State>("state", 1, &path_follower_base::vehicle_state_callback, this);
     _current_path_sub = nh_.subscribe<fcu_common::FW_Current_Path>("current_path",1, &path_follower_base::current_path_callback, this);
-//    poll_error_counter = 0;
+
 
     nh_private_.param<double>("CHI_INFTY", _params.chi_infty,0.0);
     nh_private_.param<double>("K_PATH", _params.k_path,0.0);
@@ -53,7 +53,6 @@ void path_follower_base::vehicle_state_callback(const fcu_common::FW_StateConstP
 void path_follower_base::current_path_callback(const fcu_common::FW_Current_PathConstPtr& msg)
 {
   _current_path = *msg;
-//  struct input_s input;
   _input.flag = _current_path.flag;
   _input.Va_d = _current_path.Va_d;
   for(int i=0;i<3;i++)

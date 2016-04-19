@@ -11,9 +11,6 @@ void path_follower::follow(const params_s &params, const input_s &input, output_
 {
     if(input.flag) // follow straight line path specified by r and q
     {
-//      ROS_INFO_STREAM("I got into the straight line function");
-//      ROS_INFO_STREAM("Inputs: \n flag = " << std::boolalpha << input.flag << "\n q_path = " << input.q_path[0] << ", " << input.q_path[1] << ", " << input.q_path[2]);
-//      ROS_INFO_STREAM("pn = " << input.pn << "\n pe = " << input.pe << "\n r_path = " << input.r_path[0] << ", " << input.r_path[1] << ", " << input.r_path[2]);
       ROS_INFO_STREAM("Params are: \n params.k_path" << params.k_path << "\n chi_infty = " << params.chi_infty);
       ROS_INFO_STREAM("Params are: \n params.k_orbit" << params.k_orbit << "\n rho_orbit = " << input.rho_orbit << "\n lam_orbit = " << input.lam_orbit);
         // compute wrapped version of the path angle
@@ -34,9 +31,6 @@ void path_follower::follow(const params_s &params, const input_s &input, output_
     }
     else
     {
-//      ROS_INFO_STREAM("I got into the orbit function");
-//      ROS_INFO_STREAM("Inputs: \n flag = " << std::boolalpha << input.flag);
-//      ROS_INFO_STREAM("pn = " << input.pn << "\n pe = " << input.pe << "\n c_orbit = " << input.c_orbit[0] << ", " << input.c_orbit[1] << ", " << input.c_orbit[2]);
       ROS_INFO_STREAM("Params are: \n params.k_path" << params.k_path << "\n chi_infty = " << params.chi_infty);
       ROS_INFO_STREAM("Params are: \n params.k_orbit" << params.k_orbit << "\n rho_orbit = " << input.rho_orbit << "\n lam_orbit = " << input.lam_orbit);
         float d = sqrtf(powf((input.pn - input.c_orbit[0]),2) + powf((input.pe - input.c_orbit[1]),2)); // distance from orbit center
