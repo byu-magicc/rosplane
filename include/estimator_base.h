@@ -67,14 +67,14 @@ protected:
     };
 
     struct params_s{
-        float gravity;
-        float rho;
-        float sigma_accel;
-        float sigma_n_gps;
-        float sigma_e_gps;
-        float sigma_Vg_gps;
-        float sigma_course_gps;
-        float Ts;
+        double gravity;
+        double rho;
+        double sigma_accel;
+        double sigma_n_gps;
+        double sigma_e_gps;
+        double sigma_Vg_gps;
+        double sigma_course_gps;
+        double Ts;
     };
 
     virtual void estimate(const struct params_s &params, const struct input_s &input, struct output_s &output) = 0;
@@ -94,7 +94,7 @@ private:
     void baroAltCallback(const std_msgs::Float32 &msg);
     void airspeedCallback(const sensor_msgs::FluidPressure &msg);
 
-    float update_rate_;
+    double update_rate_;
     ros::Timer update_timer_;
     std::string gps_topic_;
     std::string imu_topic_;

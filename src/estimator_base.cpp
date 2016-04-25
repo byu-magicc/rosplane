@@ -11,15 +11,15 @@ estimator_base::estimator_base():
     nh_private_.param<std::string>("imu_topic", imu_topic_, "/imu/data");
     nh_private_.param<std::string>("baro_topic", baro_topic_, "/baro/data");
     nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "/airspeed/data");
-    nh_private_.param<float>("update_rate", update_rate_, 100.0f);
+    nh_private_.param<double>("update_rate", update_rate_, 100.0);
     params_.Ts = 1.0f/update_rate_;
     params_.gravity = 9.8;
-    nh_private_.param<float>("rho", params_.rho, 1.225f);
-    nh_private_.param<float>("sigma_accel", params_.sigma_accel, 0.0245f);
-    nh_private_.param<float>("sigma_n_gps", params_.sigma_n_gps, 0.21f);
-    nh_private_.param<float>("sigma_e_gps", params_.sigma_e_gps, 0.21f);
-    nh_private_.param<float>("sigma_Vg_gps", params_.sigma_Vg_gps, 0.0500f);
-    nh_private_.param<float>("sigma_couse_gps", params_.sigma_course_gps, 0.0045f);
+    nh_private_.param<double>("rho", params_.rho, 1.225);
+    nh_private_.param<double>("sigma_accel", params_.sigma_accel, 0.0245);
+    nh_private_.param<double>("sigma_n_gps", params_.sigma_n_gps, 0.21);
+    nh_private_.param<double>("sigma_e_gps", params_.sigma_e_gps, 0.21);
+    nh_private_.param<double>("sigma_Vg_gps", params_.sigma_Vg_gps, 0.0500);
+    nh_private_.param<double>("sigma_couse_gps", params_.sigma_course_gps, 0.0045);
 
     gps_sub_ = nh_.subscribe(gps_topic_, 10, &estimator_base::gpsCallback, this);
     imu_sub_ = nh_.subscribe(imu_topic_, 10, &estimator_base::imuCallback, this);
