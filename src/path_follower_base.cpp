@@ -1,7 +1,5 @@
 #include "path_follower_base.h"
-#include "path_follower.h"
-#include "path_manager_base.h"
-#include "path_manager_example.h"
+#include "path_follower_example.h"
 
 namespace rosplane {
 
@@ -13,12 +11,9 @@ namespace rosplane {
     _current_path_sub = nh_.subscribe<fcu_common::FW_Current_Path>("current_path",1, &path_follower_base::current_path_callback, this);
 
 
-    nh_private_.param<double>("CHI_INFTY", _params.chi_infty,0.0);
-    nh_private_.param<double>("K_PATH", _params.k_path,0.0);
-    nh_private_.param<double>("K_ORBIT", _params.k_orbit,0.0);
-
-    _func = boost::bind(&path_follower_base::reconfigure_callback, this, _1, _2);
-    _server.setCallback(_func);
+    nh_private_.param<double>("CHI_INFTY", _params.chi_infty, 1.0472);
+    nh_private_.param<double>("K_PATH", _params.k_path, 0.025);
+    nh_private_.param<double>("K_ORBIT", _params.k_orbit, 8.0);
 
     memset(&_vehicle_state, 0, sizeof(_vehicle_state));
     memset(&_current_path, 0, sizeof(_current_path));
@@ -63,15 +58,6 @@ void path_follower_base::current_path_callback(const fcu_common::FW_Current_Path
   }
   _input.rho_orbit = _current_path.rho;
   _input.lam_orbit = _current_path.lambda;
-}
-
-void path_follower_base::reconfigure_callback(ros_plane::FollowerConfig &config, uint32_t level)
-{
-  _params.chi_infty = config.CHI_INFTY;
-  _params.k_path = config.K_PATH;
-  _params.k_orbit = config.K_ORBIT;
-  ROS_INFO_STREAM("reconfigure callback reached" << _params.chi_infty << "\n");
-
 }
 
 } //end namespace

@@ -69,9 +69,6 @@ private:
     void vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg);
     void current_path_callback(const fcu_common::FW_Current_PathConstPtr& msg);
 
-    dynamic_reconfigure::Server<ros_plane::FollowerConfig> _server;
-    dynamic_reconfigure::Server<ros_plane::FollowerConfig>::CallbackType _func;
-    void reconfigure_callback(ros_plane::FollowerConfig &config, uint32_t level);
     void update(const ros::TimerEvent &);
 };
 

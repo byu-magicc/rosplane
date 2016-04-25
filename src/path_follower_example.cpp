@@ -1,4 +1,4 @@
-#include "path_follower.h"
+#include "path_follower_example.h"
 
 
 namespace rosplane {
