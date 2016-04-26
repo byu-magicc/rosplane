@@ -101,15 +101,39 @@ target_link_libraries(ros_plane_estimator
   ${catkin_LIBRARIES}
 )
 
-add_executable(ros_plane_follower
+add_executable(ros_plane_path_follower
             src/path_follower_example.cpp
             src/path_follower_base.cpp)
 
-add_dependencies(ros_plane_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(ros_plane_follower ${PROJECT_NAME}_gencfg)
+add_dependencies(ros_plane_path_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-target_link_libraries(ros_plane_follower
+target_link_libraries(ros_plane_path_follower
   ${catkin_LIBRARIES}
 )
 
+## Declare a C++ executable
+add_executable(ros_plane_path_manager
+            src/path_manager_base.cpp
+            src/path_manager_example.cpp
+)
+## Add cmake target dependencies of the executable
+## same as for the library above
+add_dependencies(ros_plane_path_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+## Specify libraries to link a library or executable target against
+target_link_libraries(ros_plane_path_manager
+  ${catkin_LIBRARIES}
+)
+
+## Declare a C++ executable
+add_executable(ros_plane_path_planner
+            src/path_planner.cpp
+)
+## Add cmake target dependencies of the executable
+## same as for the library above
+add_dependencies(ros_plane_path_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(ros_plane_path_planner
+  ${catkin_LIBRARIES}
+)
