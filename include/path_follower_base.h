@@ -6,7 +6,6 @@
 #include <fcu_common/FW_Controller_Commands.h>
 #include <dynamic_reconfigure/server.h>
 #include <fcu_common/FW_Current_Path.h>
-#include <ros_plane/FollowerConfig.h>
 
 
 namespace rosplane {
