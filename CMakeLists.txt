@@ -28,6 +28,7 @@ find_package(Eigen REQUIRED)
 # Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
   cfg/Controller.cfg
+  cfg/Follower.cfg
 )
 
 ###################################
@@ -105,6 +106,7 @@ add_executable(ros_plane_path_follower
             src/path_follower_example.cpp
             src/path_follower_base.cpp)
 
+add_dependencies(ros_plane_path_follower ${PROJECT_NAME}_gencfg)
 add_dependencies(ros_plane_path_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(ros_plane_path_follower
