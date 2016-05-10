@@ -15,6 +15,9 @@ namespace rosplane {
     nh_private_.param<double>("K_PATH", _params.k_path, 0.025);
     nh_private_.param<double>("K_ORBIT", _params.k_orbit, 8.0);
 
+    _func = boost::bind(&path_follower_base::reconfigure_callback, this, _1, _2);
+    _server.setCallback(_func);
+
     memset(&_vehicle_state, 0, sizeof(_vehicle_state));
     memset(&_current_path, 0, sizeof(_current_path));
     update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &path_follower_base::update, this);
@@ -60,6 +63,12 @@ void path_follower_base::current_path_callback(const fcu_common::FW_Current_Path
   _input.lam_orbit = _current_path.lambda;
 }
 
+void path_follower_base::reconfigure_callback(ros_plane::FollowerConfig &config, uint32_t level)
+{
+  _params.chi_infty = config.CHI_INFTY;
+  _params.k_path = config.K_PATH;
+  _params.k_orbit = config.K_ORBIT;
+}
 } //end namespace
 
 int main(int argc, char** argv) {
