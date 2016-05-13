@@ -66,7 +66,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
         R_p(5,5) = 0.001;
 
         float lpf_a = 50;
-        float lpf_a1 = 8;
+        float lpf_a1 = 2.0;
         alpha = exp(-lpf_a*params.Ts);
         alpha1 = exp(-lpf_a1*params.Ts);
     }
@@ -248,7 +248,9 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
         xhat_p = xhat_p + L_p*(input.gps_Vg - h_p);
 
         // gps course
-        //wrap course measurement
+        if(input.gps_Vg > 1)
+	{
+	//wrap course measurement
         float gps_course = fmodf(input.gps_course, radians(360.0f));
 
         while(gps_course - xhat_p(3) > radians(180.0f)) gps_course = gps_course - radians(360.0f);
@@ -259,7 +261,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
         L_p = (P_p*C_p) / (R_p(3,3) + (C_p.transpose()*P_p*C_p));
         P_p = (I_p - L_p*C_p.transpose())*P_p;
         xhat_p = xhat_p + L_p*(gps_course - h_p);
-
+	}
 //        // pseudo measurement #1 y_1 = Va*cos(psi)+wn-Vg*cos(chi)
 //        h_p = Vahat*cosf(xhat_p(6)) + xhat_p(4) - xhat_p(2)*cosf(xhat_p(3));  // pseudo measurement
 //        C_p = Eigen::VectorXf::Zero(7);
