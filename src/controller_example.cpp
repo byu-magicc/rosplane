@@ -122,7 +122,7 @@ float controller_example::course_hold(float chi_c, float chi, float r, const par
     float ui = params.c_ki * c_integrator;
     float ud = params.c_kd * r;
 
-    float phi_c = sat(up + ui + ud, 35*3.14/180, -35*3.14/180);
+    float phi_c = sat(up + ui + ud, 45*3.14/180, -45*3.14/180);
     if(fabs(params.c_ki) >= 0.00001) {
         float phi_c_unsat = up + ui + ud;
         c_integrator = c_integrator + (Ts/params.c_ki) * (phi_c - phi_c_unsat);

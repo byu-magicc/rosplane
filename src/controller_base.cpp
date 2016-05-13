@@ -54,6 +54,7 @@ controller_base::controller_base():
     _server.setCallback(_func);
 
     _actuators_pub = nh_.advertise<fcu_common::Command>("command",10);
+    _att_cmd_pub = nh_.advertise<fcu_common::FW_Attitude_Commands>("attitude_commands",10);
     _act_pub_timer = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
 
     _command_recieved = false;
@@ -146,6 +147,14 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
         actuators.normalized_throttle = output.delta_t;//(isfinite(output.delta_t)) ? output.delta_t : 0.0f;
 
         _actuators_pub.publish(actuators);
+
+        if(_att_cmd_pub.getNumSubscribers() > 0)
+        {
+            fcu_common::FW_Attitude_Commands attitudes;
+            attitudes.phi_c = output.phi_c;
+            attitudes.theta_c = output.theta_c;
+            _att_cmd_pub.publish(attitudes);
+        }
     }
 }
 
