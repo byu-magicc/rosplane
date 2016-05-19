@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ros_plane)
 
+
 find_package(catkin REQUIRED COMPONENTS
   fcu_common
   roscpp
@@ -67,11 +68,13 @@ include_directories(
 # add_dependencies(ros_plane ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
+
 add_executable(ros_plane_controller
             src/controller_base.cpp
             src/controller_example.cpp
             include/controller_base.h
             include/controller_example.h
+	    src/controller_tecs.cpp
 )
 
 ## Add cmake target dependencies of the executable

@@ -1,5 +1,6 @@
 #include "controller_base.h"
 #include "controller_example.h"
+#include "controller_tecs.h"
 
 namespace rosplane {
 
@@ -49,6 +50,17 @@ controller_base::controller_base():
     nh_private_.param<double>("MAX_A", _params.max_a, 0.523);
     nh_private_.param<double>("MAX_R", _params.max_r, 0.523);
     nh_private_.param<double>("MAX_T", _params.max_t, 1.0);
+    nh_private_.param<double>("GRAVITY", _params.gravity, 9.81);
+    nh_private_.param<double>("VA_TRIM", _params.Va_trim, 35);
+    nh_private_.param<double>("SAMPLE_TIME", _params.Ts, 0.01);
+    nh_private_.param<double>("DC_THETA", _params.DC_theta, 0.85);
+    nh_private_.param<double>("GAINS_ET_P", _params.gains_Et.P, 2.0);
+    nh_private_.param<double>("GAINS_ET_I", _params.gains_Et.I, 0.20);
+    nh_private_.param<double>("GAINS_ED_P", _params.gains_Ed.P, 1.0);
+    nh_private_.param<double>("GAINS_ED_I", _params.gains_Ed.I, 0.10);
+    nh_private_.param<double>("GAINS_ET_UMAX", _params.gains_Et.uMax, 10.0);
+    nh_private_.param<double>("GAINS_ED_UMAX", _params.gains_Ed.uMax, 0.297); //17 degrees
+
 
     _func = boost::bind(&controller_base::reconfigure_callback, this, _1, _2);
     _server.setCallback(_func);
@@ -106,6 +118,15 @@ void controller_base::reconfigure_callback(ros_plane::ControllerConfig &config, 
   _params.b_kp = config.BETA_KP;
   _params.b_kd = config.BETA_KD;
   _params.b_ki = config.BETA_KI;
+  _params.Ts = config.SAMPLE_TIME;
+  _params.DC_theta = config.DC_THETA;
+  _params.gains_Et.P = config.GAINS_ET_P;
+  _params.gains_Et.I = config.GAINS_ET_I;
+  _params.gains_Et.uMax = config.GAINS_ET_UMAX;
+  _params.gains_Ed.P = config.GAINS_ED_P;
+  _params.gains_Ed.I = config.GAINS_ED_I;
+  _params.gains_Ed.uMax = config.GAINS_ED_UMAX;
+  _params.gravity = config.GRAVITY;
 }
 
 void controller_base::convert_to_pwm(controller_base::output_s &output)
@@ -162,7 +183,7 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "ros_plane_controller");
-  rosplane::controller_base* cont = new rosplane::controller_example();
+  rosplane::controller_base* cont = new rosplane::controller_tecs();
 
   ros::spin();
 
