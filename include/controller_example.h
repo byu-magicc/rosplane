@@ -17,7 +17,10 @@ class controller_example : public controller_base
 {
 public:
     controller_example();
+
 private:
+
+
     virtual void control(const struct params_s &params, const struct input_s &input, struct output_s &output);
     virtual int getstate();
     alt_state state;
@@ -48,6 +51,10 @@ private:
     float a_error;
     float a_integrator;
     float a_differentiator;
+
+    std::pair<float,float> TECS(float h_c, float Va_c, float h, float Va, const struct params_s &params, float Ts); // <delta_t, theta_c>
+    float h_d;
+    float Va_d;
 
 //    float cooridinated_turn_hold(float v, const struct params_s &params, float Ts);
 //    float ct_error;

@@ -21,7 +21,7 @@ controller_base::controller_base():
     nh_private_.param<double>("PWM_RAD_A", _params.pwm_rad_a, 1.0);
     nh_private_.param<double>("PWM_RAD_R", _params.pwm_rad_r, 1.0);
     nh_private_.param<double>("ALT_TOZ", _params.alt_toz, 20.0);
-    nh_private_.param<double>("ALT_HZ", _params.alt_hz, 10.0);
+    nh_private_.param<double>("ALT_HZ", _params.alt_hz, 25.0);
     nh_private_.param<double>("TAU", _params.tau, 5.0);
     nh_private_.param<double>("COURSE_KP", _params.c_kp, 0.7329);
     nh_private_.param<double>("COURSE_KD", _params.c_kd, 0.0);
@@ -49,6 +49,16 @@ controller_base::controller_base():
     nh_private_.param<double>("MAX_A", _params.max_a, 0.523);
     nh_private_.param<double>("MAX_R", _params.max_r, 0.523);
     nh_private_.param<double>("MAX_T", _params.max_t, 1.0);
+    nh_private_.param<double>("TECS_Param_1", _params.TECS_param_1, 0.0248);
+    nh_private_.param<double>("TECS_Param_2", _params.TECS_param_2, 0.1131);
+    nh_private_.param<double>("TECS_Param_3", _params.TECS_param_3, 7.9614);
+    nh_private_.param<double>("TECS_k_hdot", _params.TECS_k_hdot, 1);
+    nh_private_.param<double>("TECS_k_Vadot", _params.TECS_k_Vadot, 1);
+    nh_private_.param<double>("TECS_max_hdot", _params.TECS_max_hdot, 2);
+    nh_private_.param<double>("TECS_max_Vadot", _params.TECS_max_Vadot, 2);
+    nh_private_.param<double>("TECS_k_T", _params.TECS_k_T, 0.2);
+    nh_private_.param<double>("TECS_k_D", _params.TECS_k_D, 0.2);
+    nh_private_.param<double>("TECS_mass", _params.TECS_mass, 1.5);
 
     _func = boost::bind(&controller_base::reconfigure_callback, this, _1, _2);
     _server.setCallback(_func);
@@ -106,6 +116,16 @@ void controller_base::reconfigure_callback(ros_plane::ControllerConfig &config, 
   _params.b_kp = config.BETA_KP;
   _params.b_kd = config.BETA_KD;
   _params.b_ki = config.BETA_KI;
+
+  _params.TECS_param_1 = config.TECS_param_1;
+  _params.TECS_param_2 = config.TECS_param_2;
+  _params.TECS_param_3 = config.TECS_param_2;
+  _params.TECS_k_hdot = config.TECS_k_hdot;
+  _params.TECS_k_Vadot = config.TECS_k_Vadot;
+  _params.TECS_max_hdot = config.TECS_max_hdot;
+  _params.TECS_max_Vadot = config.TECS_max_Vadot;
+  _params.TECS_k_T = config.TECS_k_T;
+  _params.TECS_k_D = config.TECS_k_D;
 }
 
 void controller_base::convert_to_pwm(controller_base::output_s &output)

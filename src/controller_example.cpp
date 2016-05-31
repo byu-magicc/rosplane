@@ -23,6 +23,8 @@ void controller_example::control(const params_s &params, const input_s &input, o
 
     //printf("%d %d ", (int)(state), (int)(input.h));
 
+
+
     switch(state) {
     case alt_state::TakeOffZone:
         output.delta_a = roll_hold(0.0, input.phi, input.p, params, input.Ts);
@@ -69,8 +71,11 @@ void controller_example::control(const params_s &params, const input_s &input, o
         }
         break;
     case alt_state::AltitudeHoldZone:
-        output.delta_t = airspeed_with_throttle_hold(input.Va_c, input.va, params, input.Ts);
-        output.theta_c = altitiude_hold(input.h_c, input.h, params, input.Ts);
+      std::pair<float,float> TECS_results = TECS(input.h_c, input.Va_c, input.h, input.va, params, input.Ts);
+      output.delta_t = TECS_results.first;
+      output.theta_c = TECS_results.second;
+//        output.delta_t = airspeed_with_throttle_hold(input.Va_c, input.va, params, input.Ts);
+//        output.theta_c = altitiude_hold(input.h_c, input.h, params, input.Ts);
         if(input.h >= input.h_c + params.alt_hz) {
 //            warnx("desend");
             state = alt_state::DescendZone;
@@ -85,6 +90,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
             ap_differentiator = 0;
         }
         break;
+
     }
 
     output.delta_e = pitch_hold(output.theta_c, input.theta, input.q, params, input.Ts);
@@ -240,6 +246,59 @@ float controller_example::altitiude_hold(float h_c, float h, const params_s &par
 //    //todo finish this if you want...
 //    return 0;
 //}
+
+std::pair<float, float> controller_example::TECS(float h_c, float Va_c, float h, float Va, const params_s &params, float Ts )
+{
+  const float g = 9.81;
+  const float alpha = 0;
+
+  static float h_d = h;
+  static float Va_d = Va;
+
+
+  // Compute the desired states
+  float hErr_c = h_c - h;
+  float hDot_d = params.TECS_k_hdot * hErr_c;
+  hDot_d = sat(hDot_d, params.TECS_max_hdot, -params.TECS_max_hdot );
+
+  h_d = h_d + hDot_d * Ts;
+
+  float VaErr_c = Va_c - Va;
+  float VaDot_d = params.TECS_k_Vadot * VaErr_c;
+  VaDot_d = sat(VaDot_d, params.TECS_max_Vadot, -params.TECS_max_Vadot);
+
+  Va_d = Va_d + VaDot_d * Ts;
+
+  // Kinetic Energy
+  float E_K = 1.0/2*params.TECS_mass*Va;
+  float E_K_d = 1.0/2*params.TECS_mass*Va_d;
+  float E_K_dot_d = 1.0/2*params.TECS_mass*VaDot_d;
+
+  // Potnetial Energy
+  float E_P = params.TECS_mass*g*h;
+  float E_P_d = params.TECS_mass*g*h_d;
+  float E_P_dot_d = params.TECS_mass*g*hDot_d;
+
+  // Total Energy
+  float E_T_err = (E_P_d + E_K_d) - (E_P + E_K);
+  float E_T_dot_d = (E_P_dot_d + E_K_dot_d);
+
+  // Energy Difference
+  //float E_D_err = (E_P_d - E_K_d) - (E_P - E_K);
+
+
+  // Throttle command
+  //thrust_c = drag_est + E_T_dot_d/Va + params.TECS_k_T*E_T_err/Va;
+  float delta_t_sqr = (params.TECS_param_1*Va*Va + params.TECS_param_2*Va*Va*alpha + E_T_dot_d/Va + params.TECS_k_T*E_T_err/Va )/params.TECS_param_3; // includes the open loop thrust controller
+  float delta_t = sqrt(delta_t_sqr);
+
+  // Flight path angle command
+  float gamma_c = hDot_d/Va + 1.0/(2*params.TECS_mass*g*Va) * ((params.TECS_k_T - params.TECS_k_D) * (E_K_d - E_K) + (params.TECS_k_T + params.TECS_k_D) * (E_P_d - E_P));
+  float theta_c = gamma_c + alpha;
+
+  // Format results
+  return std::make_pair(delta_t, theta_c);
+}
 
 float controller_example::sat(float value, float up_limit, float low_limit)
 {

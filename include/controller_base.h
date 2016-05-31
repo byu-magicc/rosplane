@@ -90,6 +90,16 @@ protected:
         double pwm_rad_e;
         double pwm_rad_a;
         double pwm_rad_r;
+        double TECS_param_1;   // 1/2 * rho * S *(C_D0 + C_L0^2/(pi*e*AR)) + 1/2 * rho * Sprop * Cprop (Drag and thrust loss due to airspeed)
+        double TECS_param_2;   // (Drag due to airspeed*alpha)
+        double TECS_param_3;   // (dt to thrust)
+        double TECS_k_hdot;    // Convert altitude error to climb rate command
+        double TECS_k_Vadot;   // Convert airspeed error to acceleration command
+        double TECS_max_hdot;  // Max climb rate limit
+        double TECS_max_Vadot; // Max acceleration limit
+        double TECS_k_T;       // Total energy error weight
+        double TECS_k_D;       // Energy difference error weight
+        double TECS_mass;      // Aircraft mass
     };
 
     virtual void control(const struct params_s &params, const struct input_s &input, struct output_s &output) = 0;
