@@ -54,6 +54,7 @@ controller_base::controller_base():
     _server.setCallback(_func);
 
     _actuators_pub = nh_.advertise<fcu_common::Command>("command",10);
+    _extended_actuators_pub = nh_.advertise<fcu_common::ExtendedCommand>("extended_command", 10);
     _att_cmd_pub = nh_.advertise<fcu_common::FW_Attitude_Commands>("attitude_commands",10);
     _act_pub_timer = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
 
@@ -147,6 +148,17 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
         actuators.normalized_throttle = output.delta_t;//(isfinite(output.delta_t)) ? output.delta_t : 0.0f;
 
         _actuators_pub.publish(actuators);
+
+        fcu_common::ExtendedCommand extended_actuators;
+        extended_actuators.ignore = 0;
+        extended_actuators.mode = fcu_common::ExtendedCommand::MODE_PASS_THROUGH;
+        extended_actuators.value1 = output.delta_a;
+        extended_actuators.value2 = output.delta_e;
+        extended_actuators.value3 = output.delta_r;
+        extended_actuators.value4 = output.delta_t;
+
+        _extended_actuators_pub.publish(extended_actuators);
+
 
         if(_att_cmd_pub.getNumSubscribers() > 0)
         {
