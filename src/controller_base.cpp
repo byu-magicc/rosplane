@@ -17,8 +17,8 @@ controller_base::controller_base():
     nh_private_.param<double>("TRIM_A", _params.trim_a, 0.0);
     nh_private_.param<double>("TRIM_R", _params.trim_r, 0.0);
     nh_private_.param<double>("TRIM_T", _params.trim_t, 0.6);
-    nh_private_.param<double>("PWM_RAD_E", _params.pwm_rad_e, 1.0);
-    nh_private_.param<double>("PWM_RAD_A", _params.pwm_rad_a, 1.0);
+    nh_private_.param<double>("PWM_RAD_E", _params.pwm_rad_e, 2.3);
+    nh_private_.param<double>("PWM_RAD_A", _params.pwm_rad_a, -1.6);
     nh_private_.param<double>("PWM_RAD_R", _params.pwm_rad_r, 1.0);
     nh_private_.param<double>("ALT_TOZ", _params.alt_toz, 20.0);
     nh_private_.param<double>("ALT_HZ", _params.alt_hz, 10.0);
@@ -142,7 +142,7 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
         /* publish actuator controls */
 
         actuators.normalized_roll = output.delta_a;//(isfinite(output.delta_a)) ? output.delta_a : 0.0f;
-        actuators.normalized_pitch = -1.0*output.delta_e;//(isfinite(output.delta_e)) ? output.delta_e : 0.0f;
+        actuators.normalized_pitch = output.delta_e;//(isfinite(output.delta_e)) ? output.delta_e : 0.0f;
         actuators.normalized_yaw = output.delta_r;//(isfinite(output.delta_r)) ? output.delta_r : 0.0f;
         actuators.normalized_throttle = output.delta_t;//(isfinite(output.delta_t)) ? output.delta_t : 0.0f;
 
