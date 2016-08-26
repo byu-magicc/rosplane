@@ -152,10 +152,10 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
         fcu_common::ExtendedCommand extended_actuators;
         extended_actuators.ignore = 0;
         extended_actuators.mode = fcu_common::ExtendedCommand::MODE_PASS_THROUGH;
-        extended_actuators.value1 = output.delta_a;
-        extended_actuators.value2 = output.delta_e;
-        extended_actuators.value3 = output.delta_r;
-        extended_actuators.value4 = output.delta_t;
+        extended_actuators.x = output.delta_a;
+        extended_actuators.y = output.delta_e;
+        extended_actuators.z = output.delta_r;
+        extended_actuators.F = output.delta_t;
 
         _extended_actuators_pub.publish(extended_actuators);
 
