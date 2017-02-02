@@ -95,9 +95,9 @@ void estimator_base::baroAltCallback(const std_msgs::Float32 &msg)
     input_.baro_alt = msg.data;
 }
 
-void estimator_base::airspeedCallback(const sensor_msgs::FluidPressure &msg)
+void estimator_base::airspeedCallback(const fcu_common::Airspeed &msg)
 {
-    input_.diff_pres = msg.fluid_pressure;
+    input_.diff_pres = msg.differential_pressure;
 }
 
 } //end namespace
