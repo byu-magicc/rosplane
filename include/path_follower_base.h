@@ -2,11 +2,11 @@
 #define PATH_FOLLOWER_BASE_H
 
 #include <ros/ros.h>
-#include <fcu_common/FW_State.h>
-#include <fcu_common/FW_Controller_Commands.h>
+#include <ros_plane/State.h>
+#include <ros_plane/Controller_Commands.h>
 #include <dynamic_reconfigure/server.h>
 #include <ros_plane/FollowerConfig.h>
-#include <fcu_common/FW_Current_Path.h>
+#include <ros_plane/Current_Path.h>
 
 
 namespace rosplane {
@@ -60,14 +60,14 @@ private:
     double update_rate_ = 100.0;
     ros::Timer update_timer_;
 
-    fcu_common::FW_State _vehicle_state;
-    fcu_common::FW_Current_Path _current_path;
-    fcu_common::FW_Controller_Commands _controller_commands;
+    ros_plane::State _vehicle_state;
+    ros_plane::Current_Path _current_path;
+    ros_plane::Controller_Commands _controller_commands;
     struct params_s  _params;            /**< params */
     struct input_s _input;
 
-    void vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg);
-    void current_path_callback(const fcu_common::FW_Current_PathConstPtr& msg);
+    void vehicle_state_callback(const ros_plane::StateConstPtr& msg);
+    void current_path_callback(const ros_plane::Current_PathConstPtr& msg);
 
     dynamic_reconfigure::Server<ros_plane::FollowerConfig> _server;
     dynamic_reconfigure::Server<ros_plane::FollowerConfig>::CallbackType _func;

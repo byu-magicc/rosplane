@@ -10,11 +10,10 @@
 #define CONTROLLER_BASE_H
 
 #include <ros/ros.h>
-#include <fcu_common/FW_State.h>
-#include <fcu_common/FW_Controller_Commands.h>
 #include <fcu_common/Command.h>
-#include <fcu_common/ExtendedCommand.h>
-#include <fcu_common/FW_Attitude_Commands.h>
+#include <ros_plane/State.h>
+#include <ros_plane/Controller_Commands.h>
+#include <ros_plane/Attitude_Commands.h>
 
 #include <dynamic_reconfigure/server.h>
 #include <ros_plane/ControllerConfig.h>
@@ -101,16 +100,15 @@ private:
     ros::Subscriber _vehicle_state_sub;
     ros::Subscriber _controller_commands_sub;
     ros::Publisher _actuators_pub;
-    ros::Publisher _extended_actuators_pub;
     ros::Publisher _att_cmd_pub;
     ros::Timer _act_pub_timer;
 
     struct params_s                    _params;            /**< params */
-    fcu_common::FW_Controller_Commands _controller_commands;
-    fcu_common::FW_State _vehicle_state;
+    ros_plane::Controller_Commands _controller_commands;
+    ros_plane::State _vehicle_state;
 
-    void vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg);
-    void controller_commands_callback(const fcu_common::FW_Controller_CommandsConstPtr& msg);
+    void vehicle_state_callback(const ros_plane::StateConstPtr& msg);
+    void controller_commands_callback(const ros_plane::Controller_CommandsConstPtr& msg);
     bool _command_recieved;
 
     dynamic_reconfigure::Server<ros_plane::ControllerConfig> _server;

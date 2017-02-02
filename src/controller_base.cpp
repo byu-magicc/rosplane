@@ -54,19 +54,18 @@ controller_base::controller_base():
     _server.setCallback(_func);
 
     _actuators_pub = nh_.advertise<fcu_common::Command>("command",10);
-    _extended_actuators_pub = nh_.advertise<fcu_common::ExtendedCommand>("extended_command", 10);
-    _att_cmd_pub = nh_.advertise<fcu_common::FW_Attitude_Commands>("attitude_commands",10);
+    _att_cmd_pub = nh_.advertise<ros_plane::Attitude_Commands>("attitude_commands",10);
     _act_pub_timer = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
 
     _command_recieved = false;
 }
 
-void controller_base::vehicle_state_callback(const fcu_common::FW_StateConstPtr& msg)
+void controller_base::vehicle_state_callback(const ros_plane::StateConstPtr& msg)
 {
     _vehicle_state = *msg;
 }
 
-void controller_base::controller_commands_callback(const fcu_common::FW_Controller_CommandsConstPtr& msg)
+void controller_base::controller_commands_callback(const ros_plane::Controller_CommandsConstPtr& msg)
 {
     _command_recieved = true;
     _controller_commands = *msg;
@@ -142,27 +141,18 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
         fcu_common::Command actuators;
         /* publish actuator controls */
 
-        actuators.normalized_roll = output.delta_a;//(isfinite(output.delta_a)) ? output.delta_a : 0.0f;
-        actuators.normalized_pitch = -1.0*output.delta_e;//(isfinite(output.delta_e)) ? output.delta_e : 0.0f;
-        actuators.normalized_yaw = output.delta_r;//(isfinite(output.delta_r)) ? output.delta_r : 0.0f;
-        actuators.normalized_throttle = output.delta_t;//(isfinite(output.delta_t)) ? output.delta_t : 0.0f;
+        actuators.ignore = 0;
+        actuators.mode = fcu_common::Command::MODE_PASS_THROUGH;
+        actuators.x = output.delta_a;//(isfinite(output.delta_a)) ? output.delta_a : 0.0f;
+        actuators.y = output.delta_e;//(isfinite(output.delta_e)) ? output.delta_e : 0.0f;
+        actuators.z = output.delta_r;//(isfinite(output.delta_r)) ? output.delta_r : 0.0f;
+        actuators.F = output.delta_t;//(isfinite(output.delta_t)) ? output.delta_t : 0.0f;
 
         _actuators_pub.publish(actuators);
 
-        fcu_common::ExtendedCommand extended_actuators;
-        extended_actuators.ignore = 0;
-        extended_actuators.mode = fcu_common::ExtendedCommand::MODE_PASS_THROUGH;
-        extended_actuators.x = output.delta_a;
-        extended_actuators.y = output.delta_e;
-        extended_actuators.z = output.delta_r;
-        extended_actuators.F = output.delta_t;
-
-        _extended_actuators_pub.publish(extended_actuators);
-
-
         if(_att_cmd_pub.getNumSubscribers() > 0)
         {
-            fcu_common::FW_Attitude_Commands attitudes;
+            ros_plane::Attitude_Commands attitudes;
             attitudes.phi_c = output.phi_c;
             attitudes.theta_c = output.theta_c;
             _att_cmd_pub.publish(attitudes);

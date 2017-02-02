@@ -10,7 +10,7 @@
 #define ESTIMATOR_BASE_H
 
 #include <ros/ros.h>
-#include <fcu_common/FW_State.h>
+#include <ros_plane/State.h>
 #include <fcu_common/GPS.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Float32.h>
