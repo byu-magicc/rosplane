@@ -14,7 +14,6 @@ find_package(Eigen REQUIRED)
 
 add_message_files(
   FILES
-  State.msg
   Controller_Commands.msg
   Current_Path.msg
   Waypoint.msg

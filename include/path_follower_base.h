@@ -2,7 +2,7 @@
 #define PATH_FOLLOWER_BASE_H
 
 #include <ros/ros.h>
-#include <ros_plane/State.h>
+#include <fcu_common/State.h>
 #include <ros_plane/Controller_Commands.h>
 #include <dynamic_reconfigure/server.h>
 #include <ros_plane/FollowerConfig.h>
@@ -60,13 +60,13 @@ private:
     double update_rate_ = 100.0;
     ros::Timer update_timer_;
 
-    ros_plane::State _vehicle_state;
+    fcu_common::State _vehicle_state;
     ros_plane::Current_Path _current_path;
     ros_plane::Controller_Commands _controller_commands;
     struct params_s  _params;            /**< params */
     struct input_s _input;
 
-    void vehicle_state_callback(const ros_plane::StateConstPtr& msg);
+    void vehicle_state_callback(const fcu_common::StateConstPtr& msg);
     void current_path_callback(const ros_plane::Current_PathConstPtr& msg);
 
     dynamic_reconfigure::Server<ros_plane::FollowerConfig> _server;

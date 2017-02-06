@@ -23,7 +23,7 @@ path_manager_base::path_manager_base():
 //    waypoint_init();
 }
 
-void path_manager_base::vehicle_state_callback(const ros_plane::StateConstPtr& msg)
+void path_manager_base::vehicle_state_callback(const fcu_common::StateConstPtr& msg)
 {
     _vehicle_state = *msg;
     struct input_s input;

@@ -60,7 +60,7 @@ controller_base::controller_base():
     _command_recieved = false;
 }
 
-void controller_base::vehicle_state_callback(const ros_plane::StateConstPtr& msg)
+void controller_base::vehicle_state_callback(const fcu_common::StateConstPtr& msg)
 {
     _vehicle_state = *msg;
 }

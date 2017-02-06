@@ -11,7 +11,7 @@
 
 #include <ros/ros.h>
 #include <fcu_common/Command.h>
-#include <ros_plane/State.h>
+#include <fcu_common/State.h>
 #include <ros_plane/Controller_Commands.h>
 #include <ros_plane/Attitude_Commands.h>
 
@@ -105,9 +105,9 @@ private:
 
     struct params_s                    _params;            /**< params */
     ros_plane::Controller_Commands _controller_commands;
-    ros_plane::State _vehicle_state;
+    fcu_common::State _vehicle_state;
 
-    void vehicle_state_callback(const ros_plane::StateConstPtr& msg);
+    void vehicle_state_callback(const fcu_common::StateConstPtr& msg);
     void controller_commands_callback(const ros_plane::Controller_CommandsConstPtr& msg);
     bool _command_recieved;
 

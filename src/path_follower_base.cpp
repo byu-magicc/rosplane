@@ -7,7 +7,7 @@ namespace rosplane {
     nh_(ros::NodeHandle()),
     nh_private_(ros::NodeHandle("~"))
   {
-    _vehicle_state_sub = nh_.subscribe<ros_plane::State>("state", 1, &path_follower_base::vehicle_state_callback, this);
+    _vehicle_state_sub = nh_.subscribe<fcu_common::State>("state", 1, &path_follower_base::vehicle_state_callback, this);
     _current_path_sub = nh_.subscribe<ros_plane::Current_Path>("current_path",1, &path_follower_base::current_path_callback, this);
 
 
@@ -38,7 +38,7 @@ void path_follower_base::update(const ros::TimerEvent &)
   controller_commands_pub_.publish(msg);
 }
 
-void path_follower_base::vehicle_state_callback(const ros_plane::StateConstPtr& msg)
+void path_follower_base::vehicle_state_callback(const fcu_common::StateConstPtr& msg)
 {
   _vehicle_state = *msg;
   _input.pn = _vehicle_state.position[0];               /** position north */
