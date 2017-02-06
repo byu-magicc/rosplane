@@ -13,7 +13,7 @@
 #include <ros_plane/State.h>
 #include <fcu_common/GPS.h>
 #include <sensor_msgs/Imu.h>
-#include <std_msgs/Float32.h>
+#include <fcu_common/Barometer.h>
 #include <fcu_common/Airspeed.h>
 #include <math.h>
 #include <Eigen/Eigen>
@@ -91,7 +91,7 @@ private:
     void update(const ros::TimerEvent &);
     void gpsCallback(const fcu_common::GPS &msg);
     void imuCallback(const sensor_msgs::Imu &msg);
-    void baroAltCallback(const std_msgs::Float32 &msg);
+    void baroAltCallback(const fcu_common::Barometer &msg);
     void airspeedCallback(const fcu_common::Airspeed &msg);
 
     double update_rate_;
