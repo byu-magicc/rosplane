@@ -7,10 +7,10 @@ estimator_base::estimator_base():
     nh_(ros::NodeHandle()),
     nh_private_(ros::NodeHandle("~"))
 {
-    nh_private_.param<std::string>("gps_topic", gps_topic_, "/gps/data");
-    nh_private_.param<std::string>("imu_topic", imu_topic_, "/imu/data");
-    nh_private_.param<std::string>("baro_topic", baro_topic_, "/baro/data");
-    nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "/airspeed/data");
+    nh_private_.param<std::string>("gps_topic", gps_topic_, "gps/data");
+    nh_private_.param<std::string>("imu_topic", imu_topic_, "imu/data");
+    nh_private_.param<std::string>("baro_topic", baro_topic_, "baro");
+    nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "airspeed");
     nh_private_.param<double>("update_rate", update_rate_, 100.0);
     params_.Ts = 1.0f/update_rate_;
     params_.gravity = 9.8;
@@ -90,9 +90,9 @@ void estimator_base::imuCallback(const sensor_msgs::Imu &msg)
     input_.gyro_z = msg.angular_velocity.z;
 }
 
-void estimator_base::baroAltCallback(const std_msgs::Float32 &msg)
+void estimator_base::baroAltCallback(const fcu_common::Barometer &msg)
 {
-    input_.baro_alt = msg.data;
+    input_.baro_alt = -msg.altitude;
 }
 
 void estimator_base::airspeedCallback(const fcu_common::Airspeed &msg)
