@@ -20,12 +20,18 @@
 
 namespace rosplane {
 
+enum class alt_zones {
+    TakeOff,
+    Climb,
+    Descend,
+    AltitudeHold
+};
+
 class controller_base
 {
 public:
     controller_base();
     float spin();
-    virtual int getstate() = 0;
 
 protected:
 
@@ -51,6 +57,7 @@ protected:
         float delta_a;
         float delta_r;
         float delta_t;
+        alt_zones current_zone;
     };
 
     struct params_s {

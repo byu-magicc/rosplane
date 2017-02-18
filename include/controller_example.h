@@ -3,15 +3,7 @@
 
 #include "controller_base.h"
 
-namespace rosplane
-{
-
-enum class alt_state {
-    TakeOffZone,
-    ClimbZone,
-    DescendZone,
-    AltitudeHoldZone
-};
+namespace rosplane {
 
 class controller_example : public controller_base
 {
@@ -19,8 +11,7 @@ public:
     controller_example();
 private:
     virtual void control(const struct params_s &params, const struct input_s &input, struct output_s &output);
-    virtual int getstate();
-    alt_state state;
+    alt_zones current_zone;
 
     float course_hold(float chi_c, float chi, float r, const struct params_s &params, float Ts);
     float c_error;

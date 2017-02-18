@@ -155,6 +155,21 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
             ros_plane::Attitude_Commands attitudes;
             attitudes.phi_c = output.phi_c;
             attitudes.theta_c = output.theta_c;
+            switch(output.current_zone)
+            {
+                case alt_zones::TakeOff:
+                    attitudes.alt_zone = attitudes.ZONE_TAKE_OFF;
+                    break;
+                case alt_zones::Climb:
+                    attitudes.alt_zone = attitudes.ZONE_CLIMB;
+                    break;
+                case alt_zones::Descend:
+                    attitudes.alt_zone = attitudes.ZONE_DESEND;
+                    break;
+                case alt_zones::AltitudeHold:
+                    attitudes.alt_zone = attitudes.ZONE_ALTITUDE_HOLD;
+                    break;
+            }
             _att_cmd_pub.publish(attitudes);
         }
     }
