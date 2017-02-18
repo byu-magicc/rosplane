@@ -55,15 +55,20 @@ void estimator_base::update(const ros::TimerEvent&)
     msg.quat_valid = false;
 
     msg.psi_deg = fmod(output.psi,2*M_PI)*180/M_PI; //-360 to 360
-    msg.psi_deg += (msg.psi_deg < -180?360:0); msg.psi_deg -= (msg.psi_deg > 180?360:0);
+    msg.psi_deg += (msg.psi_deg < -180 ? 360 : 0); msg.psi_deg -= (msg.psi_deg > 180 ? 360 : 0);
     msg.chi_deg = fmod(output.chi,2*M_PI)*180/M_PI; //-360 to 360
-    msg.chi_deg += (msg.chi_deg < -180?360:0); msg.chi_deg -= (msg.chi_deg > 180?360:0);
+    msg.chi_deg += (msg.chi_deg < -180 ? 360 : 0); msg.chi_deg -= (msg.chi_deg > 180 ? 360 : 0);
 
     vehicle_state_pub_.publish(msg);
 }
 
 void estimator_base::gpsCallback(const fcu_common::GPS &msg)
 {
+    if(msg.fix != true || msg.NumSat < 4 || !std::isfinite(msg.latitude))
+    {
+        input_.gps_new = false;
+        return;
+    }
     if(!gps_init_)
     {
         gps_init_ = true;
@@ -79,8 +84,7 @@ void estimator_base::gpsCallback(const fcu_common::GPS &msg)
         input_.gps_Vg = msg.speed;
         if(msg.speed > 0.3)
             input_.gps_course = msg.ground_course;
-        if(msg.fix == true && msg.NumSat >= 4)
-            input_.gps_new = true;
+        input_.gps_new = true;
     }
 }
 

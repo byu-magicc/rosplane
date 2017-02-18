@@ -90,17 +90,6 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
     lpf_diff = alpha1*lpf_diff + (1-alpha1)*input.diff_pres;
     float Vahat = sqrt(2/params.rho*lpf_diff);
 
-//    if(!std::isfinite(hhat) || hhat < -500 || hhat > 500)
-//    {
-//        ROS_WARN("problem 20");
-//        hhat = 10;
-//    }
-//    if(!std::isfinite(Vahat) || Vahat < 0 || Vahat > 25)
-//    {
-//        ROS_WARN("problem 21");
-//        Vahat = 9;
-//    }
-
     // low pass filter accelerometers
     lpf_accel_x = alpha*lpf_accel_x + (1-alpha)*input.accel_x;
     lpf_accel_y = alpha*lpf_accel_y + (1-alpha)*input.accel_y;
@@ -166,7 +155,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
     P_a = (I - L_a*C_a.transpose())*P_a;
     xhat_a += L_a *(lpf_accel_z - h_a);//input.accel_z - h_a);
 
-    //check_xhat_a();
+    check_xhat_a();
 
     float phihat = xhat_a(0);
     float thetahat = xhat_a(1);
@@ -284,29 +273,14 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
 
         if(xhat_p(0) > 10000 || xhat_p(0) < -10000)
         {
-            ROS_WARN("gps n problem");
+            ROS_WARN("gps n limit reached");
             xhat_p(0) = input.gps_n;
         }
         if(xhat_p(1) > 10000 || xhat_p(1) < -10000)
         {
-            ROS_WARN("gps e problem");
+            ROS_WARN("gps e limit reached");
             xhat_p(1) = input.gps_e;
         }
-//        if(xhat_p(2) > 35 || xhat_p(2) < 0)
-//        {
-//            ROS_WARN("problem 13");
-//            xhat_p(2) = input.gps_Vg;
-//        }
-//        if(xhat_p(3) > radians(720.0f) || xhat_p(3) < radians(-720.0f))
-//        {
-//            ROS_WARN("problem 14");
-//            xhat_p(3) = input.gps_course;
-//        }
-//        if(xhat_p(6) > radians(720.0f) || xhat_p(6) < radians(-720.0f))
-//        {
-//            ROS_WARN("problem 15");
-//            xhat_p(6) = input.gps_course;
-//        }
     }
 
     bool problem = false;
@@ -350,11 +324,11 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
             P_p(6,6) = radians(5.0f);
         }
     }
-    if(problem) { ROS_WARN("problem 10 %d %d", prob_index, (input.gps_new ? 1 : 0)); }
+    if(problem) { ROS_WARN("possition esstimator reinitialized due to non-finite state %d", prob_index); }
     if(xhat_p(6) - xhat_p(3) > radians(360.0f) || xhat_p(6) - xhat_p(3) < radians(-360.0f))
     {
-        //xhat_p(3) = fmodf(xhat_p(3),radians(360.0f));
-        xhat_p(6) = fmodf(xhat_p(6),M_PI);
+        //xhat_p(3) = fmodf(xhat_p(3),2*M_PI);
+        xhat_p(6) = fmodf(xhat_p(6),2*M_PI);
     }
 
     float pnhat = xhat_p(0);
@@ -392,35 +366,37 @@ void estimator_example::check_xhat_a()
             xhat_a(0) = 0;
             P_a = Eigen::Matrix2f::Identity();
             P_a *= powf(radians(20.0f),2);
-            ROS_WARN("problem 00.0");
+            ROS_WARN("attiude esstimator reinitialized due to non-finite roll");
         }
         else if(xhat_a(0) > radians(85.0))
         {
             xhat_a(0) = radians(82.0);
-            ROS_WARN("problem 00.1");
+            ROS_WARN("max roll angle");
         }
         else if(xhat_a(0) < radians(-85.0))
         {
             xhat_a(0) = radians(-82.0);
-            ROS_WARN("problem 00.2");
+            ROS_WARN("max roll angle");
         }
     }
     if(xhat_a(1) > radians(80.0) || xhat_a(1) < radians(-80.0) || !std::isfinite(xhat_a(1)))
     {
-        ROS_WARN("problem 01");
         if(!std::isfinite(xhat_a(1)))
         {
             xhat_a(1) = 0;
             P_a = Eigen::Matrix2f::Identity();
             P_a *= powf(radians(20.0f),2);
+            ROS_WARN("attiude esstimator reinitialized due to non-finite pitch");
         }
         else if(xhat_a(1) > radians(80.0))
         {
             xhat_a(1) = radians(77.0);
+            ROS_WARN("max pitch angle");
         }
         else if(xhat_a(1) < radians(-80.0))
         {
             xhat_a(1) = radians(-77.0);
+            ROS_WARN("max pitch angle");
         }
     }
 }
