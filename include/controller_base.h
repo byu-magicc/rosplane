@@ -13,7 +13,7 @@
 #include <fcu_common/Command.h>
 #include <fcu_common/State.h>
 #include <ros_plane/Controller_Commands.h>
-#include <ros_plane/Attitude_Commands.h>
+#include <ros_plane/Controller_Internals.h>
 
 #include <dynamic_reconfigure/server.h>
 #include <ros_plane/ControllerConfig.h>
@@ -107,7 +107,7 @@ private:
     ros::Subscriber _vehicle_state_sub;
     ros::Subscriber _controller_commands_sub;
     ros::Publisher _actuators_pub;
-    ros::Publisher _att_cmd_pub;
+    ros::Publisher _internals_pub;
     ros::Timer _act_pub_timer;
 
     struct params_s                    _params;            /**< params */

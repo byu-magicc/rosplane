@@ -17,7 +17,7 @@ add_message_files(
   Controller_Commands.msg
   Current_Path.msg
   Waypoint.msg
-  Attitude_Commands.msg
+  Controller_Internals.msg
 )
 
 generate_messages(

@@ -54,7 +54,7 @@ controller_base::controller_base():
     _server.setCallback(_func);
 
     _actuators_pub = nh_.advertise<fcu_common::Command>("command",10);
-    _att_cmd_pub = nh_.advertise<ros_plane::Attitude_Commands>("attitude_commands",10);
+    _internals_pub = nh_.advertise<ros_plane::Controller_Internals>("controller_inners",10);
     _act_pub_timer = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
 
     _command_recieved = false;
@@ -150,27 +150,28 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
 
         _actuators_pub.publish(actuators);
 
-        if(_att_cmd_pub.getNumSubscribers() > 0)
+        if(_internals_pub.getNumSubscribers() > 0)
         {
-            ros_plane::Attitude_Commands attitudes;
-            attitudes.phi_c = output.phi_c;
-            attitudes.theta_c = output.theta_c;
+            ros_plane::Controller_Internals inners;
+            inners.phi_c = output.phi_c;
+            inners.theta_c = output.theta_c;
             switch(output.current_zone)
             {
                 case alt_zones::TakeOff:
-                    attitudes.alt_zone = attitudes.ZONE_TAKE_OFF;
+                    inners.alt_zone = inners.ZONE_TAKE_OFF;
                     break;
                 case alt_zones::Climb:
-                    attitudes.alt_zone = attitudes.ZONE_CLIMB;
+                    inners.alt_zone = inners.ZONE_CLIMB;
                     break;
                 case alt_zones::Descend:
-                    attitudes.alt_zone = attitudes.ZONE_DESEND;
+                    inners.alt_zone = inners.ZONE_DESEND;
                     break;
                 case alt_zones::AltitudeHold:
-                    attitudes.alt_zone = attitudes.ZONE_ALTITUDE_HOLD;
+                    inners.alt_zone = inners.ZONE_ALTITUDE_HOLD;
                     break;
             }
-            _att_cmd_pub.publish(attitudes);
+            inners.aux_valid = false;
+            _internals_pub.publish(inners);
         }
     }
 }
