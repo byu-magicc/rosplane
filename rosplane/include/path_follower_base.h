@@ -39,6 +39,7 @@ protected:
         double Va_c;             /** commanded airspeed (m/s) */
         double h_c;              /** commanded altitude (m) */
         double chi_c;            /** commanded course (rad) */
+        double phi_ff;           /** feed forward term for orbits (rad) */
     };
 
     struct params_s {

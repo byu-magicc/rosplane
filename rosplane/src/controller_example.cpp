@@ -18,7 +18,7 @@ controller_example::controller_example() : controller_base()
 void controller_example::control(const params_s &params, const input_s &input, output_s &output)
 {
     output.delta_r = 0; //cooridinated_turn_hold(input.beta, params, input.Ts)
-    output.phi_c = course_hold(input.chi_c, input.chi, input.r, params, input.Ts);
+    output.phi_c = course_hold(input.chi_c, input.chi, input.phi_ff, input.r, params, input.Ts);
     output.delta_a = roll_hold(output.phi_c, input.phi, input.p, params, input.Ts);
 
     switch(current_zone) {
@@ -90,7 +90,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
     output.delta_e = pitch_hold(output.theta_c, input.theta, input.q, params, input.Ts);
 }
 
-float controller_example::course_hold(float chi_c, float chi, float r, const params_s &params, float Ts)
+float controller_example::course_hold(float chi_c, float chi, float phi_ff, float r, const params_s &params, float Ts)
 {
     float error = chi_c - chi;
 
@@ -100,9 +100,9 @@ float controller_example::course_hold(float chi_c, float chi, float r, const par
     float ui = params.c_ki * c_integrator;
     float ud = params.c_kd * r;
 
-    float phi_c = sat(up + ui + ud, 40*3.14/180, -40*3.14/180);
+    float phi_c = sat(up + ui + ud + phi_ff, 40*3.14/180, -40*3.14/180);
     if(fabs(params.c_ki) >= 0.00001) {
-        float phi_c_unsat = up + ui + ud;
+        float phi_c_unsat = up + ui + ud + phi_ff;
         c_integrator = c_integrator + (Ts/params.c_ki) * (phi_c - phi_c_unsat);
     }
 
