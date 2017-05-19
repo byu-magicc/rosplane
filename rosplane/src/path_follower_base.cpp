@@ -35,7 +35,6 @@ void path_follower_base::update(const ros::TimerEvent &)
   if(_state_init == true && _current_path_init == true)
   {
     follow(_params, _input, output);
-
     rosplane_msgs::Controller_Commands msg;
     msg.chi_c = output.chi_c;
     msg.Va_c = output.Va_c;
@@ -51,6 +50,7 @@ void path_follower_base::vehicle_state_callback(const rosplane_msgs::StateConstP
   _input.pe = _vehicle_state.position[1];               /** position east */
   _input.h =  -_vehicle_state.position[2];                /** altitude */
   _input.chi = _vehicle_state.chi;
+  _input.Va = _vehicle_state.Va;
 
   _state_init = true;
 
