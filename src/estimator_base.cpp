@@ -26,7 +26,7 @@ estimator_base::estimator_base():
     baro_sub_ = nh_.subscribe(baro_topic_, 10, &estimator_base::baroAltCallback, this);
     airspeed_sub_ = nh_.subscribe(airspeed_topic_, 10, &estimator_base::airspeedCallback, this);
     update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &estimator_base::update, this);
-    vehicle_state_pub_ = nh_.advertise<fcu_common::State>("state",10);
+    vehicle_state_pub_ = nh_.advertise<rosflight_msgs::State>("state",10);
 }
 
 void estimator_base::update(const ros::TimerEvent&)
@@ -35,7 +35,7 @@ void estimator_base::update(const ros::TimerEvent&)
     estimate(params_, input_, output);
     input_.gps_new = false;
 
-    fcu_common::State msg;
+    rosflight_msgs::State msg;
     msg.position[0] = output.pn;
     msg.position[1] = output.pe;
     msg.position[2] = -output.h;
@@ -62,7 +62,7 @@ void estimator_base::update(const ros::TimerEvent&)
     vehicle_state_pub_.publish(msg);
 }
 
-void estimator_base::gpsCallback(const fcu_common::GPS &msg)
+void estimator_base::gpsCallback(const rosflight_msgs::GPS &msg)
 {
     if(msg.fix != true || msg.NumSat < 4 || !std::isfinite(msg.latitude))
     {
@@ -99,12 +99,12 @@ void estimator_base::imuCallback(const sensor_msgs::Imu &msg)
     input_.gyro_z = msg.angular_velocity.z;
 }
 
-void estimator_base::baroAltCallback(const fcu_common::Barometer &msg)
+void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
 {
     input_.baro_alt = -msg.altitude;
 }
 
-void estimator_base::airspeedCallback(const fcu_common::Airspeed &msg)
+void estimator_base::airspeedCallback(const rosflight_msgs::Airspeed &msg)
 {
     input_.diff_pres = msg.differential_pressure;
 }
