@@ -10,11 +10,11 @@
 #define ESTIMATOR_BASE_H
 
 #include <ros/ros.h>
-#include <fcu_common/State.h>
-#include <fcu_common/GPS.h>
+#include <rosflight_msgs/State.h>
+#include <rosflight_msgs/GPS.h>
 #include <sensor_msgs/Imu.h>
-#include <fcu_common/Barometer.h>
-#include <fcu_common/Airspeed.h>
+#include <rosflight_msgs/Barometer.h>
+#include <rosflight_msgs/Airspeed.h>
 #include <math.h>
 #include <Eigen/Eigen>
 
@@ -89,10 +89,10 @@ private:
     ros::Subscriber airspeed_sub_;
 
     void update(const ros::TimerEvent &);
-    void gpsCallback(const fcu_common::GPS &msg);
+    void gpsCallback(const rosflight_msgs::GPS &msg);
     void imuCallback(const sensor_msgs::Imu &msg);
-    void baroAltCallback(const fcu_common::Barometer &msg);
-    void airspeedCallback(const fcu_common::Airspeed &msg);
+    void baroAltCallback(const rosflight_msgs::Barometer &msg);
+    void airspeedCallback(const rosflight_msgs::Airspeed &msg);
 
     double update_rate_;
     ros::Timer update_timer_;
