@@ -11,7 +11,7 @@
 #define PATH_MANAGER_BASE_H
 
 #include <ros/ros.h>
-#include <fcu_common/State.h>
+#include <rosflight_msgs/State.h>
 #include <ros_plane/Current_Path.h>
 #include <ros_plane/Waypoint.h>
 #include <sensor_msgs/Imu.h>
@@ -81,9 +81,9 @@ private:
     //    } _params_handles; /**< handles for interesting parameters */
 
 
-    fcu_common::State _vehicle_state;     /**< vehicle state */
+    rosflight_msgs::State _vehicle_state;     /**< vehicle state */
 
-    void vehicle_state_callback(const fcu_common::StateConstPtr& msg);
+    void vehicle_state_callback(const rosflight_msgs::StateConstPtr& msg);
     void new_waypoint_callback(const ros_plane::Waypoint &msg);
     void current_path_publish(struct output_s &output);
 };
