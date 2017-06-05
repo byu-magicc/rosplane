@@ -326,7 +326,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
             P_p(6,6) = radians(5.0f);
         }
     }
-    if(problem) { ROS_WARN("possition esstimator reinitialized due to non-finite state %d", prob_index); }
+    if(problem) { ROS_WARN("position estimator reinitialized due to non-finite state %d", prob_index); }
     if(xhat_p(6) - xhat_p(3) > radians(360.0f) || xhat_p(6) - xhat_p(3) < radians(-360.0f))
     {
         //xhat_p(3) = fmodf(xhat_p(3),2*M_PI);
@@ -368,7 +368,7 @@ void estimator_example::check_xhat_a()
             xhat_a(0) = 0;
             P_a = Eigen::Matrix2f::Identity();
             P_a *= powf(radians(20.0f),2);
-            ROS_WARN("attiude esstimator reinitialized due to non-finite roll");
+            ROS_WARN("attiude estimator reinitialized due to non-finite roll");
         }
         else if(xhat_a(0) > radians(85.0))
         {
@@ -388,7 +388,7 @@ void estimator_example::check_xhat_a()
             xhat_a(1) = 0;
             P_a = Eigen::Matrix2f::Identity();
             P_a *= powf(radians(20.0f),2);
-            ROS_WARN("attiude esstimator reinitialized due to non-finite pitch");
+            ROS_WARN("attiude estimator reinitialized due to non-finite pitch");
         }
         else if(xhat_a(1) > radians(80.0))
         {
