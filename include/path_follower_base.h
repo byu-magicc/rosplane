@@ -67,7 +67,9 @@ private:
     struct input_s _input;
 
     void vehicle_state_callback(const rosflight_msgs::StateConstPtr& msg);
+    bool _state_init;
     void current_path_callback(const ros_plane::Current_PathConstPtr& msg);
+    bool _current_path_init;
 
     dynamic_reconfigure::Server<ros_plane::FollowerConfig> _server;
     dynamic_reconfigure::Server<ros_plane::FollowerConfig>::CallbackType _func;

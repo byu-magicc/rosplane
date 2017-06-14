@@ -22,6 +22,9 @@ namespace rosplane {
     memset(&_current_path, 0, sizeof(_current_path));
     update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &path_follower_base::update, this);
     controller_commands_pub_ = nh_.advertise<ros_plane::Controller_Commands>("controller_commands",1);
+
+    _state_init = false;
+    _current_path_init = false;
   }
 
 void path_follower_base::update(const ros::TimerEvent &)
@@ -29,13 +32,16 @@ void path_follower_base::update(const ros::TimerEvent &)
 
   struct output_s output;
 
-  follow(_params, _input, output);
+  if(_state_init == true && _current_path_init == true)
+  {
+    follow(_params, _input, output);
 
-  ros_plane::Controller_Commands msg;
-  msg.chi_c = output.chi_c;
-  msg.Va_c = output.Va_c;
-  msg.h_c = output.h_c;
-  controller_commands_pub_.publish(msg);
+    ros_plane::Controller_Commands msg;
+    msg.chi_c = output.chi_c;
+    msg.Va_c = output.Va_c;
+    msg.h_c = output.h_c;
+    controller_commands_pub_.publish(msg);
+  }
 }
 
 void path_follower_base::vehicle_state_callback(const rosflight_msgs::StateConstPtr& msg)
@@ -45,6 +51,8 @@ void path_follower_base::vehicle_state_callback(const rosflight_msgs::StateConst
   _input.pe = _vehicle_state.position[1];               /** position east */
   _input.h =  -_vehicle_state.position[2];                /** altitude */
   _input.chi = _vehicle_state.chi;
+
+  _state_init = true;
 
 }
 
@@ -61,6 +69,7 @@ void path_follower_base::current_path_callback(const ros_plane::Current_PathCons
   }
   _input.rho_orbit = _current_path.rho;
   _input.lam_orbit = _current_path.lambda;
+  _current_path_init = true;
 }
 
 void path_follower_base::reconfigure_callback(ros_plane::FollowerConfig &config, uint32_t level)

@@ -378,7 +378,7 @@ void estimator_example::check_xhat_a()
         else if(xhat_a(0) < radians(-85.0))
         {
             xhat_a(0) = radians(-82.0);
-            ROS_WARN("max roll angle");
+            ROS_WARN("min roll angle");
         }
     }
     if(xhat_a(1) > radians(80.0) || xhat_a(1) < radians(-80.0) || !std::isfinite(xhat_a(1)))
@@ -398,7 +398,7 @@ void estimator_example::check_xhat_a()
         else if(xhat_a(1) < radians(-80.0))
         {
             xhat_a(1) = radians(-77.0);
-            ROS_WARN("max pitch angle");
+            ROS_WARN("min pitch angle");
         }
     }
 }
