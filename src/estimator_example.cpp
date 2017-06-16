@@ -88,9 +88,14 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
 
     // low pass filter diff pressure sensor and invert to extimate Va
     lpf_diff = alpha1*lpf_diff + (1-alpha1)*input.diff_pres;
+
+    // when the plane isn't moving or moving slowly, the noise in the sensor
+    // will cause the differential pressure to go negative. This will catch 
+    // those cases. 
+    if(lpf_diff < 0)
+        lpf_diff = 0;
+
     float Vahat = sqrt(2/params.rho*lpf_diff);
-    if(!std::isfinite(Vahat))
-        Vahat = sqrt(2/params.rho*input.diff_pres);
 
     // low pass filter accelerometers
     lpf_accel_x = alpha*lpf_accel_x + (1-alpha)*input.accel_x;
