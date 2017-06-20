@@ -20,7 +20,11 @@ path_manager_base::path_manager_base():
 
     _num_waypoints = 0;
     _ptr_a = &_waypoints[0];
-//    waypoint_init();
+
+    _state_init = false;
+    _waypoint_init = false;
+
+    //waypoint_init();
 }
 
 void path_manager_base::vehicle_state_callback(const rosflight_msgs::StateConstPtr& msg)
@@ -34,8 +38,13 @@ void path_manager_base::vehicle_state_callback(const rosflight_msgs::StateConstP
 
     struct output_s outputs;
     struct params_s params;
-    manage(params, input, outputs);
-    current_path_publish(outputs);
+    _state_init = true;
+
+    if (_state_init == true && _waypoint_init == true)
+    {
+        manage(params_, input, outputs);
+        current_path_publish(outputs);
+    }
 }
 
 /** Function to initialize waypoints until Path Planner can be developed */
@@ -46,7 +55,7 @@ void path_manager_base::waypoint_init()
     _waypoints[_num_waypoints].w[2]      = -100;
     _waypoints[_num_waypoints].chi_d     = -9999;
     _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 35;
+    _waypoints[_num_waypoints].Va_d      = 30;
     _num_waypoints++;
 
     _waypoints[_num_waypoints].w[0]      = 1000;
@@ -54,7 +63,7 @@ void path_manager_base::waypoint_init()
     _waypoints[_num_waypoints].w[2]      = -100;
     _waypoints[_num_waypoints].chi_d     = -9999;
     _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 35;
+    _waypoints[_num_waypoints].Va_d      = 30;
     _num_waypoints++;
 
     _waypoints[_num_waypoints].w[0]      = 1000;
@@ -62,7 +71,7 @@ void path_manager_base::waypoint_init()
     _waypoints[_num_waypoints].w[2]      = -100;
     _waypoints[_num_waypoints].chi_d     = -9999;
     _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 35;
+    _waypoints[_num_waypoints].Va_d      = 30;
     _num_waypoints++;
 
     _waypoints[_num_waypoints].w[0]      = 0;
@@ -70,15 +79,15 @@ void path_manager_base::waypoint_init()
     _waypoints[_num_waypoints].w[2]      = -100;
     _waypoints[_num_waypoints].chi_d     = -9999;
     _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 35;
+    _waypoints[_num_waypoints].Va_d      = 30;
     _num_waypoints++;
 
     _waypoints[_num_waypoints].w[0]      = 0;
     _waypoints[_num_waypoints].w[1]      = 0;
-    _waypoints[_num_waypoints].w[2]      = 0;
+    _waypoints[_num_waypoints].w[2]      = -100;
     _waypoints[_num_waypoints].chi_d     = -9999;
     _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 35;
+    _waypoints[_num_waypoints].Va_d      = 30;
     _num_waypoints++;
 
 }
@@ -92,6 +101,7 @@ void path_manager_base::new_waypoint_callback(const ros_plane::Waypoint& msg)
     _waypoints[_num_waypoints].chi_valid = msg.chi_valid;
     _waypoints[_num_waypoints].Va_d      = msg.Va_d;
     _num_waypoints++;
+    _waypoint_init = true;
 }
 
 void path_manager_base::current_path_publish(output_s &output)

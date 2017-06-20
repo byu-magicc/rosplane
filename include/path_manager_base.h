@@ -84,7 +84,9 @@ private:
     rosflight_msgs::State _vehicle_state;     /**< vehicle state */
 
     void vehicle_state_callback(const rosflight_msgs::StateConstPtr& msg);
+    bool _state_init;
     void new_waypoint_callback(const ros_plane::Waypoint &msg);
+    bool _waypoint_init;
     void current_path_publish(struct output_s &output);
 };
 } //end namespace
