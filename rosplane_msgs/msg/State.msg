@@ -1,5 +1,6 @@
 # Vehicle state 'x_hat' output from the estimator or from simulator 
 
+Header header
 # @warning roll, pitch and yaw have always to be valid, the quaternion is optional
 float32[3] position	# north, east, down (m)
 float32 Va		# Airspeed (m/s)
