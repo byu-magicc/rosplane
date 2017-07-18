@@ -19,7 +19,7 @@ find_package(gazebo REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp gazebo_plugins gazebo_rosrosplane_msgs
+  CATKIN_DEPENDS roscpp gazebo_plugins gazebo_ros rosplane_msgs
   DEPENDS EIGEN3 GAZEBO
 )
 
