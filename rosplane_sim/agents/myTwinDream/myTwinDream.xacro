@@ -47,7 +47,7 @@
     </collision>
 
     <!-- Wheels -->
-    <!-- <xacro:include filename="$(find fcu_sim_plugins)/xacro/wheel.xacro"/>
+    <xacro:include filename="$(find fcu_sim_plugins)/xacro/wheel.xacro"/>
     <xacro:caster
       radius="0.05">
       <origin xyz="${body_length*0.31} -${body_width*0.25} -${body_height*0.45}"/>
@@ -59,8 +59,15 @@
     <xacro:caster
       radius="0.02">
       <origin xyz="-${body_length*0.54} 0 -${body_height*0.15}"/>
-    </xacro:caster> -->
+    </xacro:caster>
   </link>
+
+  <!-- Simulator Truth -->
+  <xacro:include filename="$(find rosplane_sim)/xacro/aircraft_truth.xacro"/>
+  <xacro:aircraft_truth
+    namespace="${namespace}"
+    parent_link="${namespace}/base_link"
+    wind_speed_topic="gazebo/wind_speed"/>
 
   <!-- Aerodynamics -->
   <xacro:include filename="$(find fcu_sim_plugins)/xacro/aircraft_forces_and_moments.xacro"/>
@@ -68,6 +75,40 @@
     namespace="${namespace}"
     parent_link="${namespace}/base_link"
     command_topic="command"/>
+
+  <!-- GPS -->
+  <!-- <xacro:include filename="$(find fcu_sim_plugins)/xacro/GPS.xacro"/>
+  <xacro:GPS_BYU
+    namespace="${namespace}"
+    parent_link="${namespace}/base_link"
+    GPS_topic="gps/data"
+    update_rate="1">
+  </xacro:GPS_BYU> -->
+
+  <!-- IMU -->
+  <!-- <xacro:include filename="$(find fcu_sim_plugins)/xacro/imu.xacro"/>
+  <xacro:IMU_MPU6050
+    namespace="${namespace}"
+    parent_link="${namespace}/base_link"
+    imu_topic="imu/data"
+    update_rate="500">
+  </xacro:IMU_MPU6050> -->
+
+  <!-- Airspeed -->
+  <!-- <xacro:include filename="$(find fcu_sim_plugins)/xacro/airspeed.xacro"/>
+  <xacro:airspeed_MPXV5004G
+    namespace="${namespace}"
+    parent_link="${namespace}/base_link"
+    airspeed_topic="airspeed/data">
+  </xacro:airspeed_MPXV5004G> -->
+
+  <!-- Barometer -->
+  <!-- <xacro:include filename="$(find fcu_sim_plugins)/xacro/barometer.xacro"/>
+  <xacro:Barometer_MS5611
+    namespace="${namespace}"
+    parent_link="${namespace}/base_link"
+    baro_topic="baro/data">
+  </xacro:Barometer_MS5611> -->
 
   <!-- Chase Camera -->
   <xacro:include filename="$(find fcu_sim_plugins)/xacro/camera.xacro"/>
@@ -81,20 +122,8 @@
     <origin xyz="-${1.1*body_length} 0 ${0.8*body_height}"/>
   </xacro:simple_camera>
 
-  <!-- Color -->
-  <gazebo reference="${namespace}/base_link">
-    <material>Gazebo/Blue</material>
-  </gazebo>
-
-  <!-- Sensors -->
-  <xacro:include filename="$(find fcu_sim_plugins)/xacro/aircraft_truth.xacro"/>
-  <xacro:aircraft_truth
-    namespace="${namespace}"
-    parent_link="${namespace}/base_link"
-    wind_speed_topic="gazebo/wind_speed"/>
-
   <!-- Gimbal -->
-  <xacro:include filename="$(find fcu_sim_plugins)/xacro/gimbal.xacro"/>
+  <!-- <xacro:include filename="$(find fcu_sim_plugins)/xacro/gimbal.xacro"/>
   <xacro:gimbal_ZENMUSE
     namespace="${namespace}"
     parent_link="${namespace}/base_link"
@@ -104,49 +133,16 @@
     command_topic="${namespace}/gimbal/control"
     use_slipring="true">
     <origin xyz="-${0.4*body_length} 0 -${0.4*body_height}" rpy="0 0 0"/>
-  </xacro:gimbal_ZENMUSE>
+  </xacro:gimbal_ZENMUSE> -->
 
-  <!-- Airspeed -->
-  <xacro:include filename="$(find fcu_sim_plugins)/xacro/airspeed.xacro"/>
-  <xacro:airspeed_MPXV5004G
-    namespace="${namespace}"
-    parent_link="${namespace}/base_link"
-    airspeed_topic="airspeed/data">
-  </xacro:airspeed_MPXV5004G>
-
-  <!-- GPS -->
-  <xacro:include filename="$(find fcu_sim_plugins)/xacro/GPS.xacro"/>
-  <xacro:GPS_BYU
-    namespace="${namespace}"
-    parent_link="${namespace}/base_link"
-    GPS_topic="gps/data"
-    update_rate="1">
-  </xacro:GPS_BYU>
-
-  <!-- Barometer -->
-  <xacro:include filename="$(find fcu_sim_plugins)/xacro/barometer.xacro"/>
-  <xacro:Barometer_MS5611
-    namespace="${namespace}"
-    parent_link="${namespace}/base_link"
-    baro_topic="baro/data">
-  </xacro:Barometer_MS5611>
 
   <!-- Sonar -->
-  <xacro:include filename="$(find fcu_sim_plugins)/xacro/sonar.xacro"/>
+  <!-- <xacro:include filename="$(find fcu_sim_plugins)/xacro/sonar.xacro"/>
   <xacro:Sonar_MB1030
     namespace="${namespace}"
     parent_link="${namespace}/base_link"
     sonar_topic="sonar/data">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:Sonar_MB1030>
-
-  <!-- IMU -->
-  <xacro:include filename="$(find fcu_sim_plugins)/xacro/imu.xacro"/>
-  <xacro:IMU_MPU6050
-    namespace="${namespace}"
-    parent_link="${namespace}/base_link"
-    imu_topic="imu/data"
-    update_rate="500">
-  </xacro:IMU_MPU6050>
+  </xacro:Sonar_MB1030> -->
 
 </robot>
