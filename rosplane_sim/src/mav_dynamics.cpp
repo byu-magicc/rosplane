@@ -115,13 +115,12 @@ void MAVdynamics::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf)
   // Turn off gravity for this body so we can fully control its motion
   link_->SetGravityMode(FALSE);
 
-  // Store the initial state of the link for reset purposes
-  gazebo::math::Pose pose = link_->GetWorldCoGPose();
-  gazebo::math::Vector3 vel = link_->GetRelativeLinearVel();
-  gazebo::math::Vector3 accel = link_->GetRelativeLinearAccel();
-  gazebo::math::Vector3 omega = link_->GetRelativeAngularVel();
-  gazebo::math::Vector3 alpha = link_->GetRelativeAngularAccel();
-  initial_state_.pos = 
+  // Store the initial state of the aircraft for reset purposes
+  initial_pose_ = link_->GetWorldCoGPose();
+  null_command_.chi_c = initial_pose_.rot.GetAsEuler()[2];
+  null_command_.h_c = initial_pose_.loc[2];
+  null_command_.va_c = 0.;
+  command_ = null_command_;
 }
 
 
@@ -132,7 +131,6 @@ void MAVdynamics::OnUpdate(const gazebo::common::UpdateInfo& _info)
   Eigen::Matrix3d NWU_to_NED;
   NWU_to_NED << 1, 0, 0, 0, -1, 0, 0, 0, -1;
 
-  MAVForcesAndMoments::Current_State state;
   gazebo::math::Pose pose = link_->GetWorldCoGPose();
   gazebo::math::Vector3 vel = link_->GetRelativeLinearVel();
   gazebo::math::Vector3 accel = link_->GetRelativeLinearAccel();
@@ -140,26 +138,30 @@ void MAVdynamics::OnUpdate(const gazebo::common::UpdateInfo& _info)
   gazebo::math::Vector3 alpha = link_->GetRelativeAngularAccel();
 
   // Convert gazebo types to Eigen and switch to NED frame
-  state.pos = NWU_to_NED * vec3_to_eigen_from_gazebo(pose.pos) ;
-  state.rot = NWU_to_NED * rotation_to_eigen_from_gazebo(pose.rot);
-  state.vel = NWU_to_NED * vec3_to_eigen_from_gazebo(vel);
-  state.omega = NWU_to_NED * vec3_to_eigen_from_gazebo(omega);
-  state.t = _info.simTime.Double();
+  state_.pos = NWU_to_NED * vec3_to_eigen_from_gazebo(pose.pos);
+  state_.rot = NWU_to_NED * rotation_to_eigen_from_gazebo(pose.rot);
+  state_.vel = NWU_to_NED * vec3_to_eigen_from_gazebo(vel);
+  state_.accel = NWU_to_NED * vec3_to_eigen_from_gazebo(accel);
+  state_.omega = NWU_to_NED * vec3_to_eigen_from_gazebo(omega);
+  state_.alpha = NWU_to_NED * vec3_to_eigen_from_gazebo(alpha);
+  state_.t = _info.simTime.Double();
 
-  forces_ = mav_dynamics_->updateForcesAndTorques(state, board_.get_outputs());
+  mav_dynamics_->updateForcesAndTorques(state_, command_);
 
-  // apply the forces and torques to the joint (apply in NWU)
-  gazebo::math::Vector3 force = vec3_to_gazebo_from_eigen(NWU_to_NED * forces_.block<3,1>(0,0));
-  gazebo::math::Vector3 torque = vec3_to_gazebo_from_eigen(NWU_to_NED *  forces_.block<3,1>(3,0));
-  link_->AddRelativeForce(force);
-  link_->AddRelativeTorque(torque);
+
+  // apply the updated state
+  pose.set(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.pos), 
+           rotation_to_gazebo_from_eigen_mat(NWU_to_NED * state_.rot));
+  link_->SetWorldPose(pose);
+  // TODO: update the rest of the physics state
+
 }
 
 void MAVdynamics::Reset()
 {
-    link_->SetWorldPose(initial_pose_);
-    command_ = null_command_;
-    link_->ResetPhysicsStates();
+  link_->SetWorldPose(initial_pose_);
+  link_->ResetPhysicsStates();
+  command_ = null_command_;
 //  start_time_us_ = (uint64_t)(world_->GetSimTime().Double() * 1e3);
 //  rosflight_init();
 }
@@ -195,6 +197,21 @@ Eigen::Matrix3d MAVdynamics::rotation_to_eigen_from_gazebo(gazebo::math::Quatern
 {
   Eigen::Quaterniond eig_quat(quat.w, quat.x, quat.y, quat.z);
   return eig_quat.toRotationMatrix();
+}
+
+gazebo::math::Quaternion MAVdynamics::rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q)
+{
+  Eigen::Vector3d v = q.vec();
+  gazebo::math::Quaternion quat(q.w(), v(0), v(1), v(2));
+  return quat;
+}
+
+gazebo::math::Quaternion MAVdynamics::rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat)
+{
+  Eigen::Quaterniond q(eig_mat);
+  Eigen::Vector3d v = q.vec();
+  gazebo::math::Quaternion quat(q.w(), v(0), v(1), v(2));
+  return quat;
 }
 
 GZ_REGISTER_MODEL_PLUGIN(MAVdynamics)

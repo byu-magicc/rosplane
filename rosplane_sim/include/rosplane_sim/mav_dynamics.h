@@ -77,6 +77,7 @@ private:
 
   DesignModel* design_model_;
   DesignModel::Command command_;
+  DesignModel::State state_;
 
   // Time Counters
   uint64_t start_time_us_;
@@ -84,13 +85,15 @@ private:
   ros::NodeHandle* nh_;
 
   // For reset handlin
-  DesignModel::State initial_state_;
+  gazebo::math::Pose initial_pose_;
   DesignModel::Command null_command_;
 
   // helper functions for converting to and from eigen
   Eigen::Vector3d vec3_to_eigen_from_gazebo(gazebo::math::Vector3 vec);
   gazebo::math::Vector3 vec3_to_gazebo_from_eigen(Eigen::Vector3d vec);
   Eigen::Matrix3d rotation_to_eigen_from_gazebo(gazebo::math::Quaternion vec);
+  gazebo::math::Quaternion MAVdynamics::rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q);
+  gazebo::math::Quaternion MAVdynamics::rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat);
 };
 
 } // namespace rosplane_sim

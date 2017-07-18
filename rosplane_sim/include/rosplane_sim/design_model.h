@@ -67,12 +67,12 @@ public:
     };
 
     struct Command{
-      double chi_c;
-      double h_c;
       double va_c;
+      double h_c;
+      double chi_c;
     };
 
-    virtual State updateState(State x, Command command) = 0;
+    virtual State updateState(State &x, Command &command) = 0;
     virtual void set_wind(Eigen::Vector3d wind) = 0;
 };
 
