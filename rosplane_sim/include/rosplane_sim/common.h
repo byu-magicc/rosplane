@@ -48,7 +48,7 @@ bool getSdfParam(sdf::ElementPtr sdf, const std::string& name, T& param, const T
   else {
     param = default_value;
     if (verbose)
-      gzerr << "[fcu_sim_plugins] Please specify a value for parameter \"" << name << "\".\n";
+      gzerr << "[rosplane_sim] Please specify a value for parameter \"" << name << "\".\n";
   }
   return false;
 }
@@ -131,4 +131,4 @@ void copyPosition(const In& in, Out* out) {
   out->z = in.z;
 }
 
-#endif /* fcu_sim_PLUGINS_COMMON_H_ */
+#endif /* ROSPLANE_SIM_COMMON_H_ */

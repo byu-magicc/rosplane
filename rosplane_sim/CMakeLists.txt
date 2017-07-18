@@ -37,10 +37,10 @@ src/aircraft_truth.cpp)
 target_link_libraries(aircraft_truth_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
 add_dependencies(aircraft_truth_plugin ${catkin_EXPORTED_TARGETS} rosflight_msgs_generate_messages_cpp)
 
-# add_library(mav_dynamics_plugin
-#   src/mav_dynamics.cpp)
-# target_link_libraries(mav_dynamics_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
-# add_dependencies(mav_dynamics_plugin ${catkin_EXPORTED_TARGETS} rosflight_msgs_generate_messages_cpp)
+add_library(aircraft_forces_and_moments_plugin
+  src/aircraft_forces_and_moments.cpp)
+target_link_libraries(aircraft_forces_and_moments_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
+add_dependencies(aircraft_forces_and_moments_plugin ${catkin_EXPORTED_TARGETS} rosflight_msgs_generate_messages_cpp)
 
 # add_library(design_model_plugin SHARED
 #   src/rosplane_dm.cpp

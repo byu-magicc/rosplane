@@ -20,20 +20,7 @@
     <arg name="mav_name"            value="$(arg mav_name)" />
     <arg name="model"               value="$(find rosplane_sim)/agents/$(arg mav_name)/$(arg mav_name).xacro" />
   </include>
-<!--
-  <node name="joy" pkg="fcu_common" type="fcu_common_joy">
-    <param name="x_axis" value="0"/>
-    <param name="y_axis" value="1"/>
-    <param name="yaw_axis" value="4"/>
-    <param name="axis_thrust_" value="2"/>
-    <param name="y_sign" value="-1"/>
-    <param name="x_sign" value="1"/>
-  </node>
 
-  <node name="xbox" pkg="joy" type="joy_node">
-    <param name="dev" value="/dev/input/js0"/>
-  </node>
-  -->
   <group ns="$(arg mav_name)">
     <!-- Load Global Parameters for this MAV -->
     <rosparam command="load" file="$(find rosplane_sim)/agents/$(arg mav_name)/$(arg mav_name).yaml"/>

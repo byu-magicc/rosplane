@@ -47,7 +47,7 @@
     </collision>
 
     <!-- Wheels -->
-    <xacro:include filename="$(find fcu_sim_plugins)/xacro/wheel.xacro"/>
+    <xacro:include filename="$(find rosplane_sim)/xacro/wheel.xacro"/>
     <xacro:caster
       radius="0.05">
       <origin xyz="${body_length*0.31} -${body_width*0.25} -${body_height*0.45}"/>
@@ -70,8 +70,8 @@
     wind_speed_topic="gazebo/wind_speed"/>
 
   <!-- Aerodynamics -->
-  <xacro:include filename="$(find fcu_sim_plugins)/xacro/aircraft_forces_and_moments.xacro"/>
-  <xacro:aerosonde
+  <xacro:include filename="$(find rosplane_sim)/xacro/aircraft_forces_and_moments.xacro"/>
+  <xacro:myTwinDream
     namespace="${namespace}"
     parent_link="${namespace}/base_link"
     command_topic="command"/>
