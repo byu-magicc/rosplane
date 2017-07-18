@@ -1,0 +1,90 @@
+mass: 3.92
+
+Jx: 0.213
+Jy: 0.171
+Jz: 0.350
+Jxz: 0.04
+
+rho: 1.2682
+wing_s: 0.468
+wing_b: 1.8
+wing_c: 0.26
+wing_M: 50
+wing_epsilon: 0.1592
+wing_alpha0: 0.3040363557
+
+k_motor: 40.0
+k_T_P: 0.0
+k_Omega: 0.0
+
+prop_e: 0.8
+prop_S: 0.0314
+prop_C: 1.0
+
+C_L_O: 0.2869
+C_L_alpha: 5.1378
+C_L_beta: 0.0
+C_L_p: 0.0
+C_L_q: 1.7102
+C_L_r: 0.0
+C_L_delta_a: 0.0
+C_L_delta_e: 0.5202
+C_L_delta_r: 0.0
+
+C_D_O: 0.03087
+C_D_alpha: 0.0043021
+C_D_beta: 0.0
+C_D_p: 0.02815
+C_D_q: 0.2514
+C_D_r: 0.0
+C_D_delta_a: 0.0
+C_D_delta_e: 0.01879
+C_D_delta_r: 0.0
+
+C_ell_O: 0.0
+C_ell_alpha: 0.00
+C_ell_beta: 0.0193
+C_ell_p: -0.5406
+C_ell_q: 0.0
+C_ell_r: 0.1929
+C_ell_delta_a: 0.2818
+C_ell_delta_e: 0.0
+C_ell_delta_r: 0.00096
+
+C_m_O: 0.0362
+C_m_alpha: -0.2627
+C_m_beta: 0.0
+C_m_p: 0.0
+C_m_q: -9.7213
+C_m_r: 0.0
+C_m_delta_a: 0.0
+C_m_delta_e: -1.2392
+C_m_delta_r: 0.0
+
+C_n_O: 0.0
+C_n_alpha: 0.0
+C_n_beta: 0.08557
+C_n_p: -0.0498
+C_n_q: 0.0
+C_n_r: -0.0572
+C_n_delta_a: 0.0095
+C_n_delta_e: 0.0
+C_n_delta_r: -0.06
+
+C_Y_O: 0.0
+C_Y_alpha: 0.00
+C_Y_beta: -0.2471
+C_Y_p: -0.07278
+C_Y_q: 0.0
+C_Y_r: 0.1849
+C_Y_delta_a: -0.02344
+C_Y_delta_e: 0.0
+C_Y_delta_r:  0.1591
+
+# trim conditions
+phi0: 0
+theta0: 0.0349 # 2 degrees
+psi0: 0
+Va0: 16.38
+delta_e0: 0.02967 # 1.7 degrees
+delta_t0: 0.4
