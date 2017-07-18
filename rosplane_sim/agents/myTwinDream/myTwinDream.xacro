@@ -38,13 +38,6 @@
             <box size="${body_width} ${body_height} ${body_length}" />
         </xacro:unless>
       </geometry>
-      <material name="wing_material">
-        <script>
-          <uri>package://rosplane_sim/agents/$(arg mav_name)/materials/scripts</uri>
-          <uri>package://rosplane_sim/agents/$(arg mav_name)/materials/textures</uri>
-          <name>wing/texture</name>
-        </script>
-      </material>
     </visual>
     <collision name="plane_collision">
       <origin xyz="0 0 0" rpy="1.570796 0 1.570796" />
