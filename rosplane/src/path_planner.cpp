@@ -1,13 +1,13 @@
 #include <ros/ros.h>
-#include <ros_plane/Waypoint.h>
+#include <rosplane_msgs/Waypoint.h>
 
 #define num_waypoints 4
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "ros_plane_path_planner");
+    ros::init(argc, argv, "rosplane_simple_path_planner");
 
     ros::NodeHandle nh_;
-    ros::Publisher waypointPublisher = nh_.advertise<ros_plane::Waypoint>("waypoint_path",10);
+    ros::Publisher waypointPublisher = nh_.advertise<rosplane_msgs::Waypoint>("waypoint_path",10);
 
     float Va = 8.5;//11;
     float wps[5*num_waypoints] = {
@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     for(int i(0);i<num_waypoints;i++)
     {
 
-        ros_plane::Waypoint new_waypoint;
+        rosplane_msgs::Waypoint new_waypoint;
 
         new_waypoint.w[0] = wps[i*5 + 0];
         new_waypoint.w[1] = wps[i*5 + 1];

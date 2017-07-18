@@ -11,16 +11,16 @@
 #define PATH_MANAGER_BASE_H
 
 #include <ros/ros.h>
-#include <rosflight_msgs/State.h>
-#include <ros_plane/Current_Path.h>
-#include <ros_plane/Waypoint.h>
+#include <rosplane_msgs/State.h>
+#include <rosplane_msgs/Current_Path.h>
+#include <rosplane_msgs/Waypoint.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <sensor_msgs/FluidPressure.h>
 #include <math.h>
 #include <Eigen/Eigen>
-#include <ros_plane/ControllerConfig.h>
+#include <rosplane/ControllerConfig.h>
 
 
 #define SIZE_WAYPOINT_ARRAY 20
@@ -81,11 +81,11 @@ private:
     //    } _params_handles; /**< handles for interesting parameters */
 
 
-    rosflight_msgs::State _vehicle_state;     /**< vehicle state */
+    rosplane_msgs::State _vehicle_state;     /**< vehicle state */
 
-    void vehicle_state_callback(const rosflight_msgs::StateConstPtr& msg);
+    void vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg);
     bool _state_init;
-    void new_waypoint_callback(const ros_plane::Waypoint &msg);
+    void new_waypoint_callback(const rosplane_msgs::Waypoint &msg);
     bool _waypoint_init;
     void current_path_publish(struct output_s &output);
 };

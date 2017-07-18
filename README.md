@@ -1,4 +1,4 @@
-# rosplane
+# ROSplane
 
 This is intended to eventually be a fully-featured fixed-wing autopilot for ROS using ROSflight as the hardware I/O or fcu_sim as the simulator.  It is built according to the method published in [Small Unmanned Aircraft: Theory and Practice](http://uavbook.byu.edu/doku.php) by Beard and McLain, so as to allow anyone to easily understand, modify and use the code.  This framework is inherently modular and extensively documented so as to aid the user in understanding and extending for personal use.
 
@@ -8,7 +8,7 @@ It is a single ROS package, with several nodes.
 
 # - Estimator 
 
-The estimator is a standard ekf, as defined mostly in the way in the reference above.  It has a attitude filter and a possition filter for gps smoothing. We are probably going to release a full state filter at some point.  We are estimating position, velocity, and attitude. The state is then published in the rosflight_msgs/msg/State.msg.
+The estimator is a standard ekf, as defined mostly in the way in the reference above.  It has a attitude filter and a possition filter for gps smoothing. We are probably going to release a full state filter at some point.  We are estimating position, velocity, and attitude. The state is then published in the rosplane_msgs/msg/State.msg.
 
 # - Controller
 

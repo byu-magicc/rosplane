@@ -16,7 +16,7 @@ path_manager_base::path_manager_base():
     /**
       Publisher added for current path.  Assumes Path Planner Publishes "current_path" topic with message type Float32MultiArray
       */
-    _current_path_pub = nh_.advertise<ros_plane::Current_Path>("current_path",10);
+    _current_path_pub = nh_.advertise<rosplane_msgs::Current_Path>("current_path",10);
 
     _num_waypoints = 0;
     _ptr_a = &_waypoints[0];
@@ -27,7 +27,7 @@ path_manager_base::path_manager_base():
     //waypoint_init();
 }
 
-void path_manager_base::vehicle_state_callback(const rosflight_msgs::StateConstPtr& msg)
+void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg)
 {
     _vehicle_state = *msg;
     struct input_s input;
@@ -92,7 +92,7 @@ void path_manager_base::waypoint_init()
 
 }
 
-void path_manager_base::new_waypoint_callback(const ros_plane::Waypoint& msg)
+void path_manager_base::new_waypoint_callback(const rosplane_msgs::Waypoint& msg)
 {
     _waypoints[_num_waypoints].w[0]      = msg.w[0];
     _waypoints[_num_waypoints].w[1]      = msg.w[1];
@@ -106,7 +106,7 @@ void path_manager_base::new_waypoint_callback(const ros_plane::Waypoint& msg)
 
 void path_manager_base::current_path_publish(output_s &output)
 {
-    ros_plane::Current_Path current_path;
+    rosplane_msgs::Current_Path current_path;
 
     current_path.flag = output.flag;
     current_path.Va_d = output.Va_d;
@@ -125,7 +125,7 @@ void path_manager_base::current_path_publish(output_s &output)
 } //end namespace
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "ros_plane_path_manager");
+    ros::init(argc, argv, "rosplane_path_manager");
     rosplane::path_manager_base* est = new rosplane::path_manager_example();
 
     ros::spin();
