@@ -7,8 +7,8 @@ namespace rosplane {
     nh_(ros::NodeHandle()),
     nh_private_(ros::NodeHandle("~"))
   {
-    _vehicle_state_sub = nh_.subscribe<rosflight_msgs::State>("state", 1, &path_follower_base::vehicle_state_callback, this);
-    _current_path_sub = nh_.subscribe<ros_plane::Current_Path>("current_path",1, &path_follower_base::current_path_callback, this);
+    _vehicle_state_sub = nh_.subscribe<rosplane_msgs::State>("state", 1, &path_follower_base::vehicle_state_callback, this);
+    _current_path_sub = nh_.subscribe<rosplane_msgs::Current_Path>("current_path",1, &path_follower_base::current_path_callback, this);
 
 
     nh_private_.param<double>("CHI_INFTY", _params.chi_infty, 1.0472);
@@ -21,7 +21,7 @@ namespace rosplane {
     memset(&_vehicle_state, 0, sizeof(_vehicle_state));
     memset(&_current_path, 0, sizeof(_current_path));
     update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &path_follower_base::update, this);
-    controller_commands_pub_ = nh_.advertise<ros_plane::Controller_Commands>("controller_commands",1);
+    controller_commands_pub_ = nh_.advertise<rosplane_msgs::Controller_Commands>("controller_commands",1);
 
     _state_init = false;
     _current_path_init = false;
@@ -36,7 +36,7 @@ void path_follower_base::update(const ros::TimerEvent &)
   {
     follow(_params, _input, output);
 
-    ros_plane::Controller_Commands msg;
+    rosplane_msgs::Controller_Commands msg;
     msg.chi_c = output.chi_c;
     msg.Va_c = output.Va_c;
     msg.h_c = output.h_c;
@@ -44,7 +44,7 @@ void path_follower_base::update(const ros::TimerEvent &)
   }
 }
 
-void path_follower_base::vehicle_state_callback(const rosflight_msgs::StateConstPtr& msg)
+void path_follower_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg)
 {
   _vehicle_state = *msg;
   _input.pn = _vehicle_state.position[0];               /** position north */
@@ -56,7 +56,7 @@ void path_follower_base::vehicle_state_callback(const rosflight_msgs::StateConst
 
 }
 
-void path_follower_base::current_path_callback(const ros_plane::Current_PathConstPtr& msg)
+void path_follower_base::current_path_callback(const rosplane_msgs::Current_PathConstPtr& msg)
 {
   _current_path = *msg;
   _input.flag = _current_path.flag;
@@ -72,7 +72,7 @@ void path_follower_base::current_path_callback(const ros_plane::Current_PathCons
   _current_path_init = true;
 }
 
-void path_follower_base::reconfigure_callback(ros_plane::FollowerConfig &config, uint32_t level)
+void path_follower_base::reconfigure_callback(rosplane::FollowerConfig &config, uint32_t level)
 {
   _params.chi_infty = config.CHI_INFTY;
   _params.k_path = config.K_PATH;
@@ -81,7 +81,7 @@ void path_follower_base::reconfigure_callback(ros_plane::FollowerConfig &config,
 } //end namespace
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "ros_plane_follower");
+  ros::init(argc, argv, "rosplane_path_follower");
   rosplane::path_follower_base* path = new rosplane::path_follower();
 
   ros::spin();

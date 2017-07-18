@@ -54,24 +54,24 @@ controller_base::controller_base():
     _server.setCallback(_func);
 
     _actuators_pub = nh_.advertise<rosflight_msgs::Command>("command",10);
-    _internals_pub = nh_.advertise<ros_plane::Controller_Internals>("controller_inners",10);
+    _internals_pub = nh_.advertise<rosplane_msgs::Controller_Internals>("controller_inners",10);
     _act_pub_timer = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
 
     _command_recieved = false;
 }
 
-void controller_base::vehicle_state_callback(const rosflight_msgs::StateConstPtr& msg)
+void controller_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg)
 {
     _vehicle_state = *msg;
 }
 
-void controller_base::controller_commands_callback(const ros_plane::Controller_CommandsConstPtr& msg)
+void controller_base::controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr& msg)
 {
     _command_recieved = true;
     _controller_commands = *msg;
 }
 
-void controller_base::reconfigure_callback(ros_plane::ControllerConfig &config, uint32_t level)
+void controller_base::reconfigure_callback(rosplane::ControllerConfig &config, uint32_t level)
 {
   _params.trim_e = config.TRIM_E;
   _params.trim_a = config.TRIM_A;
@@ -152,7 +152,7 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
 
         if(_internals_pub.getNumSubscribers() > 0)
         {
-            ros_plane::Controller_Internals inners;
+            rosplane_msgs::Controller_Internals inners;
             inners.phi_c = output.phi_c;
             inners.theta_c = output.theta_c;
             switch(output.current_zone)
@@ -179,7 +179,7 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
 } //end namespace
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "ros_plane_controller");
+  ros::init(argc, argv, "rosplane_controller");
   rosplane::controller_base* cont = new rosplane::controller_example();
 
   ros::spin();

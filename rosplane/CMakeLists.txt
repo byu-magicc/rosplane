@@ -1,31 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ros_plane)
+project(rosplane)
 
 find_package(catkin REQUIRED COMPONENTS
   rosflight_msgs
+  rosplane_msgs
   roscpp
   rospy
   cmake_modules
   dynamic_reconfigure
   sensor_msgs
-  message_generation
 )
 find_package(Eigen REQUIRED)
-
-add_message_files(
-  FILES
-  Controller_Commands.msg
-  Current_Path.msg
-  Waypoint.msg
-  Controller_Internals.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  sensor_msgs
-  geometry_msgs
-)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -50,7 +35,7 @@ generate_dynamic_reconfigure_options(
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES
-  CATKIN_DEPENDS rosflight_msgs roscpp rospy
+  CATKIN_DEPENDS rosflight_msgs rosplane_msgs roscpp rospy
 #  DEPENDS system_lib
 )
 add_definitions(-std=c++11)
@@ -62,7 +47,7 @@ include_directories(
 )
 
 ## Declare a C++ executable
-add_executable(ros_plane_controller
+add_executable(rosplane_controller
             src/controller_base.cpp
             src/controller_example.cpp
             include/controller_base.h
@@ -71,17 +56,17 @@ add_executable(ros_plane_controller
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(ros_plane_controller ${PROJECT_NAME}_gencfg)
-add_dependencies(ros_plane_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(rosplane_controller ${PROJECT_NAME}_gencfg)
+add_dependencies(rosplane_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(ros_plane_controller
+target_link_libraries(rosplane_controller
   ${catkin_LIBRARIES}
 )
 
 
 ## Declare a C++ executable
-add_executable(ros_plane_estimator
+add_executable(rosplane_estimator
             src/estimator_base.cpp
             src/estimator_example.cpp
             include/estimator_base.h
@@ -90,47 +75,47 @@ add_executable(ros_plane_estimator
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(ros_plane_estimator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(rosplane_estimator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(ros_plane_estimator
+target_link_libraries(rosplane_estimator
   ${catkin_LIBRARIES}
 )
 
-add_executable(ros_plane_path_follower
+add_executable(rosplane_path_follower
             src/path_follower_example.cpp
             src/path_follower_base.cpp)
 
-add_dependencies(ros_plane_path_follower ${PROJECT_NAME}_gencfg)
-add_dependencies(ros_plane_path_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(rosplane_path_follower ${PROJECT_NAME}_gencfg)
+add_dependencies(rosplane_path_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-target_link_libraries(ros_plane_path_follower
+target_link_libraries(rosplane_path_follower
   ${catkin_LIBRARIES}
 )
 
 ## Declare a C++ executable
-add_executable(ros_plane_path_manager
+add_executable(rosplane_path_manager
             src/path_manager_base.cpp
             src/path_manager_example.cpp
 )
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(ros_plane_path_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(rosplane_path_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(ros_plane_path_manager
+target_link_libraries(rosplane_path_manager
   ${catkin_LIBRARIES}
 )
 
 ## Declare a C++ executable
-add_executable(ros_plane_path_planner
+add_executable(rosplane_path_planner
             src/path_planner.cpp
 )
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(ros_plane_path_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(rosplane_path_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(ros_plane_path_planner
+target_link_libraries(rosplane_path_planner
   ${catkin_LIBRARIES}
 )

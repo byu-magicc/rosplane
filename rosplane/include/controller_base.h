@@ -11,12 +11,12 @@
 
 #include <ros/ros.h>
 #include <rosflight_msgs/Command.h>
-#include <rosflight_msgs/State.h>
-#include <ros_plane/Controller_Commands.h>
-#include <ros_plane/Controller_Internals.h>
+#include <rosplane_msgs/State.h>
+#include <rosplane_msgs/Controller_Commands.h>
+#include <rosplane_msgs/Controller_Internals.h>
 
 #include <dynamic_reconfigure/server.h>
-#include <ros_plane/ControllerConfig.h>
+#include <rosplane/ControllerConfig.h>
 
 namespace rosplane {
 
@@ -111,17 +111,17 @@ private:
     ros::Timer _act_pub_timer;
 
     struct params_s                    _params;            /**< params */
-    ros_plane::Controller_Commands _controller_commands;
-    rosflight_msgs::State _vehicle_state;
+    rosplane_msgs::Controller_Commands _controller_commands;
+    rosplane_msgs::State _vehicle_state;
 
-    void vehicle_state_callback(const rosflight_msgs::StateConstPtr& msg);
-    void controller_commands_callback(const ros_plane::Controller_CommandsConstPtr& msg);
+    void vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg);
+    void controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr& msg);
     bool _command_recieved;
 
-    dynamic_reconfigure::Server<ros_plane::ControllerConfig> _server;
-    dynamic_reconfigure::Server<ros_plane::ControllerConfig>::CallbackType _func;
+    dynamic_reconfigure::Server<rosplane::ControllerConfig> _server;
+    dynamic_reconfigure::Server<rosplane::ControllerConfig>::CallbackType _func;
 
-    void reconfigure_callback(ros_plane::ControllerConfig &config, uint32_t level);
+    void reconfigure_callback(rosplane::ControllerConfig &config, uint32_t level);
 
     /**
     * Convert from deflection angle to pwm
