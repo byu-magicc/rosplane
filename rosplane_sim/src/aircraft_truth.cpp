@@ -69,7 +69,7 @@ void AircraftTruth::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   updateConnection_ = event::Events::ConnectWorldUpdateBegin(boost::bind(&AircraftTruth::OnUpdate, this, _1));
 
   // Connect Subscribers
-  true_state_pub_ = node_handle_->advertise<rosflight_msgs::State>(truth_topic_,1);
+  true_state_pub_ = node_handle_->advertise<rosplane_msgs::State>(truth_topic_,1);
   wind_speed_sub_ = node_handle_->subscribe(wind_speed_topic_, 1, &AircraftTruth::WindSpeedCallback, this);
 }
 
@@ -93,7 +93,7 @@ void AircraftTruth::PublishTruth()
   /* Get state information from Gazebo - convert to NED         *
    * C denotes child frame, P parent frame, and W world frame.  *
    * Further C_pose_W_P denotes pose of P wrt. W expressed in C.*/
-  rosflight_msgs::State msg;
+  rosplane_msgs::State msg;
   math::Pose W_pose_W_C = link_->GetWorldCoGPose();
   msg.position[0] = W_pose_W_C.pos.x; // We should check to make sure that this is right
   msg.position[1] = -W_pose_W_C.pos.y;
