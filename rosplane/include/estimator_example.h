@@ -32,7 +32,7 @@ private:
     float lpf_gyro_x;
     float lpf_gyro_y;
     float lpf_gyro_z;
-//    float lpf_static;
+    float lpf_static;
     float lpf_diff;
     float lpf_accel_x;
     float lpf_accel_y;
