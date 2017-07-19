@@ -36,6 +36,8 @@ void estimator_base::update(const ros::TimerEvent&)
     input_.gps_new = false;
 
     rosplane_msgs::State msg;
+    msg.header.stamp = ros::Time::now();
+    msg.header.frame_id = 1; // Denotes global frame
     msg.position[0] = output.pn;
     msg.position[1] = output.pe;
     msg.position[2] = -output.h;
