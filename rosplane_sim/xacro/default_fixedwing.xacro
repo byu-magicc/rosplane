@@ -6,7 +6,7 @@
   <xacro:property name="wind_speed_topic" value="gazebo/wind_speed"/>
   <xacro:property name="command_topic" value="command"/>
   <xacro:property name="use_mesh_file" value="true" />
-  <xacro:property name="mesh_file" value="package://rosplane_sim/agents/$(arg mav_name)/meshes/default_fixedwing.dae"/>
+  <xacro:property name="mesh_file" value="package://rosplane_sim/xacro/default_fixedwing.dae"/>
   <xacro:property name="body_width" value="1.4"/>
   <xacro:property name="body_height" value="1.0" />
   <xacro:property name="body_length" value="1.6"/>
@@ -47,7 +47,7 @@
     </collision>
 
     <!-- Wheels -->
-    <xacro:include filename="$(find rosplane_sim)/xacro/wheel.xacro"/>
+    <!-- <xacro:include filename="$(find rosplane_sim)/xacro/wheel.xacro"/>
     <xacro:caster
       radius="0.05">
       <origin xyz="${body_length*0.31} -${body_width*0.25} -${body_height*0.45}"/>
@@ -59,7 +59,7 @@
     <xacro:caster
       radius="0.02">
       <origin xyz="-${body_length*0.54} 0 -${body_height*0.15}"/>
-    </xacro:caster>
+    </xacro:caster> -->
   </link>
 
   <!-- Simulator Truth -->
@@ -111,7 +111,7 @@
   </xacro:Barometer_MS5611> -->
 
   <!-- Chase Camera -->
-  <xacro:include filename="$(find fcu_sim_plugins)/xacro/camera.xacro"/>
+  <!-- <xacro:include filename="$(find fcu_sim_plugins)/xacro/camera.xacro"/>
   <xacro:simple_camera
     namespace="${namespace}/chase"
     frame_rate="30"
@@ -120,7 +120,7 @@
     image_topic="rgb"
     image_camera_info_topic="camera_info">
     <origin xyz="-${1.1*body_length} 0 ${0.8*body_height}"/>
-  </xacro:simple_camera>
+  </xacro:simple_camera> -->
 
   <!-- Gimbal -->
   <!-- <xacro:include filename="$(find fcu_sim_plugins)/xacro/gimbal.xacro"/>

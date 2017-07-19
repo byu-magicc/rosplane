@@ -2,7 +2,7 @@
 
 <launch>
   <arg name="mav_name" default="default_fixedwing"/>
-  <arg name="model" default="$(find rosplane_sim)/urdf/$(arg mav_name)/$(arg mav_name)_base.xacro"/>
+  <arg name="model" default="$(find rosplane_sim)/xacro/$(arg mav_name).xacro"/>
   <arg name="tf_prefix" default="$(optenv ROS_NAMESPACE)"/>
   <arg name="x" default="0.0"/>
   <arg name="y" default="0.0"/>
