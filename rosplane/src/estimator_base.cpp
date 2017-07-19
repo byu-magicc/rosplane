@@ -27,6 +27,8 @@ estimator_base::estimator_base():
     airspeed_sub_ = nh_.subscribe(airspeed_topic_, 10, &estimator_base::airspeedCallback, this);
     update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &estimator_base::update, this);
     vehicle_state_pub_ = nh_.advertise<rosplane_msgs::State>("state",10);
+    _init_static = 0;
+    _baro_count = 0;
 }
 
 void estimator_base::update(const ros::TimerEvent&)
@@ -103,7 +105,36 @@ void estimator_base::imuCallback(const sensor_msgs::Imu &msg)
 
 void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
 {
-    input_.baro_alt = -msg.altitude;
+
+    if(!_baro_init)
+    {
+        if(_baro_count < 100)
+        {
+            _init_static += msg.pressure;
+            input_.static_pres = 0;
+            _baro_count += 1;
+        }
+        else
+        {
+            _init_static = _init_static/100;
+            _baro_init = true;
+        }
+    }
+    else
+    {
+        float static_pres_old = input_.static_pres;
+        input_.static_pres = -msg.pressure + _init_static;
+
+        float gate_gain = 1.35*params_.rho*params_.gravity;
+        if(input_.static_pres < static_pres_old - gate_gain)
+        {
+            input_.static_pres = static_pres_old - gate_gain;
+        }
+        else if(input_.static_pres > static_pres_old + gate_gain)
+        {
+            input_.static_pres = static_pres_old + gate_gain;
+        }
+    }
 }
 
 void estimator_base::airspeedCallback(const rosflight_msgs::Airspeed &msg)
