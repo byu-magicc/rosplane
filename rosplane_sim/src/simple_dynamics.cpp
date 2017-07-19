@@ -37,7 +37,7 @@
 
 #include <eigen3/Eigen/Core>
 
-#include <rosplane_sim/mav_dynamics.h>
+#include <rosplane_sim/simple_dynamics.h>
 
 
 namespace rosplane_sim
@@ -153,7 +153,10 @@ void MAVdynamics::OnUpdate(const gazebo::common::UpdateInfo& _info)
   pose.set(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.pos), 
            rotation_to_gazebo_from_eigen_mat(NWU_to_NED * state_.rot));
   link_->SetWorldPose(pose);
-  // TODO: update the rest of the physics state
+  link_->SetWorldTwist(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.vel),
+                       vec3_to_gazebo_from_eigen(NWU_to_NED * state_.omega));
+  link_->SetLinearAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.accel));
+  link_->SetAngularAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.alpha));
 
 }
 
