@@ -64,94 +64,94 @@ void AircraftForcesAndMoments::Load(physics::ModelPtr _model, sdf::ElementPtr _s
   // For the moments of inertia, look into using the BiFilar pendulum method
 
   // physical parameters
-  mass_ = nh_->param<double>("mass", 13.5);
-  Jx_ = nh_->param<double>("Jx", 0.8244);
-  Jy_ = nh_->param<double>("Jy", 1.135);
-  Jz_ = nh_->param<double>("Jz", 1.759);
-  Jxz_ = nh_->param<double>("Jxz", .1204);
-  rho_ = nh_->param<double>("rho", 1.2682);
+  mass_ = nh_->param<double>("mass", 3.92);
+  Jx_ = nh_->param<double>("Jx", 0.213);
+  Jy_ = nh_->param<double>("Jy", 0.171);
+  Jz_ = nh_->param<double>("Jz", 0.350);
+  Jxz_ = nh_->param<double>("Jxz", 0.04);
+  rho_ = nh_->param<double>("rho", 1.268);
 
   // Wing Geometry
-  wing_.S = nh_->param<double>("wing_s", 0.55);
-  wing_.b = nh_->param<double>("wing_b", 2.8956);
-  wing_.c = nh_->param<double>("wing_c", 0.18994);
-  wing_.M = nh_->param<double>("wing_M", 0.55);
-  wing_.epsilon = nh_->param<double>("wing_epsilon", 2.8956);
-  wing_.alpha0 = nh_->param<double>("wing_alpha0", 0.18994);
+  wing_.S = nh_->param<double>("wing_s", 0.468);
+  wing_.b = nh_->param<double>("wing_b", 1.8);
+  wing_.c = nh_->param<double>("wing_c", 0.26);
+  wing_.M = nh_->param<double>("wing_M", 50);
+  wing_.epsilon = nh_->param<double>("wing_epsilon", 0.159);
+  wing_.alpha0 = nh_->param<double>("wing_alpha0", 0.304);
 
   // Propeller Coefficients
-  prop_.k_motor = nh_->param<double>("k_motor", 80.0);
+  prop_.k_motor = nh_->param<double>("k_motor", 40.0);
   prop_.k_T_P = nh_->param<double>("k_T_P", 0.0);
   prop_.k_Omega = nh_->param<double>("k_Omega", 0.0);
-  prop_.e = nh_->param<double>("prop_e", 0.9);
-  prop_.S = nh_->param<double>("prop_S", 0.202);
+  prop_.e = nh_->param<double>("prop_e", 0.8);
+  prop_.S = nh_->param<double>("prop_S", 0.0314);
   prop_.C = nh_->param<double>("prop_C", 1.0);
 
   // Lift Params
-  CL_.O = nh_->param<double>("C_L_O", 0.28);
-  CL_.alpha = nh_->param<double>("C_L_alpha", 3.45);
+  CL_.O = nh_->param<double>("C_L_O", 0.2869);
+  CL_.alpha = nh_->param<double>("C_L_alpha", 5.1378);
   CL_.beta = nh_->param<double>("C_L_beta", 0.0);
   CL_.p = nh_->param<double>("C_L_p", 0.0);
-  CL_.q = nh_->param<double>("C_L_q", 0.0);
+  CL_.q = nh_->param<double>("C_L_q", 1.7102);
   CL_.r = nh_->param<double>("C_L_r", 0.0);
   CL_.delta_a = nh_->param<double>("C_L_delta_a", 0.0);
-  CL_.delta_e = nh_->param<double>("C_L_delta_e", -0.36);
+  CL_.delta_e = nh_->param<double>("C_L_delta_e", 0.5202);
   CL_.delta_r = nh_->param<double>("C_L_delta_r", 0.0);
 
   // Drag Params
-  CD_.O = nh_->param<double>("C_D_O", 0.03);
-  CD_.alpha = nh_->param<double>("C_D_alpha", 0.30);
+  CD_.O = nh_->param<double>("C_D_O", 0.03087);
+  CD_.alpha = nh_->param<double>("C_D_alpha", 0.0043021);
   CD_.beta = nh_->param<double>("C_D_beta", 0.0);
-  CD_.p = nh_->param<double>("C_D_p", 0.0437);
-  CD_.q = nh_->param<double>("C_D_q", 0.0);
+  CD_.p = nh_->param<double>("C_D_p", 0.02815);
+  CD_.q = nh_->param<double>("C_D_q", 0.2514);
   CD_.r = nh_->param<double>("C_D_r", 0.0);
   CD_.delta_a = nh_->param<double>("C_D_delta_a", 0.0);
-  CD_.delta_e = nh_->param<double>("C_D_delta_e", 0.0);
+  CD_.delta_e = nh_->param<double>("C_D_delta_e", 0.01879);
   CD_.delta_r = nh_->param<double>("C_D_delta_r", 0.0);
 
   // ell Params (x axis moment)
   Cell_.O = nh_->param<double>("C_ell_O", 0.0);
   Cell_.alpha = nh_->param<double>("C_ell_alpha", 0.00);
-  Cell_.beta = nh_->param<double>("C_ell_beta", -0.12);
-  Cell_.p = nh_->param<double>("C_ell_p", -0.26);
+  Cell_.beta = nh_->param<double>("C_ell_beta", 0.0193);
+  Cell_.p = nh_->param<double>("C_ell_p", -0.5406);
   Cell_.q = nh_->param<double>("C_ell_q", 0.0);
-  Cell_.r = nh_->param<double>("C_ell_r", 0.14);
-  Cell_.delta_a = nh_->param<double>("C_ell_delta_a", 0.08);
+  Cell_.r = nh_->param<double>("C_ell_r", 0.1929);
+  Cell_.delta_a = nh_->param<double>("C_ell_delta_a", 0.2818);
   Cell_.delta_e = nh_->param<double>("C_ell_delta_e", 0.0);
-  Cell_.delta_r = nh_->param<double>("C_ell_delta_r", 0.105);
+  Cell_.delta_r = nh_->param<double>("C_ell_delta_r", 0.00096);
 
   // m Params (y axis moment)
-  Cm_.O = nh_->param<double>("C_m_O", -0.02338);
-  Cm_.alpha = nh_->param<double>("C_m_alpha", -0.38);
+  Cm_.O = nh_->param<double>("C_m_O", 0.0362);
+  Cm_.alpha = nh_->param<double>("C_m_alpha", -0.2627);
   Cm_.beta = nh_->param<double>("C_m_beta", 0.0);
   Cm_.p = nh_->param<double>("C_m_p", 0.0);
-  Cm_.q = nh_->param<double>("C_m_q", -3.6);
+  Cm_.q = nh_->param<double>("C_m_q", -9.7213);
   Cm_.r = nh_->param<double>("C_m_r", 0.0);
   Cm_.delta_a = nh_->param<double>("C_m_delta_a", 0.0);
-  Cm_.delta_e = nh_->param<double>("C_m_delta_e", -0.5);
+  Cm_.delta_e = nh_->param<double>("C_m_delta_e", -1.2392);
   Cm_.delta_r = nh_->param<double>("C_m_delta_r", 0.0);
 
   // n Params (z axis moment)
   Cn_.O = nh_->param<double>("C_n_O", 0.0);
   Cn_.alpha = nh_->param<double>("C_n_alpha", 0.0);
-  Cn_.beta = nh_->param<double>("C_n_beta", 0.25);
-  Cn_.p = nh_->param<double>("C_n_p", 0.022);
+  Cn_.beta = nh_->param<double>("C_n_beta", 0.08557);
+  Cn_.p = nh_->param<double>("C_n_p", -0.0498);
   Cn_.q = nh_->param<double>("C_n_q", 0.0);
-  Cn_.r = nh_->param<double>("C_n_r", -0.35);
-  Cn_.delta_a = nh_->param<double>("C_n_delta_a", 0.06);
+  Cn_.r = nh_->param<double>("C_n_r", -0.0572);
+  Cn_.delta_a = nh_->param<double>("C_n_delta_a", 0.0095);
   Cn_.delta_e = nh_->param<double>("C_n_delta_e", 0.0);
-  Cn_.delta_r = nh_->param<double>("C_n_delta_r", -0.032);
+  Cn_.delta_r = nh_->param<double>("C_n_delta_r", -0.06);
 
   // Y Params (Sideslip Forces)
   CY_.O = nh_->param<double>("C_Y_O", 0.0);
   CY_.alpha = nh_->param<double>("C_Y_alpha", 0.00);
-  CY_.beta = nh_->param<double>("C_Y_beta", -0.98);
-  CY_.p = nh_->param<double>("C_Y_p", 0.0);
+  CY_.beta = nh_->param<double>("C_Y_beta", -0.2471);
+  CY_.p = nh_->param<double>("C_Y_p", -0.07278);
   CY_.q = nh_->param<double>("C_Y_q", 0.0);
-  CY_.r = nh_->param<double>("C_Y_r", 0.0);
-  CY_.delta_a = nh_->param<double>("C_Y_delta_a", 0.0);
+  CY_.r = nh_->param<double>("C_Y_r", 0.1849);
+  CY_.delta_a = nh_->param<double>("C_Y_delta_a", -0.02344);
   CY_.delta_e = nh_->param<double>("C_Y_delta_e", 0.0);
-  CY_.delta_r = nh_->param<double>("C_Y_delta_r", -0.017);
+  CY_.delta_r = nh_->param<double>("C_Y_delta_r", 0.1591);
 
   // Initialize Wind
   wind_.N = 0.0;
