@@ -46,11 +46,11 @@
 namespace rosplane_sim
 {
 
-class MAVdynamics : public gazebo::ModelPlugin
+class ROSplaneDM : public gazebo::ModelPlugin
 {
 public:
-  MAVdynamics();
-  ~MAVdynamics();
+  ROSplaneDM();
+  ~ROSplaneDM();
 
 protected:
   void Reset() override;
@@ -92,8 +92,8 @@ private:
   Eigen::Vector3d vec3_to_eigen_from_gazebo(gazebo::math::Vector3 vec);
   gazebo::math::Vector3 vec3_to_gazebo_from_eigen(Eigen::Vector3d vec);
   Eigen::Matrix3d rotation_to_eigen_from_gazebo(gazebo::math::Quaternion vec);
-  gazebo::math::Quaternion MAVdynamics::rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q);
-  gazebo::math::Quaternion MAVdynamics::rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat);
+  gazebo::math::Quaternion ROSplaneDM::rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q);
+  gazebo::math::Quaternion ROSplaneDM::rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat);
 };
 
 } // namespace rosplane_sim

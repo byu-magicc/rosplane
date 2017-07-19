@@ -37,19 +37,19 @@
 
 #include <eigen3/Eigen/Core>
 
-#include <rosplane_sim/simple_dynamics.h>
+#include <rosplane_sim/rosplane_dm.h>
 
 
 namespace rosplane_sim
 {
 
-MAVdynamics::MAVdynamics() :
+ROSplaneDM::ROSplaneDM() :
   gazebo::ModelPlugin(),
   nh_(nullptr),
   firmware_(board_)
 {}
 
-MAVdynamics::~MAVdynamics()
+ROSplaneDM::~ROSplaneDM()
 {
   gazebo::event::Events::DisconnectWorldUpdateBegin(updateConnection_);
   if (nh_) {
@@ -58,7 +58,7 @@ MAVdynamics::~MAVdynamics()
   }
 }
 
-void MAVdynamics::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf)
+void ROSplaneDM::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf)
 {
   if (!ros::isInitialized())
   {
@@ -96,12 +96,12 @@ void MAVdynamics::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf)
     mav_type_ = _sdf->GetElement("mavType")->Get<std::string>();
   }
   else {
-    mav_type_ = "multirotor";
+    mav_type_ = "fixedwing";
     gzerr << "[ROSplane_sim] Please specify a value for parameter \"mavType\".\n";
   }
 
   if(mav_type_ == "fixedwing")
-    mav_dynamics_ = new Fixedwing(nh_);
+    mav_dynamics_ = new ModelChiHVa(nh_);
   else
     gzthrow("unknown or unsupported mav type\n");
 
@@ -110,7 +110,7 @@ void MAVdynamics::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf)
   firmware_.init();
 
   // Connect the update function to the simulation
-  updateConnection_ = gazebo::event::Events::ConnectWorldUpdateBegin(boost::bind(&MAVdynamics::OnUpdate, this, _1));
+  updateConnection_ = gazebo::event::Events::ConnectWorldUpdateBegin(boost::bind(&ROSplaneDM::OnUpdate, this, _1));
 
   // Turn off gravity for this body so we can fully control its motion
   link_->SetGravityMode(FALSE);
@@ -125,7 +125,7 @@ void MAVdynamics::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
 
 // This gets called by the world update event.
-void MAVdynamics::OnUpdate(const gazebo::common::UpdateInfo& _info)
+void ROSplaneDM::OnUpdate(const gazebo::common::UpdateInfo& _info)
 {
   firmware_.run();
   Eigen::Matrix3d NWU_to_NED;
@@ -153,14 +153,14 @@ void MAVdynamics::OnUpdate(const gazebo::common::UpdateInfo& _info)
   pose.set(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.pos), 
            rotation_to_gazebo_from_eigen_mat(NWU_to_NED * state_.rot));
   link_->SetWorldPose(pose);
-  link_->SetWorldTwist(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.vel),
-                       vec3_to_gazebo_from_eigen(NWU_to_NED * state_.omega));
-  link_->SetLinearAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.accel));
-  link_->SetAngularAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.alpha));
+  link_->SetWorldTwist(vec3_to_gazebo_from_eigen(NWU_to_NED * state.rot * state_.vel),
+                       vec3_to_gazebo_from_eigen(NWU_to_NED * state.rot * state_.omega));
+  link_->SetLinearAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state.rot * state_.accel));
+  link_->SetAngularAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state.rot * state_.alpha));
 
 }
 
-void MAVdynamics::Reset()
+void ROSplaneDM::Reset()
 {
   link_->SetWorldPose(initial_pose_);
   link_->ResetPhysicsStates();
@@ -169,47 +169,47 @@ void MAVdynamics::Reset()
 //  rosflight_init();
 }
 
-void MAVdynamics::commandCallback(const rosplane_msgs::Controller_commands &msg)
+void ROSplaneDM::commandCallback(const rosplane_msgs::Controller_commands &msg)
 {
   DesignModel::Command command;
   wind << msg.x, msg.y, msg.z;
   mav_dynamics_->set_command(wind);
 }
 
-void MAVdynamics::windCallback(const geometry_msgs::Vector3 &msg)
+void ROSplaneDM::windCallback(const geometry_msgs::Vector3 &msg)
 {
   Eigen::Vector3d wind;
   wind << msg.x, msg.y, msg.z;
   mav_dynamics_->set_wind(wind);
 }
 
-Eigen::Vector3d MAVdynamics::vec3_to_eigen_from_gazebo(gazebo::math::Vector3 vec)
+Eigen::Vector3d ROSplaneDM::vec3_to_eigen_from_gazebo(gazebo::math::Vector3 vec)
 {
   Eigen::Vector3d out;
   out << vec.x, vec.y, vec.z;
   return out;
 }
 
-gazebo::math::Vector3 MAVdynamics::vec3_to_gazebo_from_eigen(Eigen::Vector3d vec)
+gazebo::math::Vector3 ROSplaneDM::vec3_to_gazebo_from_eigen(Eigen::Vector3d vec)
 {
   gazebo::math::Vector3 out(vec(0), vec(1), vec(2));
   return out;
 }
 
-Eigen::Matrix3d MAVdynamics::rotation_to_eigen_from_gazebo(gazebo::math::Quaternion quat)
+Eigen::Matrix3d ROSplaneDM::rotation_to_eigen_from_gazebo(gazebo::math::Quaternion quat)
 {
   Eigen::Quaterniond eig_quat(quat.w, quat.x, quat.y, quat.z);
   return eig_quat.toRotationMatrix();
 }
 
-gazebo::math::Quaternion MAVdynamics::rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q)
+gazebo::math::Quaternion ROSplaneDM::rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q)
 {
   Eigen::Vector3d v = q.vec();
   gazebo::math::Quaternion quat(q.w(), v(0), v(1), v(2));
   return quat;
 }
 
-gazebo::math::Quaternion MAVdynamics::rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat)
+gazebo::math::Quaternion ROSplaneDM::rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat)
 {
   Eigen::Quaterniond q(eig_mat);
   Eigen::Vector3d v = q.vec();
@@ -217,5 +217,5 @@ gazebo::math::Quaternion MAVdynamics::rotation_to_gazebo_from_eigen_mat(Eigen::M
   return quat;
 }
 
-GZ_REGISTER_MODEL_PLUGIN(MAVdynamics)
+GZ_REGISTER_MODEL_PLUGIN(ROSplaneDM)
 } // namespace rosflight_sim
