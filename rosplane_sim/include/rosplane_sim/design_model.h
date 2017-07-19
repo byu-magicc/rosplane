@@ -72,7 +72,7 @@ public:
       double chi_c;
     };
 
-    virtual State updateState(State &x, Command &command) = 0;
+    virtual void updateState(State &x, Command &command) = 0;
     virtual void set_wind(Eigen::Vector3d wind) = 0;
 };
 

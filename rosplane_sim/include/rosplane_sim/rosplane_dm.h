@@ -38,6 +38,7 @@
 #include <gazebo/physics/physics.hh>
 #include <ros/ros.h>
 #include <geometry_msgs/Vector3.h>
+#include <rosplane_msgs/Controller_Commands.h>
 
 
 #include <rosplane_sim/design_model.h>
@@ -58,6 +59,7 @@ protected:
   void OnUpdate(const gazebo::common::UpdateInfo &_info);
 
 private:
+  void commandCallback(const rosplane_msgs::Controller_Commands &msg);
   void windCallback(const geometry_msgs::Vector3 &msg);
 
 
@@ -92,8 +94,8 @@ private:
   Eigen::Vector3d vec3_to_eigen_from_gazebo(gazebo::math::Vector3 vec);
   gazebo::math::Vector3 vec3_to_gazebo_from_eigen(Eigen::Vector3d vec);
   Eigen::Matrix3d rotation_to_eigen_from_gazebo(gazebo::math::Quaternion vec);
-  gazebo::math::Quaternion ROSplaneDM::rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q);
-  gazebo::math::Quaternion ROSplaneDM::rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat);
+  gazebo::math::Quaternion rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q);
+  gazebo::math::Quaternion rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat);
 };
 
 } // namespace rosplane_sim

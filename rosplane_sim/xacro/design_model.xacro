@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-    <!-- Forces And Moments Plugin -->
+    <!-- Design Model Plugin -->
     <xacro:macro
-      name="myTwinDream"
+      name="Design_Model"
       params="namespace parent_link command_topic">
       <xacro:aircraft_forces_and_moments_macro
         namespace="${namespace}"
@@ -15,7 +15,7 @@
     </xacro:macro>
 
 
-  <!-- Macro to add the forces and moments plugin. -->
+  <!-- Macro to add the simplified dynamics from the design model. -->
   <xacro:macro name="aircraft_forces_and_moments_macro"
     params="namespace  parent_link wind_speed_topic command_topic parent_frame_id">
     <gazebo>

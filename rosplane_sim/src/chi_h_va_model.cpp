@@ -88,7 +88,7 @@ void updateState(State &x, Command &command)
   double Va = (P_ground_plane * (vel_world - wind_)).norm();
   double VaDot = b_.Va*(command.va_c - Va);
   // altitude dynamics
-  double hDDot = b_.hDot*(-hDot) + b_.h*(command_.h_c - h);
+  double hDDot = b_.hDot*(-hDot) + b_.h*(command.h_c - h);
   // convert these acceleration components to a body frame accel vector
   Eigen::Vector3d accel_world(VaDot * cos(ea(2)), VaDot * sin(ea(2)), hDDot);
   x.accel = x.rot.transpose() * accel_world;
@@ -98,7 +98,7 @@ void updateState(State &x, Command &command)
   double chi = atan2(vel_world(0), vel_world(1));
   // this is really just psiDot, but it will have to suffice
   double chiDot = (x.rot * x.omega)(2);
-  double chiDDot = b_.chiDot*(-chiDot) + b_.chi*(command_.chi_c - chi);
+  double chiDDot = b_.chiDot*(-chiDot) + b_.chi*(command.chi_c - chi);
   Eigen::Vector3d alpha_world(0., 0., chiDDot);
   x.alpha = x.rot.transpose() * alpha_world;
 
