@@ -1,14 +1,11 @@
 <!-- This is a launch file that runs the bare minimum requirements to get -->
-<!-- gazebo running.  It requires a relative_nav::Command on /command -->
-<!-- to move the hex, and outputs imu, altimeter, laserscan and RGBD images -->
-<!-- as well as a relative_nav::FilterState message on /global_state  -->
-<!-- a geometry_msgs::StampedTransform on /mocap to imitate motion capture -->
+<!-- gazebo running for a fixed-wing aircraft -->
 
 <launch>
-  <arg name="mav_name"            default="myTwinDream"/>
+  <arg name="mav_name"            default="default_fixedwing"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find rosplane_sim)/worlds/fixed_wing.world"/> <!-- auvsi.world"/> -->
+    <arg name="world_name" value="$(find rosplane_sim)/worlds/basic.world"/>
     <arg name="paused" value="false"/>
     <arg name="verbose" value="true"/>
     <arg name="gui" value="true"/>
@@ -39,10 +36,7 @@
       <remap from="image" to="chase/camera/rgb"/>
     </node>
 
-    <!--<node name="reconfig" pkg="rqt_reconfigure" type="rqt_reconfigure"/> -->
-
     <node name="current_path_publisher" pkg="rostopic" type="rostopic"
       args="pub current_path rosplane_msgs/Current_Path 'false' '30.0'  '[0.0, 0.0, -100.0]'  '[1.0, 0.0, 0.0]'  '[0.0, 0.0, -100.0]'  '100.0' '1'"/>
-
   </group>
 </launch>

@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 
-<robot name="junker" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="default_fixedwing" xmlns:xacro="http://ros.org/wiki/xacro">
   <!-- Properties -->
   <xacro:property name="namespace" value="$(arg mav_name)"/>
   <xacro:property name="wind_speed_topic" value="gazebo/wind_speed"/>
   <xacro:property name="command_topic" value="command"/>
   <xacro:property name="use_mesh_file" value="true" />
-  <xacro:property name="mesh_file" value="package://rosplane_sim/agents/$(arg mav_name)/meshes/ju-87.dae"/>
+  <xacro:property name="mesh_file" value="package://rosplane_sim/agents/$(arg mav_name)/meshes/default_fixedwing.dae"/>
   <xacro:property name="body_width" value="1.4"/>
   <xacro:property name="body_height" value="1.0" />
   <xacro:property name="body_length" value="1.6"/>
