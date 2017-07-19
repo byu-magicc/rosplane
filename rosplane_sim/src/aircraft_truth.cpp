@@ -94,6 +94,10 @@ void AircraftTruth::PublishTruth()
    * C denotes child frame, P parent frame, and W world frame.  *
    * Further C_pose_W_P denotes pose of P wrt. W expressed in C.*/
   rosplane_msgs::State msg;
+  // Set origin values to zero by default
+  msg.initial_lat = 0;
+  msg.initial_lon = 0;
+  msg.initial_alt = 0;
   math::Pose W_pose_W_C = link_->GetWorldCoGPose();
   msg.position[0] = W_pose_W_C.pos.x; // We should check to make sure that this is right
   msg.position[1] = -W_pose_W_C.pos.y;
