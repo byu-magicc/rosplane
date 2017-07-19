@@ -29,7 +29,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <rosflight_sim/fixedwing_forces_and_moments.h>
+#include <rosplane_sim/chi_h_va_model.h>
 
 namespace rosplane_sim
 {

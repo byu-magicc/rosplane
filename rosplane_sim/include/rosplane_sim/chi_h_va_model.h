@@ -34,15 +34,15 @@
  *
  */
 
-#ifndef ROSFLIGHT_SIM_FIXEDWING_FORCES_AND_MOMENTS_H
-#define ROSFLIGHT_SIM_FIXEDWING_FORCES_AND_MOMENTS_H
+#ifndef ROSPLANE_SIM_CHI_H_VA_MODEL_H
+#define ROSPLANE_SIM_CHI_H_VA_MODEL_H
 
 
-#include <rosflight_sim/mav_forces_and_moments.h>
+#include <rosplane_sim/design_model.h>
 #include <eigen3/Eigen/Dense>
 #include <ros/ros.h>
 
-namespace rosflight_sim
+namespace rosplane_sim
 {
 
 class Fixedwing : public DesignModel
@@ -114,10 +114,10 @@ public:
     Fixedwing(ros::NodeHandle* nh);
     ~Fixedwing();
 
-    Eigen::Matrix<double, 6, 1> updateForcesAndTorques(Current_State x, const int act_cmds[]);
+    State updateState(State &x, Command &command);
     void set_wind(Eigen::Vector3d wind);
 };
 
-} // namespace rosflight_sim
+} // namespace rosplane_sim
 
-#endif // ROSFLIGHT_SIM_FIXEDWING_FORCES_AND_MOMENTS_H
+#endif // ROSPLANE_SIM_CHI_H_VA_MODEL_H
