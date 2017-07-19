@@ -5,23 +5,23 @@
     <xacro:macro
       name="Design_Model"
       params="namespace parent_link command_topic">
-      <xacro:aircraft_forces_and_moments_macro
+      <xacro:design_model_macro
         namespace="${namespace}"
         parent_link="${namespace}/base_link"
         wind_speed_topic="gazebo/wind_speed"
         command_topic="${command_topic}"
         parent_frame_id="${namespace}/base_link">
-      </xacro:aircraft_forces_and_moments_macro>
+      </xacro:design_model_macro>
     </xacro:macro>
 
 
   <!-- Macro to add the simplified dynamics from the design model. -->
-  <xacro:macro name="aircraft_forces_and_moments_macro"
+  <xacro:macro name="design_model_macro"
     params="namespace  parent_link wind_speed_topic command_topic parent_frame_id">
     <gazebo>
       <plugin
-        filename="libaircraft_forces_and_moments_plugin.so"
-        name="${namespace}_aircraft_forces_and_moments">
+        filename="libdesign_model_plugin.so"
+        name="${namespace}_design_model">
         <linkName>${parent_link}</linkName>
         <namespace>${namespace}</namespace>
         <windSpeedTopic>${wind_speed_topic}</windSpeedTopic>
