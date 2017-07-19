@@ -6,9 +6,9 @@
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find rosplane_sim)/worlds/basic.world"/>
-    <arg name="paused" value="false"/>
-    <arg name="verbose" value="true"/>
+    <arg name="paused" value="true"/>
     <arg name="gui" value="true"/>
+    <arg name="verbose" value="false"/>
     <arg name="debug" value="false"/>
   </include>
 

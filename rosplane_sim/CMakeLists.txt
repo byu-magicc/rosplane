@@ -41,25 +41,3 @@ add_library(aircraft_forces_and_moments_plugin
   src/aircraft_forces_and_moments.cpp)
 target_link_libraries(aircraft_forces_and_moments_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
 add_dependencies(aircraft_forces_and_moments_plugin ${catkin_EXPORTED_TARGETS} rosflight_msgs_generate_messages_cpp)
-
-# add_library(design_model_plugin SHARED
-#   src/rosplane_dm.cpp
-# )
-# target_link_libraries(design_model_plugin
-#   ${catkin_LIBRARIES}
-#   ${GAZEBO_LIBRARIES}
-# )
-# add_dependencies(design_model_plugin ${catkin_EXPORTED_TARGETS})
-
-# install(
-#   TARGETS design_model_plugin
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-# install(
-#   DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-# )
