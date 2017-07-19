@@ -1,0 +1,42 @@
+<!-- This is a launch file that runs the bare minimum requirements to get -->
+<!-- gazebo running for a fixed-wing aircraft -->
+
+<launch>
+  <arg name="mav_name"            default="default_fixedwing"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find rosplane_sim)/worlds/basic.world"/>
+    <arg name="paused" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="verbose" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <!-- Spawn MAV -->
+  <include file="$(find rosplane_sim)/launch/spawn_mav.launch">
+    <arg name="mav_name"            value="$(arg mav_name)" />
+    <arg name="model"               value="$(find rosplane_sim)/agents/$(arg mav_name)/$(arg mav_name).xacro" />
+  </include>
+
+  <group ns="$(arg mav_name)">
+    <!-- Load Global Parameters for this MAV -->
+    <rosparam command="load" file="$(find rosplane_sim)/agents/$(arg mav_name)/$(arg mav_name).yaml"/>
+
+    <node name="autopilot" pkg="rosplane" type="rosplane_controller" >
+      <remap from="state" to="truth"/>
+    </node>
+
+    <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen"/>
+
+    <node name="pathfollower" pkg="rosplane" type="rosplane_path_follower">
+       <remap from="state" to="truth"/>
+    </node>
+
+    <node name="chase" pkg="image_view" type="image_view">
+      <remap from="image" to="chase/camera/rgb"/>
+    </node>
+
+    <node name="current_path_publisher" pkg="rostopic" type="rostopic"
+      args="pub current_path rosplane_msgs/Current_Path 'false' '30.0'  '[0.0, 0.0, -100.0]'  '[1.0, 0.0, 0.0]'  '[0.0, 0.0, -100.0]'  '100.0' '1'"/>
+  </group>
+</launch>

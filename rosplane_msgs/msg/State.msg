@@ -2,6 +2,9 @@
 
 Header header
 # @warning roll, pitch and yaw have always to be valid, the quaternion is optional
+float32 initial_lat # Initial/origin latitude (lat. deg)
+float32 initial_lon # Initial/origin longitude (lon. deg) 
+float32 initial_alt # Initial/origin altitude (m) 
 float32[3] position	# north, east, down (m)
 float32 Va		# Airspeed (m/s)
 float32 alpha		# Angle of attack (rad)

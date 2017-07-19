@@ -39,9 +39,17 @@ void estimator_base::update(const ros::TimerEvent&)
 
     rosplane_msgs::State msg;
     msg.header.stamp = ros::Time::now();
+    msg.header.frame_id = 1; // Denotes global frame
+
     msg.position[0] = output.pn;
     msg.position[1] = output.pe;
     msg.position[2] = -output.h;
+    if (gps_init_)
+    {
+      msg.initial_lat = init_lat_;
+      msg.initial_lon = init_lon_;
+      msg.initial_alt = init_alt_;
+    }
     msg.Va = output.Va;
     msg.alpha = output.alpha;
     msg.beta = output.beta;
