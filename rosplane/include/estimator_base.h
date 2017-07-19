@@ -37,7 +37,7 @@ protected:
         float accel_x;
         float accel_y;
         float accel_z;
-        float baro_alt;
+        float static_pres;
         float diff_pres;
         bool gps_new;
         float gps_n;
@@ -106,8 +106,9 @@ private:
     double                          init_lat_;	/**< Initial latitude in degrees */
     double                          init_lon_;	/**< Initial longitude in degrees */
     float                           init_alt_;	/**< Initial altitude in meters above MSL  */
-//    bool                            _baro_init;
-//    float                           _init_static; /**< Initial static pressure (mbar)  */
+    bool                            _baro_init;
+    float                           _init_static; /**< Initial static pressure (mbar)  */
+    int                             _baro_count; /**< Used to grab the first set of baro measurements */
 
     struct params_s                 params_;
     struct input_s                  input_;
