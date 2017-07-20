@@ -19,7 +19,7 @@ float32 Vg		# Groundspeed (m/s)
 float32 wn		# Windspeed north component (m/s)
 float32 we		# Windspeed east component (m/s)
 
-# Aditional States for convinance
+# Aditional States for convenience
 float32[4] quat		# Quaternion (wxyz, NED)
 bool quat_valid		# Quaternion valid
 float32 chi_deg		# Wrapped course angle (deg)
