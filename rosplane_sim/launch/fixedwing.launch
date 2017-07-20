@@ -11,6 +11,9 @@
     <arg name="debug" value="false"/>
   </include>
 
+  <!-- Load Global Parameters for this MAV -->
+  <rosparam command="load" file="$(find rosplane_sim)/agents/$(arg mav_name)/$(arg mav_name).yaml" ns="$(arg mav_name)"/>
+
   <!-- Spawn MAV -->
   <include file="$(find rosplane_sim)/launch/spawn_mav.launch">
     <arg name="mav_name"            value="$(arg mav_name)" />
@@ -31,9 +34,9 @@
        <remap from="state" to="truth"/>
     </node>
 
-    <node name="chase" pkg="image_view" type="image_view">
+    <!-- <node name="chase" pkg="image_view" type="image_view">
       <remap from="image" to="chase/camera/rgb"/>
-    </node>
+    </node> -->
 
     <node name="current_path_publisher" pkg="rostopic" type="rostopic"
       args="pub current_path rosplane_msgs/Current_Path 'false' '30.0'  '[0.0, 0.0, -100.0]'  '[1.0, 0.0, 0.0]'  '[0.0, 0.0, -100.0]'  '100.0' '1'"/>

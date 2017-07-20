@@ -3,30 +3,24 @@
 
     <!-- Forces And Moments Plugin -->
     <xacro:macro
-      name="myTwinDream"
-      params="namespace parent_link command_topic">
+      name="aircraft_dynamics"
+      params="namespace parent_link">
       <xacro:aircraft_forces_and_moments_macro
         namespace="${namespace}"
-        parent_link="${namespace}/base_link"
-        wind_speed_topic="gazebo/wind_speed"
-        command_topic="${command_topic}"
-        parent_frame_id="${namespace}/base_link">
+        parent_link="${namespace}/base_link">
       </xacro:aircraft_forces_and_moments_macro>
     </xacro:macro>
 
 
   <!-- Macro to add a generic odometry sensor. -->
   <xacro:macro name="aircraft_forces_and_moments_macro"
-    params="namespace  parent_link wind_speed_topic command_topic parent_frame_id">
+    params="namespace parent_link">
     <gazebo>
       <plugin
         filename="libaircraft_forces_and_moments_plugin.so"
         name="${namespace}_aircraft_forces_and_moments">
         <linkName>${parent_link}</linkName>
         <namespace>${namespace}</namespace>
-        <windSpeedTopic>${wind_speed_topic}</windSpeedTopic>
-        <commandTopic>${command_topic}</commandTopic>
-        <parentFrameId>${parent_frame_id}</parentFrameId>
       </plugin>
     </gazebo>
   </xacro:macro>
