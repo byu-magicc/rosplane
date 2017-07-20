@@ -1,94 +1,132 @@
 /*
- * Copyright (c) 2017 Daniel Koch, James Jackson and Gary Ellingson, BYU MAGICC Lab.
- * All rights reserved.
+ * Copyright 2016 James Jackson, MAGICC Lab, Brigham Young University - Provo, UT
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * * Neither the name of the copyright holder nor the names of its
- *   contributors may be used to endorse or promote products derived from
- *   this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-#ifndef ROSPLANE_SIM_MAV_DYNAMICS_H
-#define ROSPLANE_SIM_MAV_DYNAMICS_H
+
+#ifndef ROSPLANE_SIM_ROSPLANE_DM_H
+#define ROSPLANE_SIM_ROSPLANE_DM_H
+
+#include <stdio.h>
+
+#include <boost/bind.hpp>
+// #include <eigen3/Eigen/Eigen>
+#include <eigen3/Eigen/Core>
 
 #include <gazebo/common/common.hh>
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/physics.hh>
+#include <ros/callback_queue.h>
 #include <ros/ros.h>
+
+#include <rosflight_msgs/Command.h>
+#include <std_msgs/Float32.h>
 #include <geometry_msgs/Vector3.h>
 #include <rosplane_msgs/Controller_Commands.h>
 
+#include "rosplane_sim/common.h"
 
-#include <rosplane_sim/design_model.h>
-#include <rosplane_sim/chi_h_va_model.h>
+#define GRAVITY 9.81
 
-namespace rosplane_sim
-{
+namespace gazebo {
+static const std::string kDefaultWindSpeedSubTopic = "gazebo/wind_speed";
 
-class ROSplaneDM : public gazebo::ModelPlugin
-{
-public:
+
+class ROSplaneDM : public ModelPlugin {
+ public:
   ROSplaneDM();
+
   ~ROSplaneDM();
 
-protected:
-  void Reset() override;
-  void Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf) override;
-  void OnUpdate(const gazebo::common::UpdateInfo &_info);
-
-private:
-  void commandCallback(const rosplane_msgs::Controller_Commands &msg);
-  void windCallback(const geometry_msgs::Vector3 &msg);
+  void InitializeParams();
+  void SendForces();
 
 
-  std::string mav_type_;
-  std::string namespace_;
+ protected:
+  void UpdateState();
+  void Reset();
+  void Load(physics::ModelPtr _model, sdf::ElementPtr _sdf);
+  void OnUpdate(const common::UpdateInfo & /*_info*/);
+
+ private:
+  std::string command_topic_;
+  std::string wind_speed_topic_;
+  std::string joint_name_;
   std::string link_name_;
+  std::string parent_frame_id_;
+  std::string motor_speed_pub_topic_;
+  std::string namespace_;
 
-  gazebo::physics::WorldPtr world_;
-  gazebo::physics::ModelPtr model_;
-  gazebo::physics::LinkPtr link_;
-  gazebo::physics::JointPtr joint_;
-  gazebo::physics::EntityPtr parent_link_;
-  gazebo::event::ConnectionPtr updateConnection_; // Pointer to the update event connection.
+  physics::WorldPtr world_;
+  physics::ModelPtr model_;
+  physics::LinkPtr link_;
+  physics::JointPtr joint_;
+  physics::EntityPtr parent_link_;
+  event::ConnectionPtr updateConnection_; // Pointer to the update event connection.
 
-  ros::Subscriber wind_sub_;
-  ros::Subscriber command_sub_;
+  struct State{
+    Eigen::Vector3d pos; // Position of MAV in NED wrt initial position
+    Eigen::Matrix3d rot; // Rotation of MAV in NED wrt initial position
+    Eigen::Vector3d vel; // Body-fixed velocity of MAV wrt initial position (NED)
+    Eigen::Vector3d accel; // Body-fixed acceleration of MAV wrt initial position (NED)
+    Eigen::Vector3d omega; // Body-fixed angular velocity of MAV (NED)
+    Eigen::Vector3d alpha; // Body-fixed angular acceleration of MAV (NED)
+    double t; // current time
+  };
 
-  DesignModel* design_model_;
-  DesignModel::Command command_;
-  DesignModel::State state_;
+  struct Command{
+    double va_c;
+    double h_c;
+    double chi_c;
+  };
+
+  // Lift Coefficients
+  struct ModelCoeff{
+    double chi;
+    double chiDot;
+    double h;
+    double hDot;
+    double Va;
+  };
+
+  ModelCoeff b_;
 
   // Time Counters
-  uint64_t start_time_us_;
+  double sampling_time_ = 0;
+  double prev_sim_time_ = 0;
 
-  ros::NodeHandle* nh_;
+
+  ROSplaneDM::Command command_;
+  ROSplaneDM::State state_;
 
   // For reset handlin
   gazebo::math::Pose initial_pose_;
-  DesignModel::Command null_command_;
+  ROSplaneDM::Command null_command_;
+
+  ros::NodeHandle* nh_;
+  ros::Subscriber command_sub_;
+  ros::Subscriber wind_speed_sub_;
+
+  // wind
+  Eigen::Vector3d wind_;
+
+  boost::thread callback_queue_thread_;
+  void QueueThread();
+  void WindSpeedCallback(const geometry_msgs::Vector3& wind);
+  void CommandCallback(const rosplane_msgs::Controller_Commands &msg);
+  
 
   // helper functions for converting to and from eigen
   Eigen::Vector3d vec3_to_eigen_from_gazebo(gazebo::math::Vector3 vec);
@@ -97,7 +135,6 @@ private:
   gazebo::math::Quaternion rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q);
   gazebo::math::Quaternion rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat);
 };
+}
 
-} // namespace rosplane_sim
-
-#endif // ROSPLANE_SIM_MAV_DYNAMICS_H
+#endif // ROSPLANE_SIM_ROSPLANE_DM_H

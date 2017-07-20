@@ -1,74 +1,41 @@
 /*
- * Copyright (c) 2017 Daniel Koch, James Jackson and Gary Ellingson, BYU MAGICC Lab.
- * All rights reserved.
+ * Copyright 2016 James Jackson, MAGICC Lab, Brigham Young University, Provo, UT
+ * Copyright 2016 Gary Ellingson, MAGICC Lab, Brigham Young University, Provo, UT
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * * Neither the name of the copyright holder nor the names of its
- *   contributors may be used to endorse or promote products derived from
- *   this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-#pragma GCC diagnostic ignored "-Wwrite-strings"
+#include "rosplane_sim/rosplane_dm.h"
 
-#include <sstream>
-#include <stdint.h>
-#include <stdio.h>
-
-#include <eigen3/Eigen/Core>
-
-#include <rosplane_sim/rosplane_dm.h>
-
-
-namespace rosplane_sim
+namespace gazebo
 {
 
-ROSplaneDM::ROSplaneDM() :
-  gazebo::ModelPlugin(),
-  nh_(nullptr)
-{}
+ROSplaneDM::ROSplaneDM(){}
+
 
 ROSplaneDM::~ROSplaneDM()
 {
-  gazebo::event::Events::DisconnectWorldUpdateBegin(updateConnection_);
+  event::Events::DisconnectWorldUpdateBegin(updateConnection_);
   if (nh_) {
     nh_->shutdown();
     delete nh_;
   }
 }
 
-void ROSplaneDM::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf)
+void ROSplaneDM::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 {
-  if (!ros::isInitialized())
-  {
-    ROS_FATAL("A ROS node for Gazebo has not been initialized, unable to load plugin");
-    return;
-  }
-  ROS_INFO("Loaded the ROSflight SIL plugin");
-
   model_ = _model;
   world_ = model_->GetWorld();
-
   namespace_.clear();
 
   /*
@@ -77,38 +44,41 @@ void ROSplaneDM::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf)
   if (_sdf->HasElement("namespace"))
     namespace_ = _sdf->GetElement("namespace")->Get<std::string>();
   else
-    gzerr << "[ROSplane_sim] Please specify a namespace.\n";
+    gzerr << "[rosplane_dm] Please specify a namespace.\n";
   nh_ = new ros::NodeHandle(namespace_);
-
-  gzmsg << "loading parameters from " << namespace_ << " ns\n";
 
   if (_sdf->HasElement("linkName"))
     link_name_ = _sdf->GetElement("linkName")->Get<std::string>();
   else
-    gzerr << "[ROSplane_sim] Please specify a linkName of the forces and moments plugin.\n";
+    gzerr << "[rosplane_dm] Please specify a linkName of the forces and moments plugin.\n";
   link_ = model_->GetLink(link_name_);
   if (link_ == NULL)
-    gzthrow("[ROSplane_sim] Couldn't find specified link \"" << link_name_ << "\".");
+    gzthrow("[rosplane_dm] Couldn't find specified link \"" << link_name_ << "\".");
 
   /* Load Params from Gazebo Server */
-  if (_sdf->HasElement("mavType")) {
-    mav_type_ = _sdf->GetElement("mavType")->Get<std::string>();
-  }
-  else {
-    mav_type_ = "fixedwing";
-    gzerr << "[ROSplane_sim] Please specify a value for parameter \"mavType\".\n";
-  }
+  getSdfParam<std::string>(_sdf, "windSpeedTopic", wind_speed_topic_, "wind");
+  getSdfParam<std::string>(_sdf, "commandTopic", command_topic_, "command");
 
-  if(mav_type_ == "fixedwing")
-    design_model_ = new ModelChiHVa(nh_);
-  else
-    gzthrow("unknown or unsupported mav type\n");
+  // The following parameters are aircraft-specific, most of these can be found using AVL
+  // The rest are more geometry-based and can be found in conventional methods
+  // For the moments of inertia, look into using the BiFilar pendulum method
+
+  // Design Model Params
+  b_.chi = nh_->param<double>("b_chi", 2.0);
+  b_.chiDot = nh_->param<double>("b_chiDot", 2.0);
+  b_.h = nh_->param<double>("b_h", 1.4);
+  b_.hDot = nh_->param<double>("b_hDot", 1.5);
+  b_.Va = nh_->param<double>("b_Va", 4.2);
+
+  // Initialize Wind
+  wind_ << 0.0, 0.0, 0.0;
 
   // Connect the update function to the simulation
-  updateConnection_ = gazebo::event::Events::ConnectWorldUpdateBegin(boost::bind(&ROSplaneDM::OnUpdate, this, _1));
+  updateConnection_ = event::Events::ConnectWorldUpdateBegin(boost::bind(&ROSplaneDM::OnUpdate, this, _1));
 
-  // Turn off gravity for this body so we can fully control its motion
-  link_->SetGravityMode(FALSE);
+  // Connect Subscribers
+  command_sub_ = nh_->subscribe(command_topic_, 1, &ROSplaneDM::CommandCallback, this);
+  wind_speed_sub_ = nh_->subscribe(wind_speed_topic_, 1, &ROSplaneDM::WindSpeedCallback, this);
 
   // Store the initial state of the aircraft for reset purposes
   initial_pose_ = link_->GetWorldCoGPose();
@@ -118,10 +88,10 @@ void ROSplaneDM::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr _sdf)
   command_ = null_command_;
 }
 
-
 // This gets called by the world update event.
-void ROSplaneDM::OnUpdate(const gazebo::common::UpdateInfo& _info)
-{
+void ROSplaneDM::OnUpdate(const common::UpdateInfo& _info) {
+  sampling_time_ = _info.simTime.Double() - prev_sim_time_;
+  prev_sim_time_ = _info.simTime.Double();
   Eigen::Matrix3d NWU_to_NED;
   NWU_to_NED << 1, 0, 0, 0, -1, 0, 0, 0, -1;
 
@@ -140,7 +110,7 @@ void ROSplaneDM::OnUpdate(const gazebo::common::UpdateInfo& _info)
   state_.alpha = NWU_to_NED * vec3_to_eigen_from_gazebo(alpha);
   state_.t = _info.simTime.Double();
 
-  design_model_->updateState(state_, command_);
+  UpdateState();
 
 
   // apply the updated state
@@ -151,7 +121,6 @@ void ROSplaneDM::OnUpdate(const gazebo::common::UpdateInfo& _info)
                        vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.omega));
   link_->SetLinearAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.accel));
   link_->SetAngularAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.alpha));
-
 }
 
 void ROSplaneDM::Reset()
@@ -159,57 +128,93 @@ void ROSplaneDM::Reset()
   link_->SetWorldPose(initial_pose_);
   link_->ResetPhysicsStates();
   command_ = null_command_;
-//  start_time_us_ = (uint64_t)(world_->GetSimTime().Double() * 1e3);
-//  rosflight_init();
 }
 
-void ROSplaneDM::commandCallback(const rosplane_msgs::Controller_Commands &msg)
+void ROSplaneDM::WindSpeedCallback(const geometry_msgs::Vector3 &wind){
+  wind_ << wind.x, wind.y, wind.z;
+}
+
+void ROSplaneDM::CommandCallback(const rosplane_msgs::Controller_Commands &msg)
 {
   command_.va_c = msg.Va_c;
   command_.h_c = msg.h_c;
   command_.chi_c = msg.chi_c;
 }
 
-void ROSplaneDM::windCallback(const geometry_msgs::Vector3 &msg)
+
+void ROSplaneDM::UpdateState()
 {
-  Eigen::Vector3d wind;
-  wind << msg.x, msg.y, msg.z;
-  design_model_->set_wind(wind);
+  /*
+       * The following math follows the method described in chapter 9 of
+       * Small Unmanned Aircraft: Theory and Practice
+       * By Randy Beard and Tim McLain.
+       * Look there for a detailed explanation of each line in the rest of this function
+       * Specifically Equation 9.18
+       * This implementation uses the Gazebo physics engine to solve the differential equations
+       */
+
+  /*
+  Matlab implementation:
+  chidot_c = 0;
+  hdot_c = 0;
+  Vadot_c = 0;
+  
+  pndot = Va*cos(psi) + P.wind_n;
+  pedot = Va*sin(psi) + P.wind_e;
+  chiddot = P.b_chiDot*(chidot_c - chidot) + P.b_chi*(chi_c - chi);
+  hddot = P.b_hDot*(hdot_c - hdot) + P.b_h*(h_c - h);
+  Vadot = P.b_Va*(Va_c - Va);
+
+  phi = atan(Vg*chidot/P.gravity);
+  theta = asin(hdot/Va);
+  */
+
+  // get the euler angles
+  Eigen::Vector3d ea = state_.rot.eulerAngles(0, 1, 2);
+  // get the world frame velocity
+  Eigen::Vector3d vel_world = state_.rot * state_.vel;
+  double h = -state_.pos(2);
+  double hDot = -vel_world(2);
+  Eigen::Matrix3d P_ground_plane;
+  P_ground_plane << 1, 0, 0, 0, 1, 0, 0, 0, 0;
+  // project the velocity onto the ground plane for airspeed dynamics calculation
+  double Va = (P_ground_plane * (vel_world - wind_)).norm();
+  double VaDot = b_.Va*(command_.va_c - Va);
+  // altitude dynamics
+  double hDDot = b_.hDot*(-hDot) + b_.h*(command_.h_c - h);
+  // convert these acceleration components to a body frame accel vector
+  Eigen::Vector3d accel_world(VaDot * cos(ea(2)), VaDot * sin(ea(2)), hDDot);
+  state_.accel = state_.rot.transpose() * accel_world;
+
+
+  // get the course angle and its derivative
+  double chi = atan2(vel_world(0), vel_world(1));
+  // this is really just psiDot, but it will have to suffice
+  double chiDot = (state_.rot * state_.omega)(2);
+  double chiDDot = b_.chiDot*(-chiDot) + b_.chi*(command_.chi_c - chi);
+  Eigen::Vector3d alpha_world(0., 0., chiDDot);
+  state_.alpha = state_.rot.transpose() * alpha_world;
+
+
+  // set the orientation to look like an airplane that actually flies
+  // roll
+  ea(0) = atan((P_ground_plane * vel_world).norm() * chiDot / GRAVITY);
+  // pitch
+  if(Va > 0.001)
+  {
+    ea(1) = asin(hDot/Va);
+  }
+  else
+  {
+    ea(1) = 0.0;
+  }
+  
+  // compile these into a rotation matrix
+  state_.rot = Eigen::AngleAxisd(ea(0), Eigen::Vector3d::UnitX())
+             * Eigen::AngleAxisd(ea(1), Eigen::Vector3d::UnitY())
+             * Eigen::AngleAxisd(ea(2), Eigen::Vector3d::UnitZ());
 }
 
-Eigen::Vector3d ROSplaneDM::vec3_to_eigen_from_gazebo(gazebo::math::Vector3 vec)
-{
-  Eigen::Vector3d out;
-  out << vec.x, vec.y, vec.z;
-  return out;
-}
 
-gazebo::math::Vector3 ROSplaneDM::vec3_to_gazebo_from_eigen(Eigen::Vector3d vec)
-{
-  gazebo::math::Vector3 out(vec(0), vec(1), vec(2));
-  return out;
+GZ_REGISTER_MODEL_PLUGIN(ROSplaneDM);
 }
-
-Eigen::Matrix3d ROSplaneDM::rotation_to_eigen_from_gazebo(gazebo::math::Quaternion quat)
-{
-  Eigen::Quaterniond eig_quat(quat.w, quat.x, quat.y, quat.z);
-  return eig_quat.toRotationMatrix();
-}
-
-gazebo::math::Quaternion ROSplaneDM::rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q)
-{
-  Eigen::Vector3d v = q.vec();
-  gazebo::math::Quaternion quat(q.w(), v(0), v(1), v(2));
-  return quat;
-}
-
-gazebo::math::Quaternion ROSplaneDM::rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat)
-{
-  Eigen::Quaterniond q(eig_mat);
-  Eigen::Vector3d v = q.vec();
-  gazebo::math::Quaternion quat(q.w(), v(0), v(1), v(2));
-  return quat;
-}
-
-GZ_REGISTER_MODEL_PLUGIN(ROSplaneDM)
-} // namespace rosflight_sim
