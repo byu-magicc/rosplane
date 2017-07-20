@@ -2,7 +2,7 @@
 <!-- gazebo running for a fixed-wing aircraft -->
 
 <launch>
-  <arg name="mav_name"            default="default_fixedwing"/>
+  <arg name="mav_name"            default="fixedwing"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="paused" value="true"/>
@@ -12,7 +12,7 @@
   </include>
 
   <!-- Load Global Parameters for this MAV -->
-  <rosparam command="load" file="$(find rosplane_sim)/agents/$(arg mav_name)/$(arg mav_name).yaml" ns="$(arg mav_name)"/>
+  <rosparam command="load" file="$(find rosplane_sim)/params/$(arg mav_name).yaml" ns="$(arg mav_name)"/>
 
   <!-- Spawn MAV -->
   <include file="$(find rosplane_sim)/launch/spawn_mav.launch">

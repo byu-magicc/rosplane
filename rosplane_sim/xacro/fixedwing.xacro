@@ -1,15 +1,14 @@
 <?xml version="1.0"?>
 
-<robot name="default_fixedwing" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="fixedwing" xmlns:xacro="http://ros.org/wiki/xacro">
   <!-- Properties -->
   <xacro:property name="namespace" value="$(arg mav_name)"/>
   <xacro:property name="wind_speed_topic" value="gazebo/wind_speed"/>
   <xacro:property name="command_topic" value="command"/>
-  <xacro:property name="use_mesh_file" value="true" />
-  <xacro:property name="mesh_file" value="package://rosplane_sim/xacro/default_fixedwing.dae"/>
-  <xacro:property name="body_width" value="1.4"/>
-  <xacro:property name="body_height" value="1.0" />
-  <xacro:property name="body_length" value="1.6"/>
+  <xacro:property name="mesh_file" value="package://rosplane_sim/xacro/meshes/fixedwing.dae"/>
+  <xacro:property name="body_width" value="1.54"/>
+  <xacro:property name="body_height" value="0.77" />
+  <xacro:property name="body_length" value="0.20"/>
   <xacro:property name="mass" value="1.5"/>
   <xacro:property name="Jx" value="0.1147"/>
   <xacro:property name="Jy" value="0.0576"/>
@@ -29,37 +28,19 @@
       <inertia ixx="${Jx}" ixy="0.00" ixz="${Jxz}" iyy="${Jy}" iyz="0.00" izz="${Jz}" />
     </inertial>
     <visual name="plane_visual">
-      <origin xyz="0 0 0" rpy="1.570796 0 1.570796" />
+      <origin xyz="0 0 0" rpy="0 0 1.570796" />
       <geometry>
-        <xacro:if value="${use_mesh_file}">
-          <mesh filename="${mesh_file}" scale="0.002 0.002 0.002" />
-        </xacro:if>
-        <xacro:unless value="${use_mesh_file}">
-            <box size="${body_width} ${body_height} ${body_length}" />
-        </xacro:unless>
+        <mesh filename="${mesh_file}">
+          <submesh name="Wing" center="true" />
+        </mesh>
       </geometry>
     </visual>
     <collision name="plane_collision">
-      <origin xyz="0 0 0" rpy="1.570796 0 1.570796" />
+      <origin xyz="0 0 0" rpy="0 0 1.570796" />
       <geometry>
         <box size="${body_width} ${body_height} ${body_length}" />
       </geometry>
     </collision>
-
-    <!-- Wheels -->
-    <!-- <xacro:include filename="$(find rosplane_sim)/xacro/wheel.xacro"/>
-    <xacro:caster
-      radius="0.05">
-      <origin xyz="${body_length*0.31} -${body_width*0.25} -${body_height*0.45}"/>
-    </xacro:caster>
-    <xacro:caster
-      radius="0.05">
-      <origin xyz="${body_length*0.31} ${body_width*0.25} -${body_height*0.45}"/>
-    </xacro:caster>
-    <xacro:caster
-      radius="0.02">
-      <origin xyz="-${body_length*0.54} 0 -${body_height*0.15}"/>
-    </xacro:caster> -->
   </link>
 
   <!-- Simulator Truth -->
