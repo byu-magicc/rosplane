@@ -31,12 +31,13 @@ estimator_base::estimator_base():
     vehicle_state_pub_ = nh_.advertise<rosplane_msgs::State>("state",10);
     _init_static = 0;
     _baro_count = 0;
+    input_.armed_init = false;
 }
 
 void estimator_base::update(const ros::TimerEvent&)
 {
     struct output_s output;
-    if(input_.status_armed)
+    if(input_.armed_init)
     {
         estimate(params_, input_, output);
     }
@@ -157,6 +158,8 @@ void estimator_base::airspeedCallback(const rosflight_msgs::Airspeed &msg)
 void estimator_base::statusCallback(const rosflight_msgs::Status &msg)
 {
     input_.status_armed = msg.armed;
+    if(input_.status_armed)
+        input_.armed_init = true;
 }
 
 } //end namespace

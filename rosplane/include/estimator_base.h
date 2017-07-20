@@ -47,6 +47,7 @@ protected:
         float gps_Vg;
         float gps_course;
         bool status_armed;
+        bool armed_init;
     };
 
     struct output_s{
