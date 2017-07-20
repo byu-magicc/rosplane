@@ -50,7 +50,6 @@ void path_follower::follow(const params_s &params, const input_s &input, output_
         output.h_c = h_d;
 
         output.phi_ff = input.lam_orbit*atanf(input.Va*input.Va/(9.8*input.rho_orbit));
-        // ROS_WARN_STREAM("Velocity" << input.Va_d << "\nRho_orbit" << input.rho_orbit << "\nFeedForward" << output.phi_ff);
     }
     output.Va_c = input.Va_d;
 }
