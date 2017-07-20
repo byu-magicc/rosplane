@@ -61,6 +61,7 @@ class ROSplaneDM : public ModelPlugin {
   void OnUpdate(const common::UpdateInfo & /*_info*/);
 
  private:
+  int i_ = 0;
   std::string command_topic_;
   std::string wind_speed_topic_;
   std::string joint_name_;

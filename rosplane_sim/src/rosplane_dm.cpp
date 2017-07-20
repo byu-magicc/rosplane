@@ -66,9 +66,9 @@ void ROSplaneDM::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   // Design Model Params
   b_.chi = nh_->param<double>("b_chi", 2.0);
   b_.chiDot = nh_->param<double>("b_chiDot", 2.0);
-  b_.h = nh_->param<double>("b_h", 1.4);
+  b_.h = nh_->param<double>("b_h", 0.14);
   b_.hDot = nh_->param<double>("b_hDot", 1.5);
-  b_.Va = nh_->param<double>("b_Va", 4.2);
+  b_.Va = nh_->param<double>("b_Va", 0.42);
 
   // Initialize Wind
   wind_ << 0.0, 0.0, 0.0;
@@ -79,6 +79,21 @@ void ROSplaneDM::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   // Connect Subscribers
   command_sub_ = nh_->subscribe(command_topic_, 1, &ROSplaneDM::CommandCallback, this);
   wind_speed_sub_ = nh_->subscribe(wind_speed_topic_, 1, &ROSplaneDM::WindSpeedCallback, this);
+
+  // Turn off gravity for this body so we can fully control its motion
+  link_->SetGravityMode(FALSE);
+
+  // set the mass to one and inertia to be identity so force = accel
+  gazebo::physics::InertialPtr inertial = link_->GetInertial();
+  inertial->SetIXX(1.0);
+  inertial->SetIYY(1.0);
+  inertial->SetIZZ(1.0);
+  inertial->SetIXY(0.0);
+  inertial->SetIXZ(0.0);
+  inertial->SetIYZ(0.0);
+  inertial->SetMass(1.);
+  link_->SetInertial(inertial);
+  link_->UpdateMass();
 
   // Store the initial state of the aircraft for reset purposes
   initial_pose_ = link_->GetWorldCoGPose();
@@ -104,6 +119,7 @@ void ROSplaneDM::OnUpdate(const common::UpdateInfo& _info) {
   // Convert gazebo types to Eigen and switch to NED frame
   state_.pos = NWU_to_NED * vec3_to_eigen_from_gazebo(pose.pos);
   state_.rot = NWU_to_NED * rotation_to_eigen_from_gazebo(pose.rot);
+  // state_.rot = rotation_to_eigen_from_gazebo(pose.rot);
   state_.vel = NWU_to_NED * vec3_to_eigen_from_gazebo(vel);
   state_.accel = NWU_to_NED * vec3_to_eigen_from_gazebo(accel);
   state_.omega = NWU_to_NED * vec3_to_eigen_from_gazebo(omega);
@@ -114,13 +130,21 @@ void ROSplaneDM::OnUpdate(const common::UpdateInfo& _info) {
 
 
   // apply the updated state
-  pose.Set(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.pos), 
-           rotation_to_gazebo_from_eigen_mat(NWU_to_NED * state_.rot));
+  // if(i_ > 1000)
+  // {
+  //   i_ = 0;
+    pose.Set(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.pos), 
+             rotation_to_gazebo_from_eigen_mat(state_.rot));
+  //   gzerr << "hi" << std::endl;
+  // }
+  // i_++;
+  // pose.Set(gazebo::math::Vector3(1.0, 1.0, 1.0), 
+  //          rotation_to_gazebo_from_eigen_mat(NWU_to_NED * state_.rot));
   link_->SetWorldPose(pose);
-  link_->SetWorldTwist(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.vel),
-                       vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.omega));
-  link_->SetLinearAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.accel));
-  link_->SetAngularAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.alpha));
+  // link_->SetWorldTwist(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.vel),
+  //                      vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.omega));
+  link_->AddForce(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.accel));
+  // link_->SetAngularAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.alpha));
 }
 
 void ROSplaneDM::Reset()
@@ -171,6 +195,7 @@ void ROSplaneDM::UpdateState()
 
   // get the euler angles
   Eigen::Vector3d ea = state_.rot.eulerAngles(0, 1, 2);
+  ea << 0.0, 0.0, 0.0;
   // get the world frame velocity
   Eigen::Vector3d vel_world = state_.rot * state_.vel;
   double h = -state_.pos(2);
@@ -180,12 +205,17 @@ void ROSplaneDM::UpdateState()
   // project the velocity onto the ground plane for airspeed dynamics calculation
   double Va = (P_ground_plane * (vel_world - wind_)).norm();
   double VaDot = b_.Va*(command_.va_c - Va);
+  // VaDot = 0.;
   // altitude dynamics
-  double hDDot = b_.hDot*(-hDot) + b_.h*(command_.h_c - h);
+  double hDDot = b_.hDot*(hDot) + b_.h*(command_.h_c - h);
+  // hDDot = 0.;
   // convert these acceleration components to a body frame accel vector
   Eigen::Vector3d accel_world(VaDot * cos(ea(2)), VaDot * sin(ea(2)), hDDot);
   state_.accel = state_.rot.transpose() * accel_world;
-
+  // state_.accel = accel_world;
+  // state_.accel << 0.0, 0.0, 0.2;
+  // gzerr << "Va_c = " << command_.va_c << " va = " << Va << std::endl;
+  // gzerr << "a = " << state_.rot << std::endl;
 
   // get the course angle and its derivative
   double chi = atan2(vel_world(0), vel_world(1));
@@ -198,21 +228,56 @@ void ROSplaneDM::UpdateState()
 
   // set the orientation to look like an airplane that actually flies
   // roll
-  ea(0) = atan((P_ground_plane * vel_world).norm() * chiDot / GRAVITY);
+  // ea(0) = atan((P_ground_plane * vel_world).norm() * chiDot / GRAVITY);
   // pitch
-  if(Va > 0.001)
-  {
-    ea(1) = asin(hDot/Va);
-  }
-  else
-  {
-    ea(1) = 0.0;
-  }
+  // if(Va > 1.)
+  // {
+  //   ea(1) = asin(hDot/Va);
+  // }
+  // else
+  // {
+  //   ea(1) = 0.0;
+  // }
   
   // compile these into a rotation matrix
   state_.rot = Eigen::AngleAxisd(ea(0), Eigen::Vector3d::UnitX())
              * Eigen::AngleAxisd(ea(1), Eigen::Vector3d::UnitY())
              * Eigen::AngleAxisd(ea(2), Eigen::Vector3d::UnitZ());
+  // gzerr << "b = " << state_.rot << std::endl;
+}
+
+Eigen::Vector3d ROSplaneDM::vec3_to_eigen_from_gazebo(gazebo::math::Vector3 vec)
+{
+  Eigen::Vector3d out;
+  out << vec.x, vec.y, vec.z;
+  return out;
+}
+
+gazebo::math::Vector3 ROSplaneDM::vec3_to_gazebo_from_eigen(Eigen::Vector3d vec)
+{
+  gazebo::math::Vector3 out(vec(0), vec(1), vec(2));
+  return out;
+}
+
+Eigen::Matrix3d ROSplaneDM::rotation_to_eigen_from_gazebo(gazebo::math::Quaternion quat)
+{
+  Eigen::Quaterniond eig_quat(quat.w, quat.x, quat.y, quat.z);
+  return eig_quat.toRotationMatrix();
+}
+
+gazebo::math::Quaternion ROSplaneDM::rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q)
+{
+  Eigen::Vector3d v = q.vec();
+  gazebo::math::Quaternion quat(q.w(), v(0), v(1), v(2));
+  return quat;
+}
+
+gazebo::math::Quaternion ROSplaneDM::rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat)
+{
+  Eigen::Quaterniond q(eig_mat);
+  Eigen::Vector3d v = q.vec();
+  gazebo::math::Quaternion quat(q.w(), v(0), v(1), v(2));
+  return quat;
 }
 
 
