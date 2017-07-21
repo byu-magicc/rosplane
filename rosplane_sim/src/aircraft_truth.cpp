@@ -21,7 +21,7 @@ namespace gazebo
 
 AircraftTruth::AircraftTruth() :
   ModelPlugin(),
-  node_handle_(nullptr),
+  nh_(nullptr),
   prev_sim_time_(0)
 {}
 
@@ -29,9 +29,9 @@ AircraftTruth::AircraftTruth() :
 AircraftTruth::~AircraftTruth()
 {
   event::Events::DisconnectWorldUpdateBegin(updateConnection_);
-  if (node_handle_) {
-    node_handle_->shutdown();
-    delete node_handle_;
+  if (nh_) {
+    nh_->shutdown();
+    delete nh_;
   }
 }
 
@@ -50,7 +50,7 @@ void AircraftTruth::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
     namespace_ = _sdf->GetElement("namespace")->Get<std::string>();
   else
     gzerr << "[gazebo_aircraft_truth] Please specify a namespace.\n";
-  node_handle_ = new ros::NodeHandle(namespace_);
+  nh_ = new ros::NodeHandle(namespace_);
 
  if (_sdf->HasElement("linkName"))
     link_name_ = _sdf->GetElement("linkName")->Get<std::string>();
@@ -61,16 +61,15 @@ void AircraftTruth::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
     gzthrow("[gazebo_aircraft_truth] Couldn't find specified link \"" << link_name_ << "\".");
 
   /* Load Params from Gazebo Server */
-  getSdfParam<std::string>(_sdf, "windSpeedTopic", wind_speed_topic_, "wind");
-  getSdfParam<std::string>(_sdf, "truthTopic", truth_topic_, "truth");
-
+  wind_speed_topic_ = nh_->param<std::string>("windSpeedTopic", "gazebo/wind_speed");
+  truth_topic_ = nh_->param<std::string>("truthTopic", "truth");
 
   // Connect the update function to the simulation
   updateConnection_ = event::Events::ConnectWorldUpdateBegin(boost::bind(&AircraftTruth::OnUpdate, this, _1));
 
   // Connect Subscribers
-  true_state_pub_ = node_handle_->advertise<rosplane_msgs::State>(truth_topic_,1);
-  wind_speed_sub_ = node_handle_->subscribe(wind_speed_topic_, 1, &AircraftTruth::WindSpeedCallback, this);
+  true_state_pub_ = nh_->advertise<rosplane_msgs::State>(truth_topic_,1);
+  wind_speed_sub_ = nh_->subscribe(wind_speed_topic_, 1, &AircraftTruth::WindSpeedCallback, this);
 }
 
 // This gets called by the world update event.

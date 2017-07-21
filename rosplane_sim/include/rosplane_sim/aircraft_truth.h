@@ -80,7 +80,7 @@ class AircraftTruth : public ModelPlugin {
   double sampling_time_;
   double prev_sim_time_;
 
-  ros::NodeHandle* node_handle_;
+  ros::NodeHandle* nh_;
   ros::Subscriber wind_speed_sub_;
   ros::Publisher true_state_pub_;
 

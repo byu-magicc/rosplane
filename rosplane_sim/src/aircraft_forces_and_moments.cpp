@@ -56,8 +56,8 @@ void AircraftForcesAndMoments::Load(physics::ModelPtr _model, sdf::ElementPtr _s
     gzthrow("[gazebo_aircraft_forces_and_moments] Couldn't find specified link \"" << link_name_ << "\".");
 
   /* Load Params from Gazebo Server */
-  getSdfParam<std::string>(_sdf, "windSpeedTopic", wind_speed_topic_, "wind");
-  getSdfParam<std::string>(_sdf, "commandTopic", command_topic_, "command");
+  wind_speed_topic_ = nh_->param<std::string>("windSpeedTopic", "wind");
+  command_topic_ = nh_->param<std::string>("commandTopic", "command");
 
   // The following parameters are aircraft-specific, most of these can be found using AVL
   // The rest are more geometry-based and can be found in conventional methods
