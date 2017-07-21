@@ -146,7 +146,18 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
 
 void estimator_base::airspeedCallback(const rosflight_msgs::Airspeed &msg)
 {
+    float diff_pres_old = input_.diff_pres;
     input_.diff_pres = msg.differential_pressure;
+
+    float gate_gain = pow(10,2)*params_.rho/2.0;
+    if(input_.diff_pres < diff_pres_old - gate_gain)
+    {
+        input_.diff_pres = diff_pres_old - gate_gain;
+    }
+    else if(input_.diff_pres > diff_pres_old + gate_gain)
+    {
+        input_.diff_pres = diff_pres_old + gate_gain;
+    }
 }
 
 } //end namespace
