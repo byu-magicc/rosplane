@@ -39,6 +39,7 @@ void path_follower_base::update(const ros::TimerEvent &)
     msg.chi_c = output.chi_c;
     msg.Va_c = output.Va_c;
     msg.h_c = output.h_c;
+    msg.phi_ff = output.phi_ff;
     controller_commands_pub_.publish(msg);
   }
 }
