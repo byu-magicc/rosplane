@@ -118,8 +118,8 @@ void ROSplaneDM::OnUpdate(const common::UpdateInfo& _info) {
 
   // Convert gazebo types to Eigen and switch to NED frame
   state_.pos = NWU_to_NED * vec3_to_eigen_from_gazebo(pose.pos);
-  state_.rot = NWU_to_NED * rotation_to_eigen_from_gazebo(pose.rot);
-  // state_.rot = rotation_to_eigen_from_gazebo(pose.rot);
+  // state_.rot = NWU_to_NED * rotation_to_eigen_from_gazebo(pose.rot);
+  state_.rot = NWU_to_NED * rotation_to_eigen_from_gazebo(pose.rot) * NWU_to_NED.transpose();
   state_.vel = NWU_to_NED * vec3_to_eigen_from_gazebo(vel);
   state_.accel = NWU_to_NED * vec3_to_eigen_from_gazebo(accel);
   state_.omega = NWU_to_NED * vec3_to_eigen_from_gazebo(omega);
@@ -128,13 +128,14 @@ void ROSplaneDM::OnUpdate(const common::UpdateInfo& _info) {
 
   UpdateState();
 
-
+  // convert back to NWU
+  state_.rot = NWU_to_NED.transpose() * state_.rot * NWU_to_NED;
   // apply the updated state
   // if(i_ > 1000)
   // {
   //   i_ = 0;
-    pose.Set(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.pos), 
-             rotation_to_gazebo_from_eigen_mat(state_.rot));
+    // pose.Set(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.pos), 
+    //          rotation_to_gazebo_from_eigen_mat(state_.rot));
   //   gzerr << "hi" << std::endl;
   // }
   // i_++;
@@ -143,8 +144,8 @@ void ROSplaneDM::OnUpdate(const common::UpdateInfo& _info) {
   link_->SetWorldPose(pose);
   // link_->SetWorldTwist(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.vel),
   //                      vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.omega));
-  link_->AddForce(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.accel));
-  // link_->SetAngularAccel(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.alpha));
+  link_->AddForce(vec3_to_gazebo_from_eigen(state_.rot * state_.accel));
+  // link_->AddTorque(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.alpha));
 }
 
 void ROSplaneDM::Reset()
@@ -195,7 +196,15 @@ void ROSplaneDM::UpdateState()
 
   // get the euler angles
   Eigen::Vector3d ea = state_.rot.eulerAngles(0, 1, 2);
-  ea << 0.0, 0.0, 0.0;
+  // ea(0) += PI;
+  // ea(1) += PI;
+  // ea(2) += PI;
+  if(ea(1) > PI/2.) {
+    ea(0) -= PI;
+    ea(1) -= PI;
+    ea(2) += PI;
+  }
+  // ea << 0.0, 0.0, 0.0;
   // get the world frame velocity
   Eigen::Vector3d vel_world = state_.rot * state_.vel;
   double h = -state_.pos(2);
@@ -207,7 +216,7 @@ void ROSplaneDM::UpdateState()
   double VaDot = b_.Va*(command_.va_c - Va);
   // VaDot = 0.;
   // altitude dynamics
-  double hDDot = b_.hDot*(hDot) + b_.h*(command_.h_c - h);
+  double hDDot = b_.hDot*(-hDot) + b_.h*(command_.h_c - h);
   // hDDot = 0.;
   // convert these acceleration components to a body frame accel vector
   Eigen::Vector3d accel_world(VaDot * cos(ea(2)), VaDot * sin(ea(2)), hDDot);
@@ -224,6 +233,8 @@ void ROSplaneDM::UpdateState()
   double chiDDot = b_.chiDot*(-chiDot) + b_.chi*(command_.chi_c - chi);
   Eigen::Vector3d alpha_world(0., 0., chiDDot);
   state_.alpha = state_.rot.transpose() * alpha_world;
+  gzerr << "a = " << state_.rot << std::endl;
+  gzerr << "ea = " << ea << std::endl;
 
 
   // set the orientation to look like an airplane that actually flies
@@ -243,7 +254,8 @@ void ROSplaneDM::UpdateState()
   state_.rot = Eigen::AngleAxisd(ea(0), Eigen::Vector3d::UnitX())
              * Eigen::AngleAxisd(ea(1), Eigen::Vector3d::UnitY())
              * Eigen::AngleAxisd(ea(2), Eigen::Vector3d::UnitZ());
-  // gzerr << "b = " << state_.rot << std::endl;
+
+  gzerr << "b = " << state_.rot << std::endl;
 }
 
 Eigen::Vector3d ROSplaneDM::vec3_to_eigen_from_gazebo(gazebo::math::Vector3 vec)

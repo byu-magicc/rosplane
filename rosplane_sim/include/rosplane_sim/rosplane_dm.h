@@ -39,6 +39,7 @@
 #include "rosplane_sim/common.h"
 
 #define GRAVITY 9.81
+#define PI 3.1415926
 
 namespace gazebo {
 static const std::string kDefaultWindSpeedSubTopic = "gazebo/wind_speed";
