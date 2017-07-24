@@ -48,6 +48,7 @@ protected:
         float Va_c;             /** commanded airspeed (m/s) */
         float h_c;              /** commanded altitude (m) */
         float chi_c;            /** commanded course (rad) */
+        float phi_ff;           /** feed forward term for orbits (rad) */
     };
 
     struct output_s{
