@@ -11,6 +11,7 @@ estimator_base::estimator_base():
     nh_private_.param<std::string>("imu_topic", imu_topic_, "imu/data");
     nh_private_.param<std::string>("baro_topic", baro_topic_, "baro");
     nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "airspeed");
+    nh_private_.param<std::string>("status_topic", status_topic_, "status");
     nh_private_.param<double>("update_rate", update_rate_, 100.0);
     params_.Ts = 1.0f/update_rate_;
     params_.gravity = 9.8;
@@ -25,16 +26,21 @@ estimator_base::estimator_base():
     imu_sub_ = nh_.subscribe(imu_topic_, 10, &estimator_base::imuCallback, this);
     baro_sub_ = nh_.subscribe(baro_topic_, 10, &estimator_base::baroAltCallback, this);
     airspeed_sub_ = nh_.subscribe(airspeed_topic_, 10, &estimator_base::airspeedCallback, this);
+    status_sub_ = nh_.subscribe(status_topic_, 1, &estimator_base::statusCallback, this);
     update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &estimator_base::update, this);
     vehicle_state_pub_ = nh_.advertise<rosplane_msgs::State>("state",10);
     _init_static = 0;
     _baro_count = 0;
+    input_.armed_init = false;
 }
 
 void estimator_base::update(const ros::TimerEvent&)
 {
     struct output_s output;
-    estimate(params_, input_, output);
+    if(input_.armed_init)
+    {
+        estimate(params_, input_, output);
+    }
     input_.gps_new = false;
 
     rosplane_msgs::State msg;
@@ -147,6 +153,13 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
 void estimator_base::airspeedCallback(const rosflight_msgs::Airspeed &msg)
 {
     input_.diff_pres = msg.differential_pressure;
+}
+
+void estimator_base::statusCallback(const rosflight_msgs::Status &msg)
+{
+    input_.status_armed = msg.armed;
+    if(input_.status_armed)
+        input_.armed_init = true;
 }
 
 } //end namespace

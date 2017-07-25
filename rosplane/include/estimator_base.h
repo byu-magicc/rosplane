@@ -15,6 +15,7 @@
 #include <sensor_msgs/Imu.h>
 #include <rosflight_msgs/Barometer.h>
 #include <rosflight_msgs/Airspeed.h>
+#include <rosflight_msgs/Status.h>
 #include <math.h>
 #include <Eigen/Eigen>
 
@@ -45,6 +46,8 @@ protected:
         float gps_h;
         float gps_Vg;
         float gps_course;
+        bool status_armed;
+        bool armed_init;
     };
 
     struct output_s{
@@ -87,12 +90,14 @@ private:
     ros::Subscriber imu_sub_;
     ros::Subscriber baro_sub_;
     ros::Subscriber airspeed_sub_;
+    ros::Subscriber status_sub_;
 
     void update(const ros::TimerEvent &);
     void gpsCallback(const rosflight_msgs::GPS &msg);
     void imuCallback(const sensor_msgs::Imu &msg);
     void baroAltCallback(const rosflight_msgs::Barometer &msg);
     void airspeedCallback(const rosflight_msgs::Airspeed &msg);
+    void statusCallback(const rosflight_msgs::Status &msg);
 
     double update_rate_;
     ros::Timer update_timer_;
@@ -100,6 +105,7 @@ private:
     std::string imu_topic_;
     std::string baro_topic_;
     std::string airspeed_topic_;
+    std::string status_topic_;
 
     bool                            gps_new_;
     bool                            gps_init_;
