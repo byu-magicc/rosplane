@@ -44,8 +44,8 @@ estimator_example::estimator_example() :
     psihat = 0;
     Vwhat = 0;
 
-    //lpf_static = 0;//params.rho*params.gravity*100;
-    lpf_diff = 0;//1/2 * params.rho*11*11;
+    lpf_static = 0;
+    lpf_diff = 0;
 
     N_ = 10;
 
@@ -88,10 +88,10 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
     lpf_diff = alpha1*lpf_diff + (1-alpha1)*input.diff_pres;
 
     // when the plane isn't moving or moving slowly, the noise in the sensor
-    // will cause the differential pressure to go negative. This will catch 
-    // those cases. 
-    if(lpf_diff < 0)
-        lpf_diff = 0;
+    // will cause the differential pressure to go negative. This will catch
+    // those cases.
+    if(lpf_diff <= 0)
+        lpf_diff = 0.000001;
 
     float Vahat = sqrt(2/params.rho*lpf_diff);
 
@@ -101,7 +101,6 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
     lpf_accel_z = alpha*lpf_accel_z + (1-alpha)*input.accel_z;
 
     // implement continuous-discrete EKF to estimate roll and pitch angles
-
     // prediction step
     float cp; // cos(phi)
     float sp; // sin(phi)
@@ -207,7 +206,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
 //    while(xhat_p(3) < radians(-180.0f)) xhat_p(3) = xhat_p(3) + radians(360.0f);
 //    if(xhat_p(3) > radians(180.0f) || xhat_p(3) < radians(-180.0f))
 //    {
-//        ROS_WARN("problem 17");
+//        ROS_WARN("Course estimate not wrapped from -pi to pi");
 //        xhat_p(3) = 0;
 //    }
 
