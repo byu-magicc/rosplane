@@ -36,6 +36,7 @@
     <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen">
       <remap from="gps" to="gps/data"/>
     </node>
+    <node name="plots" pkg="rosplane_utils" type="estimator_plots.py" output="screen"/>
 
     <node name="pathfollower" pkg="rosplane" type="rosplane_path_follower">
        <remap from="state" to="truth"/>
