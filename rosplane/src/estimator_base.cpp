@@ -123,14 +123,42 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
     {
         if(_baro_count < 100)
         {
+            _init_static_vector.push_back(msg.pressure);
             _init_static += msg.pressure;
             input_.static_pres = 0;
             _baro_count += 1;
         }
         else
         {
-            _init_static = _init_static/100;
+            _init_static = std::accumulate(_init_static_vector.begin(),_init_static_vector.end(), 0.0)/_init_static_vector.size();
             _baro_init = true;
+
+            //Check that it got a good calibration.
+            std::sort(_init_static_vector.begin(),_init_static_vector.end());
+            float q1 = (_init_static_vector[24] + _init_static_vector[25])/2.0;
+            float q3 = (_init_static_vector[74] + _init_static_vector[75])/2.0;
+            float IQR = q3 - q1;
+            float upper_bound = q3 + 2.0*IQR;
+            float lower_bound = q1 - 2.0*IQR;
+            for(int i=0; i < 100; i++)
+            {
+                if(_init_static_vector[i] > upper_bound)
+                {
+                    _baro_init = false;
+                    _baro_count = 0;
+                    _init_static_vector.clear();
+                    ROS_WARN("Bad baro calibration. Recalibrating");
+                    break;
+                }
+                else if(_init_static_vector[i] < lower_bound)
+                {
+                    _baro_init = false;
+                    _baro_count = 0;
+                    _init_static_vector.clear();
+                    ROS_WARN("Bad baro calibration. Recalibrating");
+                    break;
+                }
+            }
         }
     }
     else
