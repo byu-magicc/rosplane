@@ -115,6 +115,7 @@ private:
     bool                            _baro_init;
     float                           _init_static; /**< Initial static pressure (mbar)  */
     int                             _baro_count; /**< Used to grab the first set of baro measurements */
+    std::vector<float>              _init_static_vector; /**< Used to calibrate baro */
 
     struct params_s                 params_;
     struct input_s                  input_;
