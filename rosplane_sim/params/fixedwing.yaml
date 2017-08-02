@@ -14,7 +14,7 @@ wing_M: 50
 wing_epsilon: 0.1592
 wing_alpha0: 0.3040363557
 
-k_motor: 40.0
+k_motor: 30.0
 k_T_P: 0.0
 k_Omega: 0.0
 

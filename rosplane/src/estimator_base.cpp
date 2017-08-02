@@ -48,6 +48,7 @@ void estimator_base::update(const ros::TimerEvent&)
         output.phi = output.theta = output.psi = 0;
         output.alpha = output.beta = output.chi = 0;
         output.p = output.q = output.r = 0;
+        output.Va = 0;
     }
 
     input_.gps_new = false;
@@ -128,9 +129,9 @@ void estimator_base::imuCallback(const sensor_msgs::Imu &msg)
 void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
 {
 
-    if(!baro_init_)
+    if(armed_first_time_ && !baro_init_)
     {
-        if(baro_count_ < 100)
+        if(baro_count_ < 50)
         {
             init_static_ += msg.pressure;
             input_.static_pres = 0;
