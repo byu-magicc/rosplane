@@ -73,6 +73,7 @@ class state_subscriber():
 		self.phiE = 0.
 		self.thetaE = 0.
 		self.psiE = 0.
+		self.chiE = 0.
 
 		#------------------------------------------------------------
 		rospy.Subscriber("truth", State, self.callbackTruth)
@@ -108,7 +109,7 @@ class state_subscriber():
 		self.phiE = State.phi
 		self.thetaE = State.theta
 		self.psiE = State.psi
-		self.chiE = State.chi
+		self.chiE = State.chi_deg*3.1415/180.0
 		self.pE = State.p
 		self.qE = State.q
 		self.rE = State.r
@@ -194,10 +195,10 @@ ax_phi = fig_plots1.add_subplot(815, sharex=ax_pn, ylim=(phi_min, phi_max))
 #ax_beta  = fig_plots1.add_subplot(816, sharex=ax_pn, ylim=(-7, 7))
 ax_theta  = fig_plots1.add_subplot(816, sharex=ax_pn, ylim=(theta_min, theta_max))
 #ax_phi   = fig_plots1.add_subplot(817, sharex=ax_pn, ylim=(-7, 7))
-ax_psi   = fig_plots1.add_subplot(817, sharex=ax_pn, ylim=(psi_min, psi_max))
+# ax_psi   = fig_plots1.add_subplot(817, sharex=ax_pn, ylim=(psi_min, psi_max))
 #ax_theta = fig_plots1.add_subplot(818, sharex=ax_pn, ylim=(-7, 7))
 #ax_psi   = fig_plots2.add_subplot(811, sharex=ax_pn, ylim=(-7, 7))
-#ax_chi   = fig_plots2.add_subplot(812, sharex=ax_pn, ylim=(-7, 7))
+ax_chi   = fig_plots1.add_subplot(817, sharex=ax_pn, ylim=(chi_min, chi_max))
 #ax_p	 = fig_plots2.add_subplot(813, sharex=ax_pn, ylim=(-7, 7))
 #ax_q	 = fig_plots2.add_subplot(814, sharex=ax_pn, ylim=(-7, 7))
 #ax_r	 = fig_plots2.add_subplot(815, sharex=ax_pn, ylim=(-7, 7))
@@ -213,8 +214,8 @@ ax_Va.grid()
 #ax_beta.grid()
 ax_phi.grid()
 ax_theta.grid()
-ax_psi.grid()
-#ax_chi.grid()
+# ax_psi.grid()
+ax_chi.grid()
 #ax_p.grid()
 #ax_q.grid()
 #ax_r.grid()
@@ -230,8 +231,8 @@ line_Va,line_VaE	= ax_Va.plot([], [], [], [], 'r')
 #line_beta,  = ax_beta.plot([], [])
 line_phi,line_phiE   = ax_phi.plot([], [], [], [], 'r')
 line_theta,line_thetaE = ax_theta.plot([], [], [], [], 'r')
-line_psi,line_psiE   = ax_psi.plot([], [], [], [], 'r')
-#line_chi,   = ax_chi.plot([], [])
+#line_psi,line_psiE   = ax_psi.plot([], [], [], [], 'r')
+line_chi,line_chiE   = ax_chi.plot([], [], [], [], 'r')
 #line_p,	 = ax_p.plot([], [])
 #line_q,	 = ax_q.plot([], [])
 #line_r,	 = ax_r.plot([], [])
@@ -245,10 +246,10 @@ ax_pd.set_ylabel('pd')
 ax_Va.set_ylabel('Va')
 #ax_alpha.set_ylabel(u'\u0391')
 #ax_beta.set_ylabel(u'\u0392')
-ax_phi.set_ylabel(u'\u03A6')
-ax_theta.set_ylabel(u'\u0398')
-ax_psi.set_ylabel(u'\u03C8')
-#ax_chi.set_ylabel(u'\u03A7')
+ax_phi.set_ylabel('phi')
+ax_theta.set_ylabel('theta')
+#ax_psi.set_ylabel('psi')
+ax_chi.set_ylabel('chi')
 #ax_p.set_ylabel('p')
 #ax_q.set_ylabel('q')
 #ax_r.set_ylabel('r')
@@ -264,8 +265,8 @@ Va_data	 = np.array([])
 #beta_data   = np.array([])
 phi_data	= np.array([])
 theta_data  = np.array([])
-psi_data	= np.array([])
-#chi_data	= np.array([])
+#psi_data	= np.array([])
+chi_data	= np.array([])
 #p_data	  = np.array([])
 #q_data	  = np.array([])
 #r_data	  = np.array([])
@@ -279,7 +280,8 @@ pdE_data	 = np.array([])
 VaE_data	 = np.array([])
 phiE_data	= np.array([])
 thetaE_data  = np.array([])
-psiE_data	= np.array([])
+#psiE_data	= np.array([])
+chiE_data   = np.array([])
 
 time_data   = np.array([])
 
@@ -296,8 +298,8 @@ def init_plot1():
 	#	line_beta.set_data([], [])
 	line_phi.set_data([], [])
 	line_theta.set_data([], [])
-	line_psi.set_data([], [])
-	#	line_chi.set_data([], [])
+	#	line_psi.set_data([], [])
+	line_chi.set_data([], [])
 	#	line_p.set_data([], [])
 	#	line_q.set_data([], [])
 	#	line_r.set_data([], [])
@@ -311,20 +313,22 @@ def init_plot1():
 	line_VaE.set_data([], [])
 	line_phiE.set_data([], [])
 	line_thetaE.set_data([], [])
-	line_psiE.set_data([], [])
+	#line_psiE.set_data([], [])
+	line_chiE.set_data([], [])
 
 	#	return line_pn, line_pe, line_pd, line_Va, line_alpha, line_beta, line_phi, line_theta
-	return line_pn, line_pe, line_pd, line_Va, line_phi, line_theta, line_psi, line_pnE, line_peE, line_pdE, line_VaE, line_phiE, line_thetaE, line_psiE
+	#return line_pn, line_pe, line_pd, line_Va, line_phi, line_theta, line_psi, line_pnE, line_peE, line_pdE, line_VaE, line_phiE, line_thetaE, line_psiE
+	return line_pn, line_pe, line_pd, line_Va, line_phi, line_theta, line_chi, line_pnE, line_peE, line_pdE, line_VaE, line_phiE, line_thetaE, line_chiE
 def animate_plot1(i):
 	"""perform animation step"""
 
 	#	global states, pn_data, pe_data, pd_data, Va_data, alpha_data, beta_data, phi_data, theta_data, time_data
-	global states, pn_data, pe_data, pd_data, Va_data, phi_data, theta_data, psi_data, time_data
-	global pnE_data, peE_data, pdE_data, VaE_data, phiE_data, thetaE_data, psiE_data
+	global states, pn_data, pe_data, pd_data, Va_data, phi_data, theta_data, chi_data, time_data
+	global pnE_data, peE_data, pdE_data, VaE_data, phiE_data, thetaE_data, chiE_data
 	#	global ax_pn, ax_pe, ax_pd, ax_Va, ax_alpha, ax_beta, ax_phi, ax_theta, fig_plots1, fig_plots2
 	global ax_pn, ax_pe, ax_pd, ax_Va, ax_phi, ax_theta, ax_psi, fig_plots1
 	#	global pn_max, pn_min, pe_max, pe_min, pd_max, pd_min, Va_max, Va_min, alpha_max, alpha_min, beta_max, beta_min, phi_max, phi_min, theta_max, theta_min, axis_xlim
-	global pn_max, pn_min, pe_max, pe_min, pd_max, pd_min, Va_max, Va_min, phi_max, phi_min, theta_max, theta_min, psi_max, psi_min, axis_xlim
+	global pn_max, pn_min, pe_max, pe_min, pd_max, pd_min, Va_max, Va_min, phi_max, phi_min, theta_max, theta_min, chi_max, chi_min, axis_xlim
 	# the append function doesn't append to the array given by reference, so we have to pass it by value and simultaneously assign it to the original
 	pn_data	 = np.append(pn_data, states.pn)
 	pe_data	 = np.append(pe_data, states.pe)
@@ -332,7 +336,8 @@ def animate_plot1(i):
 	Va_data	 = np.append(Va_data, states.Va)
 	phi_data	= np.append(phi_data, states.phi)
 	theta_data  = np.append(theta_data, states.theta)
-	psi_data = np.append(psi_data, states.psi)
+	# psi_data = np.append(psi_data, states.psi)
+	chi_data = np.append(chi_data, states.chi)
 
 	pnE_data	 = np.append(pnE_data, states.pnE)
 	peE_data	 = np.append(peE_data, states.peE)
@@ -340,7 +345,8 @@ def animate_plot1(i):
 	VaE_data	 = np.append(VaE_data, states.VaE)
 	phiE_data	= np.append(phiE_data, states.phiE)
 	thetaE_data  = np.append(thetaE_data, states.thetaE)
-	psiE_data = np.append(psiE_data, states.psiE)
+	# psiE_data = np.append(psiE_data, states.psiE)
+	chiE_data = np.append(chiE_data, states.chiE)
 	time_data   = np.append(time_data, states.time)
 
 	# update the time axis when necessary... they are all linked to the same pointer so you only need to update theta1
@@ -439,15 +445,26 @@ def animate_plot1(i):
 		ax_theta.set_ylim(theta_min, theta_max)
 		need_to_plot = True
 
-	# psi check
-	if(psi_min > psi_data.min()):
-		psi_min = psi_data.min() - 1.0
-		ax_psi.set_ylim(psi_min, psi_max)
+	# # psi check
+	# if(psi_min > psi_data.min()):
+	# 	psi_min = psi_data.min() - 1.0
+	# 	ax_psi.set_ylim(psi_min, psi_max)
+	# 	need_to_plot = True
+	#
+	# if(psi_max < psi_data.max()):
+	# 	psi_max = psi_data.max() + 1.0
+	# 	ax_psi.set_ylim(psi_min, psi_max)
+	# 	need_to_plot = True
+
+	# chi check
+	if(chi_min > chi_data.min()):
+		chi_min = chi_data.min() - 1.0
+		ax_chi.set_ylim(chi_min, chi_max)
 		need_to_plot = True
 
-	if(psi_max < psi_data.max()):
-		psi_max = psi_data.max() + 1.0
-		ax_psi.set_ylim(psi_min, psi_max)
+	if(chi_max < chi_data.max()):
+		chi_max = chi_data.max() + 1.0
+		ax_chi.set_ylim(chi_min, chi_max)
 		need_to_plot = True
 
 	# update the plot if any of the axis limits have changed
@@ -460,15 +477,18 @@ def animate_plot1(i):
 	line_Va.set_data(time_data,	 Va_data   )
 	line_phi.set_data(time_data,	phi_data  )
 	line_theta.set_data(time_data,  theta_data)
-	line_psi.set_data(time_data,  psi_data)
+	# line_psi.set_data(time_data,  psi_data)
+	line_chi.set_data(time_data,  chi_data)
 	line_pnE.set_data(time_data,	 pnE_data   )
 	line_peE.set_data(time_data,	 peE_data   )
 	line_pdE.set_data(time_data,	 pdE_data   )
 	line_VaE.set_data(time_data,	 VaE_data   )
 	line_phiE.set_data(time_data,	phiE_data  )
 	line_thetaE.set_data(time_data,  thetaE_data)
-	line_psiE.set_data(time_data,  psiE_data)
-	return line_pn, line_pe, line_pd, line_Va, line_phi, line_theta, line_psi, line_pnE, line_peE, line_pdE, line_VaE, line_phiE, line_thetaE, line_psiE
+	# line_psiE.set_data(time_data,  psiE_data)
+	line_chiE.set_data(time_data,  chiE_data)
+	# return line_pn, line_pe, line_pd, line_Va, line_phi, line_theta, line_psi, line_pnE, line_peE, line_pdE, line_VaE, line_phiE, line_thetaE, line_psiE
+	return line_pn, line_pe, line_pd, line_Va, line_phi, line_theta, line_chi, line_pnE, line_peE, line_pdE, line_VaE, line_phiE, line_thetaE, line_chiE
 '''
 def init_plot2():
 	"""initialize animation"""
