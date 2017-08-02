@@ -29,6 +29,11 @@
     </node>
 
     <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen"/>
+    <!-- Must publish a status: armed to estimate states -->
+    <node name="status_publisher" pkg="rostopic" type="rostopic" output="screen"
+      args="pub status rosflight_msgs/Status '{header: {seq: 0, stamp: 0, frame_id: 'none'},
+      armed: 'true', failsafe: 'false', rc_override: 'false', offboard: 'false',
+      control_mode: 0, error_code: 0, num_errors: 0, loop_time_us: 0}'"/>
 
     <node name="pathfollower" pkg="rosplane" type="rosplane_path_follower">
        <remap from="state" to="truth"/>
