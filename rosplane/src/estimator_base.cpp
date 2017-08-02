@@ -139,7 +139,7 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
         }
         else
         {
-            init_static_ = init_static_/100;
+            init_static_ = init_static_/50;
             baro_init_ = true;
         }
     }
