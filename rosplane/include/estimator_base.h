@@ -107,14 +107,15 @@ private:
     std::string airspeed_topic_;
     std::string status_topic_;
 
-    bool                            gps_new_;
-    bool                            gps_init_;
-    double                          init_lat_;	/**< Initial latitude in degrees */
-    double                          init_lon_;	/**< Initial longitude in degrees */
-    float                           init_alt_;	/**< Initial altitude in meters above MSL  */
-    bool                            _baro_init;
-    float                           _init_static; /**< Initial static pressure (mbar)  */
-    int                             _baro_count; /**< Used to grab the first set of baro measurements */
+    bool gps_new_;
+    bool gps_init_;
+    double init_lat_;       /**< Initial latitude in degrees */
+    double init_lon_;       /**< Initial longitude in degrees */
+    float init_alt_;        /**< Initial altitude in meters above MSL  */
+    bool armed_first_time_; /**< Arm before starting estimation  */
+    bool baro_init_;        /**< Initial barometric pressure */
+    float init_static_;     /**< Initial static pressure (mbar)  */
+    int baro_count_;        /**< Used to grab the first set of baro measurements */
 
     struct params_s                 params_;
     struct input_s                  input_;

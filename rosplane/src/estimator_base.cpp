@@ -29,18 +29,27 @@ estimator_base::estimator_base():
     status_sub_ = nh_.subscribe(status_topic_, 1, &estimator_base::statusCallback, this);
     update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &estimator_base::update, this);
     vehicle_state_pub_ = nh_.advertise<rosplane_msgs::State>("state",10);
-    _init_static = 0;
-    _baro_count = 0;
-    input_.armed_init = false;
+    init_static_ = 0;
+    baro_count_ = 0;
+    armed_first_time_ = false;
 }
 
 void estimator_base::update(const ros::TimerEvent&)
 {
     struct output_s output;
-    if(input_.armed_init)
+
+    if(armed_first_time_)
     {
         estimate(params_, input_, output);
     }
+    else
+    {
+        output.pn = output.pe = output.h = 0;
+        output.phi = output.theta = output.psi = 0;
+        output.alpha = output.beta = output.chi = 0;
+        output.p = output.q = output.r = 0;
+    }
+
     input_.gps_new = false;
 
     rosplane_msgs::State msg;
@@ -52,9 +61,9 @@ void estimator_base::update(const ros::TimerEvent&)
     msg.position[2] = -output.h;
     if (gps_init_)
     {
-      msg.initial_lat = init_lat_;
-      msg.initial_lon = init_lon_;
-      msg.initial_alt = init_alt_;
+        msg.initial_lat = init_lat_;
+        msg.initial_lon = init_lon_;
+        msg.initial_alt = init_alt_;
     }
     msg.Va = output.Va;
     msg.alpha = output.alpha;
@@ -119,24 +128,24 @@ void estimator_base::imuCallback(const sensor_msgs::Imu &msg)
 void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
 {
 
-    if(!_baro_init)
+    if(!baro_init_)
     {
-        if(_baro_count < 100)
+        if(baro_count_ < 100)
         {
-            _init_static += msg.pressure;
+            init_static_ += msg.pressure;
             input_.static_pres = 0;
-            _baro_count += 1;
+            baro_count_ += 1;
         }
         else
         {
-            _init_static = _init_static/100;
-            _baro_init = true;
+            init_static_ = init_static_/100;
+            baro_init_ = true;
         }
     }
     else
     {
         float static_pres_old = input_.static_pres;
-        input_.static_pres = -msg.pressure + _init_static;
+        input_.static_pres = -msg.pressure + init_static_;
 
         float gate_gain = 1.35*params_.rho*params_.gravity;
         if(input_.static_pres < static_pres_old - gate_gain)
@@ -157,9 +166,8 @@ void estimator_base::airspeedCallback(const rosflight_msgs::Airspeed &msg)
 
 void estimator_base::statusCallback(const rosflight_msgs::Status &msg)
 {
-    input_.status_armed = msg.armed;
-    if(input_.status_armed)
-        input_.armed_init = true;
+    if(!armed_first_time_ && msg.armed)
+            armed_first_time_ = true;
 }
 
 } //end namespace
