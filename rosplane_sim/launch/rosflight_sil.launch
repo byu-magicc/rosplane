@@ -42,6 +42,6 @@
     </node>
 
     <node name="current_path_publisher" pkg="rostopic" type="rostopic"
-      args="pub current_path rosplane_msgs/Current_Path 'false' '15.0'  '[0.0, 0.0, -100.0]'  '[1.0, 0.0, 0.0]'  '[0.0, 0.0, -100.0]'  '100.0' '1'"/>
+      args="pub current_path rosplane_msgs/Current_Path '0' '15.0'  '[0.0, 0.0, -100.0]'  '[1.0, 0.0, 0.0]'  '[0.0, 0.0, -100.0]'  '100.0' '1'"/>
   </group>
 </launch>
