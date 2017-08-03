@@ -108,7 +108,10 @@ void path_manager_base::current_path_publish(output_s &output)
 {
     rosplane_msgs::Current_Path current_path;
 
-    current_path.flag = output.flag;
+    if(output.flag)
+        current_path.path_type = current_path.LINE_PATH;
+    else
+        current_path.path_type = current_path.ORBIT_PATH;
     current_path.Va_d = output.Va_d;
     for(int i=0;i<3;i++)
     {

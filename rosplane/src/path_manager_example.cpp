@@ -523,31 +523,6 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
         _dubinspath.w3 = _dubinspath.pe;
         _dubinspath.q3 = rotz(_dubinspath.chie)*e1;
         _dubinspath.R = R;
-
-
-        // ROS_WARN_STREAM("ps: " << _dubinspath.ps);
-        // ROS_WARN_STREAM("pe: " << _dubinspath.pe);
-        // ROS_WARN("L1: %f \n", L1);
-        // ROS_WARN("L2: %f \n", L2);
-        // ROS_WARN("L3: %f \n", L3);
-        // ROS_WARN("L4: %f \n", L4);
-        // ROS_WARN("idx: %i \n", idx);
-        // ROS_WARN_STREAM("cs: " << _dubinspath.cs);
-        // ROS_WARN("lams: %i \n", _dubinspath.lams);
-        // ROS_WARN_STREAM("ce:" << _dubinspath.ce);
-        // ROS_WARN("lame: %i \n", _dubinspath.lame);
-        // ROS_WARN_STREAM("q1: " << _dubinspath.q1);
-        // ROS_WARN_STREAM("w1: " << _dubinspath.w1);
-        // ROS_WARN_STREAM("w2: " << _dubinspath.w2);
-        // ROS_WARN_STREAM("w3: " << _dubinspath.w3);
-        // ROS_WARN_STREAM("q3: " << _dubinspath.q3);
-        // ROS_WARN("R: %f \n", _dubinspath.R);
-        // ROS_WARN("L: %f \n", _dubinspath.L);
-        // ROS_WARN("theta: %f \n", theta);
-        // ROS_WARN("theta2: %f \n", theta2);
-        // ROS_WARN_STREAM("e1: " << e1);
-        // ROS_WARN("ell: %f \n", ell);
-        // ROS_WARN_STREAM("Rotate: "<<rotz(theta + theta2 - M_PI_2_F));
     }
 }
 

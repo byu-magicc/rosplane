@@ -18,8 +18,6 @@ namespace rosplane {
     _func = boost::bind(&path_follower_base::reconfigure_callback, this, _1, _2);
     _server.setCallback(_func);
 
-    memset(&_vehicle_state, 0, sizeof(_vehicle_state));
-    memset(&_current_path, 0, sizeof(_current_path));
     update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &path_follower_base::update, this);
     controller_commands_pub_ = nh_.advertise<rosplane_msgs::Controller_Commands>("controller_commands",1);
 
@@ -46,30 +44,31 @@ void path_follower_base::update(const ros::TimerEvent &)
 
 void path_follower_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg)
 {
-  _vehicle_state = *msg;
-  _input.pn = _vehicle_state.position[0];               /** position north */
-  _input.pe = _vehicle_state.position[1];               /** position east */
-  _input.h =  -_vehicle_state.position[2];                /** altitude */
-  _input.chi = _vehicle_state.chi;
-  _input.Va = _vehicle_state.Va;
+  _input.pn = msg->position[0];               /** position north */
+  _input.pe = msg->position[1];               /** position east */
+  _input.h = -msg->position[2];                /** altitude */
+  _input.chi = msg->chi;
+  _input.Va = msg->Va;
 
   _state_init = true;
-
 }
 
 void path_follower_base::current_path_callback(const rosplane_msgs::Current_PathConstPtr& msg)
 {
-  _current_path = *msg;
-  _input.flag = _current_path.flag;
-  _input.Va_d = _current_path.Va_d;
+  if(msg->path_type == msg->LINE_PATH)
+    _input.p_type = path_type::Line;
+  else if(msg->path_type == msg->ORBIT_PATH)
+    _input.p_type = path_type::Orbit;
+
+  _input.Va_d = msg->Va_d;
   for(int i=0;i<3;i++)
   {
-    _input.r_path[i] = _current_path.r[i];
-    _input.q_path[i] = _current_path.q[i];
-    _input.c_orbit[i] = _current_path.c[i];
+    _input.r_path[i] = msg->r[i];
+    _input.q_path[i] = msg->q[i];
+    _input.c_orbit[i] = msg->c[i];
   }
-  _input.rho_orbit = _current_path.rho;
-  _input.lam_orbit = _current_path.lambda;
+  _input.rho_orbit = msg->rho;
+  _input.lam_orbit = msg->lambda;
   _current_path_init = true;
 }
 
@@ -83,7 +82,7 @@ void path_follower_base::reconfigure_callback(rosplane::FollowerConfig &config, 
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "rosplane_path_follower");
-  rosplane::path_follower_base* path = new rosplane::path_follower();
+  rosplane::path_follower_base* path = new rosplane::path_follower_example();
 
   ros::spin();
 

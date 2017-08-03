@@ -11,6 +11,10 @@
 
 namespace rosplane {
 
+enum class path_type {
+    Orbit,
+    Line
+};
 
 class path_follower_base
 {
@@ -21,7 +25,7 @@ public:
 protected:
 
     struct input_s{
-        bool flag;
+        enum path_type p_type;
         float Va_d;
         float r_path[3];
         float q_path[3];
@@ -61,8 +65,6 @@ private:
     double update_rate_ = 100.0;
     ros::Timer update_timer_;
 
-    rosplane_msgs::State _vehicle_state;
-    rosplane_msgs::Current_Path _current_path;
     rosplane_msgs::Controller_Commands _controller_commands;
     struct params_s  _params;            /**< params */
     struct input_s _input;
