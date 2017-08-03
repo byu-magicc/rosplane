@@ -58,7 +58,6 @@ private:
 
     Eigen::Matrix3f rotz(float theta);
     float mo(float in);
-    float dot(Eigen::Vector3f, Eigen::Vector3f);
 };
 } //end namespace
 #endif // PATH_MANAGER_EXAMPLE_H

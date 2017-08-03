@@ -7,22 +7,22 @@ namespace rosplane {
     nh_(ros::NodeHandle()),
     nh_private_(ros::NodeHandle("~"))
   {
-    _vehicle_state_sub = nh_.subscribe<rosplane_msgs::State>("state", 1, &path_follower_base::vehicle_state_callback, this);
-    _current_path_sub = nh_.subscribe<rosplane_msgs::Current_Path>("current_path",1, &path_follower_base::current_path_callback, this);
+    vehicle_state_sub_ = nh_.subscribe<rosplane_msgs::State>("state", 1, &path_follower_base::vehicle_state_callback, this);
+    current_path_sub_ = nh_.subscribe<rosplane_msgs::Current_Path>("current_path",1, &path_follower_base::current_path_callback, this);
 
 
-    nh_private_.param<double>("CHI_INFTY", _params.chi_infty, 1.0472);
-    nh_private_.param<double>("K_PATH", _params.k_path, 0.025);
-    nh_private_.param<double>("K_ORBIT", _params.k_orbit, 8.0);
+    nh_private_.param<double>("CHI_INFTY", params_.chi_infty, 1.0472);
+    nh_private_.param<double>("K_PATH", params_.k_path, 0.025);
+    nh_private_.param<double>("K_ORBIT", params_.k_orbit, 8.0);
 
-    _func = boost::bind(&path_follower_base::reconfigure_callback, this, _1, _2);
-    _server.setCallback(_func);
+    func_ = boost::bind(&path_follower_base::reconfigure_callback, this, _1, _2);
+    server_.setCallback(func_);
 
     update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &path_follower_base::update, this);
     controller_commands_pub_ = nh_.advertise<rosplane_msgs::Controller_Commands>("controller_commands",1);
 
-    _state_init = false;
-    _current_path_init = false;
+    state_init_ = false;
+    current_path_init_ = false;
   }
 
 void path_follower_base::update(const ros::TimerEvent &)
@@ -30,9 +30,9 @@ void path_follower_base::update(const ros::TimerEvent &)
 
   struct output_s output;
 
-  if(_state_init == true && _current_path_init == true)
+  if(state_init_ == true && current_path_init_ == true)
   {
-    follow(_params, _input, output);
+    follow(params_, input_, output);
     rosplane_msgs::Controller_Commands msg;
     msg.chi_c = output.chi_c;
     msg.Va_c = output.Va_c;
@@ -44,39 +44,39 @@ void path_follower_base::update(const ros::TimerEvent &)
 
 void path_follower_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg)
 {
-  _input.pn = msg->position[0];               /** position north */
-  _input.pe = msg->position[1];               /** position east */
-  _input.h = -msg->position[2];                /** altitude */
-  _input.chi = msg->chi;
-  _input.Va = msg->Va;
+  input_.pn = msg->position[0];               /** position north */
+  input_.pe = msg->position[1];               /** position east */
+  input_.h = -msg->position[2];                /** altitude */
+  input_.chi = msg->chi;
+  input_.Va = msg->Va;
 
-  _state_init = true;
+  state_init_ = true;
 }
 
 void path_follower_base::current_path_callback(const rosplane_msgs::Current_PathConstPtr& msg)
 {
   if(msg->path_type == msg->LINE_PATH)
-    _input.p_type = path_type::Line;
+    input_.p_type = path_type::Line;
   else if(msg->path_type == msg->ORBIT_PATH)
-    _input.p_type = path_type::Orbit;
+    input_.p_type = path_type::Orbit;
 
-  _input.Va_d = msg->Va_d;
+  input_.Va_d = msg->Va_d;
   for(int i=0;i<3;i++)
   {
-    _input.r_path[i] = msg->r[i];
-    _input.q_path[i] = msg->q[i];
-    _input.c_orbit[i] = msg->c[i];
+    input_.r_path[i] = msg->r[i];
+    input_.q_path[i] = msg->q[i];
+    input_.c_orbit[i] = msg->c[i];
   }
-  _input.rho_orbit = msg->rho;
-  _input.lam_orbit = msg->lambda;
-  _current_path_init = true;
+  input_.rho_orbit = msg->rho;
+  input_.lam_orbit = msg->lambda;
+  current_path_init_ = true;
 }
 
 void path_follower_base::reconfigure_callback(rosplane::FollowerConfig &config, uint32_t level)
 {
-  _params.chi_infty = config.CHI_INFTY;
-  _params.k_path = config.K_PATH;
-  _params.k_orbit = config.K_ORBIT;
+  params_.chi_infty = config.CHI_INFTY;
+  params_.k_path = config.K_PATH;
+  params_.k_orbit = config.K_ORBIT;
 }
 } //end namespace
 

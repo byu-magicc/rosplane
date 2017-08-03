@@ -1,5 +1,5 @@
 #include "path_manager_example.h"
-//#include <iostream>
+#include "ros/ros.h"
 #include <cmath>
 
 namespace rosplane {
@@ -13,7 +13,7 @@ path_manager_example::path_manager_example() : path_manager_base()
 void path_manager_example::manage(const params_s &params, const input_s &input, output_s &output)
 {
 
-    if(_num_waypoints < 2)
+    if(num_waypoints_ < 2)
     {
         output.flag = true;
         output.Va_d = 18;
@@ -50,13 +50,13 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
     p(2) = -input.h;
     waypoint_s* ptr_b;
     waypoint_s* ptr_c;
-    if(_ptr_a == &_waypoints[_num_waypoints - 1])
+    if(_ptr_a == &_waypoints[num_waypoints_ - 1])
     {
         ptr_b = &_waypoints[0];
         ptr_c = &_waypoints[1];
-    } else if(_ptr_a == &_waypoints[_num_waypoints - 2])
+    } else if(_ptr_a == &_waypoints[num_waypoints_ - 2])
     {
-        ptr_b = &_waypoints[_num_waypoints - 1];
+        ptr_b = &_waypoints[num_waypoints_ - 1];
         ptr_c = &_waypoints[0];
     } else
     {
@@ -95,9 +95,9 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
     output.lambda = 1;
 
     Eigen::Vector3f n_i = (q_im1 + q_i).normalized();
-    if(dot((p - w_i),n_i) > 0.0f)
+    if((p - w_i).dot(n_i) > 0.0f)
     {
-        if(_ptr_a == &_waypoints[_num_waypoints - 1])
+        if(_ptr_a == &_waypoints[num_waypoints_ - 1])
             _ptr_a = &_waypoints[0];
         else
             _ptr_a++;
@@ -114,13 +114,13 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
 
     waypoint_s* ptr_b;
     waypoint_s* ptr_c;
-    if(_ptr_a == &_waypoints[_num_waypoints - 1])
+    if(_ptr_a == &_waypoints[num_waypoints_ - 1])
     {
         ptr_b = &_waypoints[0];
         ptr_c = &_waypoints[1];
-    } else if(_ptr_a == &_waypoints[_num_waypoints - 2])
+    } else if(_ptr_a == &_waypoints[num_waypoints_ - 2])
     {
-        ptr_b = &_waypoints[_num_waypoints - 1];
+        ptr_b = &_waypoints[num_waypoints_ - 1];
         ptr_c = &_waypoints[0];
     } else
     {
@@ -149,7 +149,7 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
     output.r[2] = w_im1(2);
     Eigen::Vector3f q_im1 = (w_i - w_im1).normalized();
     Eigen::Vector3f q_i = (w_ip1 - w_i).normalized();
-    float beta = acosf(dot(-q_im1, q_i));
+    float beta = acosf(-q_im1.dot(q_i));
 
     Eigen::Vector3f z;
     switch (_fil_state) {
@@ -164,7 +164,7 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
         output.rho = 1;
         output.lambda = 1;
         z = w_i - q_im1*(R_min/tanf(beta/2));
-        if(dot((p-z),q_im1) > 0)
+        if((p-z).dot(q_im1) > 0)
             _fil_state = fillet_state::Orbit;
         break;
     case fillet_state::Orbit:
@@ -179,9 +179,9 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
         output.rho = R_min;
         output.lambda = ((q_im1(0)*q_i(1) - q_im1(1)*q_i(0)) > 0 ? 1 : -1);
         z = w_i + q_i*(R_min/tanf(beta/2));
-        if(dot((p-z),q_i) > 0)
+        if((p-z).dot(q_i) > 0)
         {
-            if(_ptr_a == &_waypoints[_num_waypoints - 1])
+            if(_ptr_a == &_waypoints[num_waypoints_ - 1])
                 _ptr_a = &_waypoints[0];
             else
                 _ptr_a++;
@@ -216,7 +216,7 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         output.c[2] = _dubinspath.cs(2);
         output.rho = _dubinspath.R;
         output.lambda = _dubinspath.lams;
-        if(dot(p - _dubinspath.w1, _dubinspath.q1) >= 0) // start in H1
+        if((p - _dubinspath.w1).dot(_dubinspath.q1) >= 0) // start in H1
         {
             _dub_state = dubin_state::Before_H1_wrong_side;
         }
@@ -239,7 +239,7 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         output.c[2] = _dubinspath.cs(2);
         output.rho = _dubinspath.R;
         output.lambda = _dubinspath.lams;
-        if(dot(p - _dubinspath.w1, _dubinspath.q1) >= 0) // entering H1
+        if((p - _dubinspath.w1).dot(_dubinspath.q1) >= 0) // entering H1
         {
             _dub_state = dubin_state::Straight;
         }
@@ -258,7 +258,7 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         output.c[2] = _dubinspath.cs(2);
         output.rho = _dubinspath.R;
         output.lambda = _dubinspath.lams;
-        if(dot(p - _dubinspath.w1, _dubinspath.q1) < 0) // exit H1
+        if((p - _dubinspath.w1).dot(_dubinspath.q1) < 0) // exit H1
         {
             _dub_state = dubin_state::Before_H1;
         }
@@ -280,9 +280,9 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         output.c[2] = 1;
         output.rho = 1;
         output.lambda = 1;
-        if(dot(p - _dubinspath.w2, _dubinspath.q1) >= 0) // entering H2
+        if((p - _dubinspath.w2).dot(_dubinspath.q1) >= 0) // entering H2
         {
-            if(dot(p - _dubinspath.w3, _dubinspath.q3) >= 0) // start in H3
+            if((p - _dubinspath.w3).dot(_dubinspath.q3) >= 0) // start in H3
             {
                 _dub_state = dubin_state::Before_H3_wrong_side;
             }
@@ -306,15 +306,15 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         output.c[2] = _dubinspath.ce(2);
         output.rho = _dubinspath.R;
         output.lambda = _dubinspath.lame;
-        if(dot(p - _dubinspath.w3, _dubinspath.q3) >= 0) // entering H3
+        if((p - _dubinspath.w3).dot(_dubinspath.q3) >= 0) // entering H3
         {
             // increase the waypoint pointer
             waypoint_s* ptr_b;
-            if(_ptr_a == &_waypoints[_num_waypoints - 1])
+            if(_ptr_a == &_waypoints[num_waypoints_ - 1])
             {
                 _ptr_a = &_waypoints[0];
                 ptr_b = &_waypoints[1];
-            } else if(_ptr_a == &_waypoints[_num_waypoints - 2])
+            } else if(_ptr_a == &_waypoints[num_waypoints_ - 2])
             {
                 _ptr_a++;
                 ptr_b = &_waypoints[0];
@@ -328,7 +328,7 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
             dubinsParameters(*_ptr_a, *ptr_b, R_min);
 
             //start new path
-            if(dot(p - _dubinspath.w1, _dubinspath.q1) >= 0) // start in H1
+            if((p - _dubinspath.w1).dot(_dubinspath.q1) >= 0) // start in H1
             {
                 _dub_state = dubin_state::Before_H1_wrong_side;
             }
@@ -352,7 +352,7 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         output.c[2] = _dubinspath.ce(2);
         output.rho = _dubinspath.R;
         output.lambda = _dubinspath.lame;
-        if(dot(p - _dubinspath.w3, _dubinspath.q3) < 0) // exit H3
+        if((p - _dubinspath.w3).dot(_dubinspath.q3) < 0) // exit H3
         {
             _dub_state = dubin_state::Before_H1;
         }
@@ -395,12 +395,10 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
     float ell = sqrtf((start_node.w[0] - end_node.w[0])*(start_node.w[0] - end_node.w[0]) + (start_node.w[1] - end_node.w[1])*(start_node.w[1] - end_node.w[1]));
     if(ell < 2*R)
     {
-        ;//std::cout << "The distance between nodes must be larger than 2R." << std::endl;
-        //_dubinspath.
+        ROS_ERROR("The distance between nodes must be larger than 2R.");
     }
     else
     {
-        //std::cout << "calculating path! " <<std::endl;
         _dubinspath.ps(0) = start_node.w[0];
         _dubinspath.ps(1) = start_node.w[1];
         _dubinspath.ps(2) = start_node.w[2];
@@ -524,11 +522,6 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
         _dubinspath.q3 = rotz(_dubinspath.chie)*e1;
         _dubinspath.R = R;
     }
-}
-
-float path_manager_example::dot(Eigen::Vector3f first, Eigen::Vector3f second)
-{
-    return first(0)*second(0) + first(1)*second(1) + first(2)*second(2);
 }
 
 }//end namespace

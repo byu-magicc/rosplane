@@ -41,7 +41,7 @@ protected:
     };
 
     struct waypoint_s _waypoints[SIZE_WAYPOINT_ARRAY];
-    int _num_waypoints;
+    int num_waypoints_;
     struct waypoint_s* _ptr_a;
 
     struct input_s{
@@ -71,22 +71,18 @@ private:
 
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
-    ros::Subscriber _vehicle_state_sub;     /**< vehicle state subscription */
-    ros::Subscriber _new_waypoint_sub;      /**< new waypoint subscription */
-    ros::Publisher  _current_path_pub;      /**< controller commands publication */
+    ros::Subscriber vehicle_state_sub_;     /**< vehicle state subscription */
+    ros::Subscriber new_waypoint_sub_;      /**< new waypoint subscription */
+    ros::Publisher  current_path_pub_;      /**< controller commands publication */
 
-    struct params_s                 params_;
-    //    struct {
-    //        param_t R_min;
-    //    } _params_handles; /**< handles for interesting parameters */
+    struct params_s params_;
 
-
-    rosplane_msgs::State _vehicle_state;     /**< vehicle state */
+    rosplane_msgs::State vehicle_state_;     /**< vehicle state */
 
     void vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg);
-    bool _state_init;
+    bool state_init_;
     void new_waypoint_callback(const rosplane_msgs::Waypoint &msg);
-    bool _waypoint_init;
+    bool waypoint_init_;
     void current_path_publish(struct output_s &output);
 };
 } //end namespace
