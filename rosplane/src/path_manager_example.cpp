@@ -197,6 +197,16 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
     p(1) = input.pe;
     p(2) = -input.h;
     float R_min = params.R_min;
+
+    output.r[0] = 0;
+    output.r[1] = 0;
+    output.r[2] = 0;
+    output.q[0] = 0;
+    output.q[1] = 0;
+    output.q[2] = 0;
+    output.c[0] = 0;
+    output.c[1] = 0;
+    output.c[2] = 0;
     
     switch(dub_state_)
     {
@@ -204,12 +214,6 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         dubinsParameters(waypoints_[0], waypoints_[1], R_min);
         output.flag = false;
         output.Va_d = ptr_a_->Va_d;
-        output.r[0] = 0;
-        output.r[1] = 0;
-        output.r[2] = 0;
-        output.q[0] = 0;
-        output.q[1] = 0;
-        output.q[2] = 0;
         output.c[0] = dubinspath_.cs(0);
         output.c[1] = dubinspath_.cs(1);
         output.c[2] = dubinspath_.cs(2);
@@ -227,12 +231,6 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
     case dubin_state::Before_H1:
         output.flag = false;
         output.Va_d = ptr_a_->Va_d;
-        output.r[0] = 0;
-        output.r[1] = 0;
-        output.r[2] = 0;
-        output.q[0] = 0;
-        output.q[1] = 0;
-        output.q[2] = 0;
         output.c[0] = dubinspath_.cs(0);
         output.c[1] = dubinspath_.cs(1);
         output.c[2] = dubinspath_.cs(2);
@@ -246,12 +244,6 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
     case dubin_state::Before_H1_wrong_side:
         output.flag = false;
         output.Va_d = ptr_a_->Va_d;
-        output.r[0] = 0;
-        output.r[1] = 0;
-        output.r[2] = 0;
-        output.q[0] = 0;
-        output.q[1] = 0;
-        output.q[2] = 0;
         output.c[0] = dubinspath_.cs(0);
         output.c[1] = dubinspath_.cs(1);
         output.c[2] = dubinspath_.cs(2);
@@ -274,9 +266,6 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         output.q[0] = dubinspath_.q1(0);
         output.q[1] = dubinspath_.q1(1);
         output.q[2] = dubinspath_.q1(2);
-        output.c[0] = 1;
-        output.c[1] = 1;
-        output.c[2] = 1;
         output.rho = 1;
         output.lambda = 1;
         if((p - dubinspath_.w2).dot(dubinspath_.q1) >= 0) // entering H2
@@ -294,12 +283,6 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
     case dubin_state::Before_H3:
         output.flag = false;
         output.Va_d = ptr_a_->Va_d;
-        output.r[0] = 0;
-        output.r[1] = 0;
-        output.r[2] = 0;
-        output.q[0] = 0;
-        output.q[1] = 0;
-        output.q[2] = 0;
         output.c[0] = dubinspath_.ce(0);
         output.c[1] = dubinspath_.ce(1);
         output.c[2] = dubinspath_.ce(2);
@@ -340,12 +323,6 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
     case dubin_state::Before_H3_wrong_side:
         output.flag = false;
         output.Va_d = ptr_a_->Va_d;
-        output.r[0] = 0;
-        output.r[1] = 0;
-        output.r[2] = 0;
-        output.q[0] = 0;
-        output.q[1] = 0;
-        output.q[2] = 0;
         output.c[0] = dubinspath_.ce(0);
         output.c[1] = dubinspath_.ce(1);
         output.c[2] = dubinspath_.ce(2);
@@ -362,16 +339,9 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
 Eigen::Matrix3f path_manager_example::rotz(float theta)
 {
     Eigen::Matrix3f R;
-    //    R.zero();
-    R(0,0) = cosf(theta);
-    R(0,1) = -sinf(theta);
-    R(0,2) = 0;
-    R(1,0) = sinf(theta);
-    R(1,1) = cosf(theta);
-    R(1,2) = 0;
-    R(2,0) = 0;
-    R(2,1) = 0;
-    R(2,2) = 1;
+    R << cosf(theta), -sinf(theta), 0,
+         sinf(theta),  cosf(theta), 0,
+                   0,            0, 1;
 
     return R;
 }
