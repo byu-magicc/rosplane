@@ -90,6 +90,31 @@ void controller_example::control(const params_s &params, const input_s &input, o
     output.delta_e = pitch_hold(output.theta_c, input.theta, input.q, params, input.Ts);
 }
 
+void controller_example::tune(const params_s &params, const input_s &input, const struct tuning_input_s &tuning_input, output_s &output)
+{
+    output.delta_r = 0.0f;
+    output.current_zone = alt_zones::AltitudeHold;
+    switch(tuning_input.mode) {
+        case tuning_modes::Roll:
+            output.phi_c = tuning_input.phi_c;
+            output.theta_c = tuning_input.theta_c;
+            output.delta_a = roll_hold(tuning_input.phi_c, input.phi, input.p, params, input.Ts);
+            output.delta_e = pitch_hold(tuning_input.theta_c, input.theta, input.q, params, input.Ts);
+            output.delta_t = 0.6f;
+            break;
+        case tuning_modes::Course:
+            break;
+        case tuning_modes::Thr_Va:
+            break;
+        case tuning_modes::Pitch_Va:
+            break;
+        case tuning_modes::Pitch_Alt:
+            break;
+        default:
+            break;
+    }
+}
+
 float controller_example::course_hold(float chi_c, float chi, float phi_ff, float r, const params_s &params, float Ts)
 {
     float error = chi_c - chi;

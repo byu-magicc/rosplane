@@ -27,6 +27,14 @@ enum class alt_zones {
     AltitudeHold
 };
 
+enum tuning_modes {
+    Roll,
+    Course,
+    Thr_Va,
+    Pitch_Va,
+    Pitch_Alt
+};
+
 class controller_base
 {
 public:
@@ -49,6 +57,13 @@ protected:
         float h_c;              /** commanded altitude (m) */
         float chi_c;            /** commanded course (rad) */
         float phi_ff;           /** feed forward term for orbits (rad) */
+    };
+
+    struct tuning_input_s{
+        enum tuning_modes mode;     /** tuning mode */
+        float theta_c;              /** pitch angle command (rad) */
+        float phi_c;                /** roll angle command (rad) */
+        float thr_c;                /** throttle command */
     };
 
     struct output_s{
@@ -101,6 +116,7 @@ protected:
     };
 
     virtual void control(const struct params_s &params, const struct input_s &input, struct output_s &output) = 0;
+    virtual void tune(const struct params_s &params, const struct input_s &input, const struct tuning_input_s &tuning_input, struct output_s &output) = 0;
 
 private:
     ros::NodeHandle nh_;
