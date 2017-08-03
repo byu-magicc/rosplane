@@ -100,9 +100,16 @@ void controller_example::tune(const params_s &params, const input_s &input, cons
             output.theta_c = tuning_input.theta_c;
             output.delta_a = roll_hold(tuning_input.phi_c, input.phi, input.p, params, input.Ts);
             output.delta_e = pitch_hold(tuning_input.theta_c, input.theta, input.q, params, input.Ts);
-            output.delta_t = 0.6f;
+            //output.delta_t = 0.6f;
+            output.delta_t = airspeed_with_throttle_hold(input.Va_c, input.va, params, input.Ts);
             break;
         case tuning_modes::Course:
+            output.theta_c = tuning_input.theta_c;
+            output.phi_c = course_hold(input.chi_c, input.chi, input.phi_ff, input.r, params, input.Ts);
+            output.delta_a = roll_hold(output.phi_c, input.phi, input.p, params, input.Ts);
+            output.delta_e = pitch_hold(tuning_input.theta_c, input.theta, input.q, params, input.Ts);
+            //output.delta_t = 0.6f;
+            output.delta_t = airspeed_with_throttle_hold(input.Va_c, input.va, params, input.Ts);
             break;
         case tuning_modes::Thr_Va:
             break;
