@@ -134,13 +134,41 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
         if(baro_count_ < 50)
         {
             init_static_ += msg.pressure;
+            init_static_vector_.push_back(msg.pressure);
             input_.static_pres = 0;
             baro_count_ += 1;
         }
         else
         {
-            init_static_ = init_static_/50;
+            init_static_ = std::accumulate(init_static_vector_.begin(),init_static_vector_.end(), 0.0)/init_static_vector_.size();
             baro_init_ = true;
+
+            //Check that it got a good calibration.
+            std::sort(init_static_vector_.begin(),init_static_vector_.end());
+            float q1 = (init_static_vector_[24] + init_static_vector_[25])/2.0;
+            float q3 = (init_static_vector_[74] + init_static_vector_[75])/2.0;
+            float IQR = q3 - q1;
+            float upper_bound = q3 + 2.0*IQR;
+            float lower_bound = q1 - 2.0*IQR;
+            for(int i=0; i < 100; i++)
+            {
+                if(init_static_vector_[i] > upper_bound)
+                {
+                    baro_init_ = false;
+                    baro_count_ = 0;
+                    init_static_vector_.clear();
+                    ROS_WARN("Bad baro calibration. Recalibrating");
+                    break;
+                }
+                else if(init_static_vector_[i] < lower_bound)
+                {
+                    baro_init_ = false;
+                    baro_count_ = 0;
+                    init_static_vector_.clear();
+                    ROS_WARN("Bad baro calibration. Recalibrating");
+                    break;
+                }
+            }
         }
     }
     else
@@ -162,7 +190,18 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
 
 void estimator_base::airspeedCallback(const rosflight_msgs::Airspeed &msg)
 {
+    float diff_pres_old = input_.diff_pres;
     input_.diff_pres = msg.differential_pressure;
+
+    float gate_gain = pow(3,2)*params_.rho/2.0;
+    if(input_.diff_pres < diff_pres_old - gate_gain)
+    {
+        input_.diff_pres = diff_pres_old - gate_gain;
+    }
+    else if(input_.diff_pres > diff_pres_old + gate_gain)
+    {
+        input_.diff_pres = diff_pres_old + gate_gain;
+    }
 }
 
 void estimator_base::statusCallback(const rosflight_msgs::Status &msg)
