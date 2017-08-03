@@ -6,8 +6,8 @@ namespace rosplane {
 
 path_manager_example::path_manager_example() : path_manager_base()
 {
-    _fil_state = fillet_state::Straight;
-    _dub_state = dubin_state::First;
+    fil_state_ = fillet_state::Straight;
+    dub_state_ = dubin_state::First;
 }
 
 void path_manager_example::manage(const params_s &params, const input_s &input, output_s &output)
@@ -30,7 +30,7 @@ void path_manager_example::manage(const params_s &params, const input_s &input, 
         output.lambda = 0;
     } else
     {
-        if(_ptr_a->chi_valid)
+        if(ptr_a_->chi_valid)
         {
             manage_dubins(params, input, output);
         } else {
@@ -50,24 +50,24 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
     p(2) = -input.h;
     waypoint_s* ptr_b;
     waypoint_s* ptr_c;
-    if(_ptr_a == &_waypoints[num_waypoints_ - 1])
+    if(ptr_a_ == &waypoints_[num_waypoints_ - 1])
     {
-        ptr_b = &_waypoints[0];
-        ptr_c = &_waypoints[1];
-    } else if(_ptr_a == &_waypoints[num_waypoints_ - 2])
+        ptr_b = &waypoints_[0];
+        ptr_c = &waypoints_[1];
+    } else if(ptr_a_ == &waypoints_[num_waypoints_ - 2])
     {
-        ptr_b = &_waypoints[num_waypoints_ - 1];
-        ptr_c = &_waypoints[0];
+        ptr_b = &waypoints_[num_waypoints_ - 1];
+        ptr_c = &waypoints_[0];
     } else
     {
-        ptr_b = _ptr_a + 1;
+        ptr_b = ptr_a_ + 1;
         ptr_c = ptr_b + 1;
     }
 
     Eigen::Vector3f w_im1;
-    w_im1(0) = _ptr_a->w[0];
-    w_im1(1) = _ptr_a->w[1];
-    w_im1(2) = _ptr_a->w[2];
+    w_im1(0) = ptr_a_->w[0];
+    w_im1(1) = ptr_a_->w[1];
+    w_im1(2) = ptr_a_->w[2];
     Eigen::Vector3f w_i;
     w_i(0) = ptr_b->w[0];
     w_i(1) = ptr_b->w[1];
@@ -76,10 +76,9 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
     w_ip1(0) = ptr_c->w[0];
     w_ip1(1) = ptr_c->w[1];
     w_ip1(2) = ptr_c->w[2];
-    //std::cout << w_ip1(0) << " " << w_ip1(1) << " " <<  w_ip1(2) << " " <<std::endl;
 
     output.flag = true;
-    output.Va_d = _ptr_a->Va_d;
+    output.Va_d = ptr_a_->Va_d;
     output.r[0] = w_im1(0);
     output.r[1] = w_im1(1);
     output.r[2] = w_im1(2);
@@ -97,10 +96,10 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
     Eigen::Vector3f n_i = (q_im1 + q_i).normalized();
     if((p - w_i).dot(n_i) > 0.0f)
     {
-        if(_ptr_a == &_waypoints[num_waypoints_ - 1])
-            _ptr_a = &_waypoints[0];
+        if(ptr_a_ == &waypoints_[num_waypoints_ - 1])
+            ptr_a_ = &waypoints_[0];
         else
-            _ptr_a++;
+            ptr_a_++;
     }
 
 }
@@ -114,24 +113,24 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
 
     waypoint_s* ptr_b;
     waypoint_s* ptr_c;
-    if(_ptr_a == &_waypoints[num_waypoints_ - 1])
+    if(ptr_a_ == &waypoints_[num_waypoints_ - 1])
     {
-        ptr_b = &_waypoints[0];
-        ptr_c = &_waypoints[1];
-    } else if(_ptr_a == &_waypoints[num_waypoints_ - 2])
+        ptr_b = &waypoints_[0];
+        ptr_c = &waypoints_[1];
+    } else if(ptr_a_ == &waypoints_[num_waypoints_ - 2])
     {
-        ptr_b = &_waypoints[num_waypoints_ - 1];
-        ptr_c = &_waypoints[0];
+        ptr_b = &waypoints_[num_waypoints_ - 1];
+        ptr_c = &waypoints_[0];
     } else
     {
-        ptr_b = _ptr_a + 1;
+        ptr_b = ptr_a_ + 1;
         ptr_c = ptr_b + 1;
     }
 
     Eigen::Vector3f w_im1;
-    w_im1(0) = _ptr_a->w[0];
-    w_im1(1) = _ptr_a->w[1];
-    w_im1(2) = _ptr_a->w[2];
+    w_im1(0) = ptr_a_->w[0];
+    w_im1(1) = ptr_a_->w[1];
+    w_im1(2) = ptr_a_->w[2];
     Eigen::Vector3f w_i;
     w_i(0) = ptr_b->w[0];
     w_i(1) = ptr_b->w[1];
@@ -143,7 +142,7 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
 
     float R_min = params.R_min;
 
-    output.Va_d = _ptr_a->Va_d;
+    output.Va_d = ptr_a_->Va_d;
     output.r[0] = w_im1(0);
     output.r[1] = w_im1(1);
     output.r[2] = w_im1(2);
@@ -152,7 +151,7 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
     float beta = acosf(-q_im1.dot(q_i));
 
     Eigen::Vector3f z;
-    switch (_fil_state) {
+    switch (fil_state_) {
     case fillet_state::Straight:
         output.flag = true;
         output.q[0] = q_im1(0);
@@ -165,7 +164,7 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
         output.lambda = 1;
         z = w_i - q_im1*(R_min/tanf(beta/2));
         if((p-z).dot(q_im1) > 0)
-            _fil_state = fillet_state::Orbit;
+            fil_state_ = fillet_state::Orbit;
         break;
     case fillet_state::Orbit:
         output.flag = false;
@@ -181,11 +180,11 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
         z = w_i + q_i*(R_min/tanf(beta/2));
         if((p-z).dot(q_i) > 0)
         {
-            if(_ptr_a == &_waypoints[num_waypoints_ - 1])
-                _ptr_a = &_waypoints[0];
+            if(ptr_a_ == &waypoints_[num_waypoints_ - 1])
+                ptr_a_ = &waypoints_[0];
             else
-                _ptr_a++;
-            _fil_state = fillet_state::Straight;
+                ptr_a_++;
+            fil_state_ = fillet_state::Straight;
         }
         break;
     }
@@ -199,162 +198,162 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
     p(2) = -input.h;
     float R_min = params.R_min;
     
-    switch(_dub_state)
+    switch(dub_state_)
     {
     case dubin_state::First:
-        dubinsParameters(_waypoints[0], _waypoints[1], R_min);
+        dubinsParameters(waypoints_[0], waypoints_[1], R_min);
         output.flag = false;
-        output.Va_d = _ptr_a->Va_d;
+        output.Va_d = ptr_a_->Va_d;
         output.r[0] = 0;
         output.r[1] = 0;
         output.r[2] = 0;
         output.q[0] = 0;
         output.q[1] = 0;
         output.q[2] = 0;
-        output.c[0] = _dubinspath.cs(0);
-        output.c[1] = _dubinspath.cs(1);
-        output.c[2] = _dubinspath.cs(2);
-        output.rho = _dubinspath.R;
-        output.lambda = _dubinspath.lams;
-        if((p - _dubinspath.w1).dot(_dubinspath.q1) >= 0) // start in H1
+        output.c[0] = dubinspath_.cs(0);
+        output.c[1] = dubinspath_.cs(1);
+        output.c[2] = dubinspath_.cs(2);
+        output.rho = dubinspath_.R;
+        output.lambda = dubinspath_.lams;
+        if((p - dubinspath_.w1).dot(dubinspath_.q1) >= 0) // start in H1
         {
-            _dub_state = dubin_state::Before_H1_wrong_side;
+            dub_state_ = dubin_state::Before_H1_wrong_side;
         }
         else
         {
-            _dub_state = dubin_state::Before_H1;
+            dub_state_ = dubin_state::Before_H1;
         }
         break;
     case dubin_state::Before_H1:
         output.flag = false;
-        output.Va_d = _ptr_a->Va_d;
+        output.Va_d = ptr_a_->Va_d;
         output.r[0] = 0;
         output.r[1] = 0;
         output.r[2] = 0;
         output.q[0] = 0;
         output.q[1] = 0;
         output.q[2] = 0;
-        output.c[0] = _dubinspath.cs(0);
-        output.c[1] = _dubinspath.cs(1);
-        output.c[2] = _dubinspath.cs(2);
-        output.rho = _dubinspath.R;
-        output.lambda = _dubinspath.lams;
-        if((p - _dubinspath.w1).dot(_dubinspath.q1) >= 0) // entering H1
+        output.c[0] = dubinspath_.cs(0);
+        output.c[1] = dubinspath_.cs(1);
+        output.c[2] = dubinspath_.cs(2);
+        output.rho = dubinspath_.R;
+        output.lambda = dubinspath_.lams;
+        if((p - dubinspath_.w1).dot(dubinspath_.q1) >= 0) // entering H1
         {
-            _dub_state = dubin_state::Straight;
+            dub_state_ = dubin_state::Straight;
         }
         break;
     case dubin_state::Before_H1_wrong_side:
         output.flag = false;
-        output.Va_d = _ptr_a->Va_d;
+        output.Va_d = ptr_a_->Va_d;
         output.r[0] = 0;
         output.r[1] = 0;
         output.r[2] = 0;
         output.q[0] = 0;
         output.q[1] = 0;
         output.q[2] = 0;
-        output.c[0] = _dubinspath.cs(0);
-        output.c[1] = _dubinspath.cs(1);
-        output.c[2] = _dubinspath.cs(2);
-        output.rho = _dubinspath.R;
-        output.lambda = _dubinspath.lams;
-        if((p - _dubinspath.w1).dot(_dubinspath.q1) < 0) // exit H1
+        output.c[0] = dubinspath_.cs(0);
+        output.c[1] = dubinspath_.cs(1);
+        output.c[2] = dubinspath_.cs(2);
+        output.rho = dubinspath_.R;
+        output.lambda = dubinspath_.lams;
+        if((p - dubinspath_.w1).dot(dubinspath_.q1) < 0) // exit H1
         {
-            _dub_state = dubin_state::Before_H1;
+            dub_state_ = dubin_state::Before_H1;
         }
         break;
     case dubin_state::Straight:
         output.flag = true;
-        output.Va_d = _ptr_a->Va_d;
-        output.r[0] = _dubinspath.w1(0);
-        output.r[1] = _dubinspath.w1(1);
-        output.r[2] = _dubinspath.w1(2);
-        // output.r[0] = _dubinspath.z1(0);
-        // output.r[1] = _dubinspath.z1(1);
-        // output.r[2] = _dubinspath.z1(2);
-        output.q[0] = _dubinspath.q1(0);
-        output.q[1] = _dubinspath.q1(1);
-        output.q[2] = _dubinspath.q1(2);
+        output.Va_d = ptr_a_->Va_d;
+        output.r[0] = dubinspath_.w1(0);
+        output.r[1] = dubinspath_.w1(1);
+        output.r[2] = dubinspath_.w1(2);
+        // output.r[0] = dubinspath_.z1(0);
+        // output.r[1] = dubinspath_.z1(1);
+        // output.r[2] = dubinspath_.z1(2);
+        output.q[0] = dubinspath_.q1(0);
+        output.q[1] = dubinspath_.q1(1);
+        output.q[2] = dubinspath_.q1(2);
         output.c[0] = 1;
         output.c[1] = 1;
         output.c[2] = 1;
         output.rho = 1;
         output.lambda = 1;
-        if((p - _dubinspath.w2).dot(_dubinspath.q1) >= 0) // entering H2
+        if((p - dubinspath_.w2).dot(dubinspath_.q1) >= 0) // entering H2
         {
-            if((p - _dubinspath.w3).dot(_dubinspath.q3) >= 0) // start in H3
+            if((p - dubinspath_.w3).dot(dubinspath_.q3) >= 0) // start in H3
             {
-                _dub_state = dubin_state::Before_H3_wrong_side;
+                dub_state_ = dubin_state::Before_H3_wrong_side;
             }
             else
             {
-                _dub_state = dubin_state::Before_H3;
+                dub_state_ = dubin_state::Before_H3;
             }
         }
         break;
     case dubin_state::Before_H3:
         output.flag = false;
-        output.Va_d = _ptr_a->Va_d;
+        output.Va_d = ptr_a_->Va_d;
         output.r[0] = 0;
         output.r[1] = 0;
         output.r[2] = 0;
         output.q[0] = 0;
         output.q[1] = 0;
         output.q[2] = 0;
-        output.c[0] = _dubinspath.ce(0);
-        output.c[1] = _dubinspath.ce(1);
-        output.c[2] = _dubinspath.ce(2);
-        output.rho = _dubinspath.R;
-        output.lambda = _dubinspath.lame;
-        if((p - _dubinspath.w3).dot(_dubinspath.q3) >= 0) // entering H3
+        output.c[0] = dubinspath_.ce(0);
+        output.c[1] = dubinspath_.ce(1);
+        output.c[2] = dubinspath_.ce(2);
+        output.rho = dubinspath_.R;
+        output.lambda = dubinspath_.lame;
+        if((p - dubinspath_.w3).dot(dubinspath_.q3) >= 0) // entering H3
         {
             // increase the waypoint pointer
             waypoint_s* ptr_b;
-            if(_ptr_a == &_waypoints[num_waypoints_ - 1])
+            if(ptr_a_ == &waypoints_[num_waypoints_ - 1])
             {
-                _ptr_a = &_waypoints[0];
-                ptr_b = &_waypoints[1];
-            } else if(_ptr_a == &_waypoints[num_waypoints_ - 2])
+                ptr_a_ = &waypoints_[0];
+                ptr_b = &waypoints_[1];
+            } else if(ptr_a_ == &waypoints_[num_waypoints_ - 2])
             {
-                _ptr_a++;
-                ptr_b = &_waypoints[0];
+                ptr_a_++;
+                ptr_b = &waypoints_[0];
             } else
             {
-                _ptr_a++;
-                ptr_b = _ptr_a + 1;
+                ptr_a_++;
+                ptr_b = ptr_a_ + 1;
             }
 
             // plan new Dubin's path to next waypoint configuration
-            dubinsParameters(*_ptr_a, *ptr_b, R_min);
+            dubinsParameters(*ptr_a_, *ptr_b, R_min);
 
             //start new path
-            if((p - _dubinspath.w1).dot(_dubinspath.q1) >= 0) // start in H1
+            if((p - dubinspath_.w1).dot(dubinspath_.q1) >= 0) // start in H1
             {
-                _dub_state = dubin_state::Before_H1_wrong_side;
+                dub_state_ = dubin_state::Before_H1_wrong_side;
             }
             else
             {
-                _dub_state = dubin_state::Before_H1;
+                dub_state_ = dubin_state::Before_H1;
             }
         }
         break;
     case dubin_state::Before_H3_wrong_side:
         output.flag = false;
-        output.Va_d = _ptr_a->Va_d;
+        output.Va_d = ptr_a_->Va_d;
         output.r[0] = 0;
         output.r[1] = 0;
         output.r[2] = 0;
         output.q[0] = 0;
         output.q[1] = 0;
         output.q[2] = 0;
-        output.c[0] = _dubinspath.ce(0);
-        output.c[1] = _dubinspath.ce(1);
-        output.c[2] = _dubinspath.ce(2);
-        output.rho = _dubinspath.R;
-        output.lambda = _dubinspath.lame;
-        if((p - _dubinspath.w3).dot(_dubinspath.q3) < 0) // exit H3
+        output.c[0] = dubinspath_.ce(0);
+        output.c[1] = dubinspath_.ce(1);
+        output.c[2] = dubinspath_.ce(2);
+        output.rho = dubinspath_.R;
+        output.lambda = dubinspath_.lame;
+        if((p - dubinspath_.w3).dot(dubinspath_.q3) < 0) // exit H3
         {
-            _dub_state = dubin_state::Before_H1;
+            dub_state_ = dubin_state::Before_H1;
         }
         break;
     }
@@ -399,34 +398,34 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
     }
     else
     {
-        _dubinspath.ps(0) = start_node.w[0];
-        _dubinspath.ps(1) = start_node.w[1];
-        _dubinspath.ps(2) = start_node.w[2];
-        _dubinspath.chis = start_node.chi_d;
-        _dubinspath.pe(0) = end_node.w[0];
-        _dubinspath.pe(1) = end_node.w[1];
-        _dubinspath.pe(2) = end_node.w[2];
-        _dubinspath.chie = end_node.chi_d;
+        dubinspath_.ps(0) = start_node.w[0];
+        dubinspath_.ps(1) = start_node.w[1];
+        dubinspath_.ps(2) = start_node.w[2];
+        dubinspath_.chis = start_node.chi_d;
+        dubinspath_.pe(0) = end_node.w[0];
+        dubinspath_.pe(1) = end_node.w[1];
+        dubinspath_.pe(2) = end_node.w[2];
+        dubinspath_.chie = end_node.chi_d;
 
 
-        Eigen::Vector3f crs = _dubinspath.ps;
-        crs(0) += R*(cosf(M_PI_2_F)*cosf(_dubinspath.chis) - sinf(M_PI_2_F)*sinf(_dubinspath.chis));
-        crs(1) += R*(sinf(M_PI_2_F)*cosf(_dubinspath.chis) + cosf(M_PI_2_F)*sinf(_dubinspath.chis));
-        Eigen::Vector3f cls = _dubinspath.ps;
-        cls(0) += R*(cosf(-M_PI_2_F)*cosf(_dubinspath.chis) - sinf(-M_PI_2_F)*sinf(_dubinspath.chis));
-        cls(1) += R*(sinf(-M_PI_2_F)*cosf(_dubinspath.chis) + cosf(-M_PI_2_F)*sinf(_dubinspath.chis));
-        Eigen::Vector3f cre = _dubinspath.pe;
-        cre(0) += R*(cosf(M_PI_2_F)*cosf(_dubinspath.chie) - sinf(M_PI_2_F)*sinf(_dubinspath.chie));
-        cre(1) += R*(sinf(M_PI_2_F)*cosf(_dubinspath.chie) + cosf(M_PI_2_F)*sinf(_dubinspath.chie));
-        Eigen::Vector3f cle = _dubinspath.pe;
-        cle(0) += R*(cosf(-M_PI_2_F)*cosf(_dubinspath.chie) - sinf(-M_PI_2_F)*sinf(_dubinspath.chie));
-        cle(1) += R*(sinf(-M_PI_2_F)*cosf(_dubinspath.chie) + cosf(-M_PI_2_F)*sinf(_dubinspath.chie));
+        Eigen::Vector3f crs = dubinspath_.ps;
+        crs(0) += R*(cosf(M_PI_2_F)*cosf(dubinspath_.chis) - sinf(M_PI_2_F)*sinf(dubinspath_.chis));
+        crs(1) += R*(sinf(M_PI_2_F)*cosf(dubinspath_.chis) + cosf(M_PI_2_F)*sinf(dubinspath_.chis));
+        Eigen::Vector3f cls = dubinspath_.ps;
+        cls(0) += R*(cosf(-M_PI_2_F)*cosf(dubinspath_.chis) - sinf(-M_PI_2_F)*sinf(dubinspath_.chis));
+        cls(1) += R*(sinf(-M_PI_2_F)*cosf(dubinspath_.chis) + cosf(-M_PI_2_F)*sinf(dubinspath_.chis));
+        Eigen::Vector3f cre = dubinspath_.pe;
+        cre(0) += R*(cosf(M_PI_2_F)*cosf(dubinspath_.chie) - sinf(M_PI_2_F)*sinf(dubinspath_.chie));
+        cre(1) += R*(sinf(M_PI_2_F)*cosf(dubinspath_.chie) + cosf(M_PI_2_F)*sinf(dubinspath_.chie));
+        Eigen::Vector3f cle = dubinspath_.pe;
+        cle(0) += R*(cosf(-M_PI_2_F)*cosf(dubinspath_.chie) - sinf(-M_PI_2_F)*sinf(dubinspath_.chie));
+        cle(1) += R*(sinf(-M_PI_2_F)*cosf(dubinspath_.chie) + cosf(-M_PI_2_F)*sinf(dubinspath_.chie));
 
         float theta, theta2;
         // compute L1
         theta = atan2f(cre(1) - crs(1), cre(0) - crs(0));
-        float L1 = (crs - cre).norm() + R*mo(2*M_PI_F + mo(theta - M_PI_2_F) - mo(_dubinspath.chis - M_PI_2_F))
-                + R*mo(2*M_PI_F + mo(_dubinspath.chie - M_PI_2_F) - mo(theta - M_PI_2_F));
+        float L1 = (crs - cre).norm() + R*mo(2*M_PI_F + mo(theta - M_PI_2_F) - mo(dubinspath_.chis - M_PI_2_F))
+                + R*mo(2*M_PI_F + mo(dubinspath_.chie - M_PI_2_F) - mo(theta - M_PI_2_F));
 
         // compute L2
         ell = (cle - crs).norm();
@@ -437,8 +436,8 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
         else
         {
             theta2 = theta - M_PI_2_F + asinf(2*R/ell);
-            L2 = sqrtf(ell*ell - 4*R*R) + R*mo(2*M_PI_F + mo(theta2) - mo(_dubinspath.chis - M_PI_2_F))
-                    + R*mo(2*M_PI_F + mo(theta2 + M_PI_F) - mo(_dubinspath.chie + M_PI_2_F));
+            L2 = sqrtf(ell*ell - 4*R*R) + R*mo(2*M_PI_F + mo(theta2) - mo(dubinspath_.chis - M_PI_2_F))
+                    + R*mo(2*M_PI_F + mo(theta2 + M_PI_F) - mo(dubinspath_.chie + M_PI_2_F));
         }
 
         // compute L3
@@ -450,24 +449,24 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
         else
         {
             theta2 = acosf(2*R/ell);
-            L3 = sqrtf(ell*ell - 4*R*R) + R*mo(2*M_PI_F + mo(_dubinspath.chis + M_PI_2_F) - mo(theta + theta2))
-                    + R*mo(2*M_PI_F + mo(_dubinspath.chie - M_PI_2_F) - mo(theta + theta2 - M_PI_F));
+            L3 = sqrtf(ell*ell - 4*R*R) + R*mo(2*M_PI_F + mo(dubinspath_.chis + M_PI_2_F) - mo(theta + theta2))
+                    + R*mo(2*M_PI_F + mo(dubinspath_.chie - M_PI_2_F) - mo(theta + theta2 - M_PI_F));
         }
 
         // compute L4
         theta = atan2f(cle(1) - cls(1), cle(0) - cls(0));
-        float L4 = (cls - cle).norm() + R*mo(2*M_PI_F + mo(_dubinspath.chis + M_PI_2_F) - mo(theta + M_PI_2_F))
-                + R*mo(2*M_PI_F + mo(theta + M_PI_2_F) - mo(_dubinspath.chie + M_PI_2_F));
+        float L4 = (cls - cle).norm() + R*mo(2*M_PI_F + mo(dubinspath_.chis + M_PI_2_F) - mo(theta + M_PI_2_F))
+                + R*mo(2*M_PI_F + mo(theta + M_PI_2_F) - mo(dubinspath_.chie + M_PI_2_F));
 
         // L is the minimum distance
         int idx = 1;
-        _dubinspath.L = L1;
-        if(L2 < _dubinspath.L)
-        { _dubinspath.L = L2; idx = 2; }
-        if(L3 < _dubinspath.L)
-        { _dubinspath.L = L3; idx = 3; }
-        if(L4 < _dubinspath.L)
-        { _dubinspath.L = L4; idx = 4; }
+        dubinspath_.L = L1;
+        if(L2 < dubinspath_.L)
+        { dubinspath_.L = L2; idx = 2; }
+        if(L3 < dubinspath_.L)
+        { dubinspath_.L = L3; idx = 3; }
+        if(L4 < dubinspath_.L)
+        { dubinspath_.L = L4; idx = 4; }
 
         Eigen::Vector3f e1;
         //        e1.zero();
@@ -476,51 +475,51 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
         e1(2) = 0;
         switch(idx) {
         case 1:
-            _dubinspath.cs = crs;
-            _dubinspath.lams = 1;
-            _dubinspath.ce = cre;
-            _dubinspath.lame = 1;
-            _dubinspath.q1 = (cre - crs).normalized();
-            _dubinspath.w1 = _dubinspath.cs + (rotz(-M_PI_2_F)*_dubinspath.q1)*R;
-            _dubinspath.w2 = _dubinspath.ce + (rotz(-M_PI_2_F)*_dubinspath.q1)*R;
+            dubinspath_.cs = crs;
+            dubinspath_.lams = 1;
+            dubinspath_.ce = cre;
+            dubinspath_.lame = 1;
+            dubinspath_.q1 = (cre - crs).normalized();
+            dubinspath_.w1 = dubinspath_.cs + (rotz(-M_PI_2_F)*dubinspath_.q1)*R;
+            dubinspath_.w2 = dubinspath_.ce + (rotz(-M_PI_2_F)*dubinspath_.q1)*R;
             break;
         case 2:
-            _dubinspath.cs = crs;
-            _dubinspath.lams = 1;
-            _dubinspath.ce = cle;
-            _dubinspath.lame = -1;
+            dubinspath_.cs = crs;
+            dubinspath_.lams = 1;
+            dubinspath_.ce = cle;
+            dubinspath_.lame = -1;
             ell = (cle - crs).norm();
             theta = atan2f(cle(1) - crs(1), cle(0) - crs(0));
             theta2 = theta - M_PI_2_F + asinf(2*R/ell);
-            _dubinspath.q1 = rotz(theta2 + M_PI_2_F)*e1;
-            _dubinspath.w1 = _dubinspath.cs + (rotz(theta2)*e1)*R;
-            _dubinspath.w2 = _dubinspath.ce + (rotz(theta2 + M_PI_F)*e1)*R;
+            dubinspath_.q1 = rotz(theta2 + M_PI_2_F)*e1;
+            dubinspath_.w1 = dubinspath_.cs + (rotz(theta2)*e1)*R;
+            dubinspath_.w2 = dubinspath_.ce + (rotz(theta2 + M_PI_F)*e1)*R;
             break;
         case 3:
-            _dubinspath.cs = cls;
-            _dubinspath.lams = -1;
-            _dubinspath.ce = cre;
-            _dubinspath.lame = 1;
+            dubinspath_.cs = cls;
+            dubinspath_.lams = -1;
+            dubinspath_.ce = cre;
+            dubinspath_.lame = 1;
             ell = (cre - cls).norm();
             theta = atan2f(cre(1) - cls(1), cre(0) - cls(0));
             theta2 = acosf(2*R/ell);
-            _dubinspath.q1 = rotz(theta + theta2 - M_PI_2_F)*e1;
-            _dubinspath.w1 = _dubinspath.cs + (rotz(theta + theta2)*e1)*R;
-            _dubinspath.w2 = _dubinspath.ce + (rotz(theta + theta2 - M_PI_F)*e1)*R;
+            dubinspath_.q1 = rotz(theta + theta2 - M_PI_2_F)*e1;
+            dubinspath_.w1 = dubinspath_.cs + (rotz(theta + theta2)*e1)*R;
+            dubinspath_.w2 = dubinspath_.ce + (rotz(theta + theta2 - M_PI_F)*e1)*R;
             break;
         case 4:
-            _dubinspath.cs = cls;
-            _dubinspath.lams = -1;
-            _dubinspath.ce = cle;
-            _dubinspath.lame = -1;
-            _dubinspath.q1 = (cle - cls).normalized();
-            _dubinspath.w1 = _dubinspath.cs + (rotz(M_PI_2_F)*_dubinspath.q1)*R;
-            _dubinspath.w2 = _dubinspath.ce + (rotz(M_PI_2_F)*_dubinspath.q1)*R;
+            dubinspath_.cs = cls;
+            dubinspath_.lams = -1;
+            dubinspath_.ce = cle;
+            dubinspath_.lame = -1;
+            dubinspath_.q1 = (cle - cls).normalized();
+            dubinspath_.w1 = dubinspath_.cs + (rotz(M_PI_2_F)*dubinspath_.q1)*R;
+            dubinspath_.w2 = dubinspath_.ce + (rotz(M_PI_2_F)*dubinspath_.q1)*R;
             break;
         }
-        _dubinspath.w3 = _dubinspath.pe;
-        _dubinspath.q3 = rotz(_dubinspath.chie)*e1;
-        _dubinspath.R = R;
+        dubinspath_.w3 = dubinspath_.pe;
+        dubinspath_.q3 = rotz(dubinspath_.chie)*e1;
+        dubinspath_.R = R;
     }
 }
 

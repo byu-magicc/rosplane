@@ -19,7 +19,7 @@ path_manager_base::path_manager_base():
     current_path_pub_ = nh_.advertise<rosplane_msgs::Current_Path>("current_path",10);
 
     num_waypoints_ = 0;
-    _ptr_a = &_waypoints[0];
+    ptr_a_ = &waypoints_[0];
 
     state_init_ = false;
     waypoint_init_ = false;
@@ -50,56 +50,56 @@ void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPt
 /** Function to initialize waypoints until Path Planner can be developed */
 void path_manager_base::waypoint_init()
 {
-    _waypoints[num_waypoints_].w[0]      = 0;
-    _waypoints[num_waypoints_].w[1]      = 0;
-    _waypoints[num_waypoints_].w[2]      = -100;
-    _waypoints[num_waypoints_].chi_d     = -9999;
-    _waypoints[num_waypoints_].chi_valid = 0;
-    _waypoints[num_waypoints_].Va_d      = 30;
+    waypoints_[num_waypoints_].w[0]      = 0;
+    waypoints_[num_waypoints_].w[1]      = 0;
+    waypoints_[num_waypoints_].w[2]      = -100;
+    waypoints_[num_waypoints_].chi_d     = -9999;
+    waypoints_[num_waypoints_].chi_valid = 0;
+    waypoints_[num_waypoints_].Va_d      = 30;
     num_waypoints_++;
 
-    _waypoints[num_waypoints_].w[0]      = 1000;
-    _waypoints[num_waypoints_].w[1]      = 0;
-    _waypoints[num_waypoints_].w[2]      = -100;
-    _waypoints[num_waypoints_].chi_d     = -9999;
-    _waypoints[num_waypoints_].chi_valid = 0;
-    _waypoints[num_waypoints_].Va_d      = 30;
+    waypoints_[num_waypoints_].w[0]      = 1000;
+    waypoints_[num_waypoints_].w[1]      = 0;
+    waypoints_[num_waypoints_].w[2]      = -100;
+    waypoints_[num_waypoints_].chi_d     = -9999;
+    waypoints_[num_waypoints_].chi_valid = 0;
+    waypoints_[num_waypoints_].Va_d      = 30;
     num_waypoints_++;
 
-    _waypoints[num_waypoints_].w[0]      = 1000;
-    _waypoints[num_waypoints_].w[1]      = 1000;
-    _waypoints[num_waypoints_].w[2]      = -100;
-    _waypoints[num_waypoints_].chi_d     = -9999;
-    _waypoints[num_waypoints_].chi_valid = 0;
-    _waypoints[num_waypoints_].Va_d      = 30;
+    waypoints_[num_waypoints_].w[0]      = 1000;
+    waypoints_[num_waypoints_].w[1]      = 1000;
+    waypoints_[num_waypoints_].w[2]      = -100;
+    waypoints_[num_waypoints_].chi_d     = -9999;
+    waypoints_[num_waypoints_].chi_valid = 0;
+    waypoints_[num_waypoints_].Va_d      = 30;
     num_waypoints_++;
 
-    _waypoints[num_waypoints_].w[0]      = 0;
-    _waypoints[num_waypoints_].w[1]      = 1000;
-    _waypoints[num_waypoints_].w[2]      = -100;
-    _waypoints[num_waypoints_].chi_d     = -9999;
-    _waypoints[num_waypoints_].chi_valid = 0;
-    _waypoints[num_waypoints_].Va_d      = 30;
+    waypoints_[num_waypoints_].w[0]      = 0;
+    waypoints_[num_waypoints_].w[1]      = 1000;
+    waypoints_[num_waypoints_].w[2]      = -100;
+    waypoints_[num_waypoints_].chi_d     = -9999;
+    waypoints_[num_waypoints_].chi_valid = 0;
+    waypoints_[num_waypoints_].Va_d      = 30;
     num_waypoints_++;
 
-    _waypoints[num_waypoints_].w[0]      = 0;
-    _waypoints[num_waypoints_].w[1]      = 0;
-    _waypoints[num_waypoints_].w[2]      = -100;
-    _waypoints[num_waypoints_].chi_d     = -9999;
-    _waypoints[num_waypoints_].chi_valid = 0;
-    _waypoints[num_waypoints_].Va_d      = 30;
+    waypoints_[num_waypoints_].w[0]      = 0;
+    waypoints_[num_waypoints_].w[1]      = 0;
+    waypoints_[num_waypoints_].w[2]      = -100;
+    waypoints_[num_waypoints_].chi_d     = -9999;
+    waypoints_[num_waypoints_].chi_valid = 0;
+    waypoints_[num_waypoints_].Va_d      = 30;
     num_waypoints_++;
 
 }
 
 void path_manager_base::new_waypoint_callback(const rosplane_msgs::Waypoint& msg)
 {
-    _waypoints[num_waypoints_].w[0]      = msg.w[0];
-    _waypoints[num_waypoints_].w[1]      = msg.w[1];
-    _waypoints[num_waypoints_].w[2]      = msg.w[2];
-    _waypoints[num_waypoints_].chi_d     = msg.chi_d;
-    _waypoints[num_waypoints_].chi_valid = msg.chi_valid;
-    _waypoints[num_waypoints_].Va_d      = msg.Va_d;
+    waypoints_[num_waypoints_].w[0]      = msg.w[0];
+    waypoints_[num_waypoints_].w[1]      = msg.w[1];
+    waypoints_[num_waypoints_].w[2]      = msg.w[2];
+    waypoints_[num_waypoints_].chi_d     = msg.chi_d;
+    waypoints_[num_waypoints_].chi_valid = msg.chi_valid;
+    waypoints_[num_waypoints_].Va_d      = msg.Va_d;
     num_waypoints_++;
     waypoint_init_ = true;
 }

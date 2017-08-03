@@ -40,9 +40,9 @@ protected:
         float Va_d;
     };
 
-    struct waypoint_s _waypoints[SIZE_WAYPOINT_ARRAY];
+    struct waypoint_s waypoints_[SIZE_WAYPOINT_ARRAY];
     int num_waypoints_;
-    struct waypoint_s* _ptr_a;
+    struct waypoint_s* ptr_a_;
 
     struct input_s{
         float pn;               /** position north */
