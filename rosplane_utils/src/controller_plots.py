@@ -91,7 +91,7 @@ class state_subscriber():
 		self.phi = State.phi
 		self.theta = State.theta
 		self.psi = State.psi
-		self.chi = State.chi
+		self.chi = State.chi_deg*3.1415/180.0
 		self.p = State.p
 		self.q = State.q
 		self.r = State.r
@@ -243,10 +243,10 @@ ax_pd.set_ylabel('pd')
 ax_Va.set_ylabel('Va')
 #ax_alpha.set_ylabel(u'\u0391')
 #ax_beta.set_ylabel(u'\u0392')
-ax_phi.set_ylabel(u'\u03A6')
-ax_theta.set_ylabel(u'\u0398')
+ax_phi.set_ylabel('phi')
+ax_theta.set_ylabel('theta')
 # ax_psi.set_ylabel(u'\u03C8')
-ax_chi.set_ylabel(u'\u03A7')
+ax_chi.set_ylabel('chi')
 #ax_p.set_ylabel('p')
 #ax_q.set_ylabel('q')
 #ax_r.set_ylabel('r')
