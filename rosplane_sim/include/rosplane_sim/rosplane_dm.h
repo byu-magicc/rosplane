@@ -39,7 +39,9 @@
 #include "rosplane_sim/common.h"
 
 #define GRAVITY 9.81
+#ifndef PI
 #define PI 3.1415926
+#endif //PI
 
 namespace gazebo {
 static const std::string kDefaultWindSpeedSubTopic = "gazebo/wind_speed";
@@ -94,13 +96,14 @@ class ROSplaneDM : public ModelPlugin {
     double chi_c;
   };
 
-  // Lift Coefficients
+  // Model Coefficients
   struct ModelCoeff{
     double chi;
     double chiDot;
     double h;
     double hDot;
     double Va;
+    double ssDot;
   };
 
   ModelCoeff b_;
@@ -136,6 +139,7 @@ class ROSplaneDM : public ModelPlugin {
   Eigen::Matrix3d rotation_to_eigen_from_gazebo(gazebo::math::Quaternion vec);
   gazebo::math::Quaternion rotation_to_gazebo_from_eigen_quat(Eigen::Quaterniond q);
   gazebo::math::Quaternion rotation_to_gazebo_from_eigen_mat(Eigen::Matrix3d eig_mat);
+  double wrap(double theta);
 };
 }
 

@@ -65,10 +65,11 @@ void ROSplaneDM::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   // Design Model Params
   b_.chi = nh_->param<double>("b_chi", 2.0);
-  b_.chiDot = nh_->param<double>("b_chiDot", 2.0);
+  b_.chiDot = nh_->param<double>("b_chiDot", 1.0);
   b_.h = nh_->param<double>("b_h", 0.14);
   b_.hDot = nh_->param<double>("b_hDot", 1.5);
   b_.Va = nh_->param<double>("b_Va", 0.42);
+  b_.ssDot = nh_->param<double>("b_ssDot", 5.0);
 
   // Initialize Wind
   wind_ << 0.0, 0.0, 0.0;
@@ -145,7 +146,7 @@ void ROSplaneDM::OnUpdate(const common::UpdateInfo& _info) {
   // link_->SetWorldTwist(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.vel),
   //                      vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.omega));
   link_->AddForce(vec3_to_gazebo_from_eigen(state_.rot * state_.accel));
-  // link_->AddTorque(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.alpha));
+  link_->AddTorque(vec3_to_gazebo_from_eigen(state_.alpha));
 }
 
 void ROSplaneDM::Reset()
@@ -218,23 +219,30 @@ void ROSplaneDM::UpdateState()
   // altitude dynamics
   double hDDot = b_.hDot*(-hDot) + b_.h*(command_.h_c - h);
   // hDDot = 0.;
+  double sideSlip = state_.vel(1);
+  double ssDot =  b_.ssDot*sideSlip;
   // convert these acceleration components to a body frame accel vector
   Eigen::Vector3d accel_world(VaDot * cos(ea(2)), VaDot * sin(ea(2)), hDDot);
   state_.accel = state_.rot.transpose() * accel_world;
+  // add a body frame force to counteract sideslip
+  state_.accel(1) += ssDot;
   // state_.accel = accel_world;
   // state_.accel << 0.0, 0.0, 0.2;
   // gzerr << "Va_c = " << command_.va_c << " va = " << Va << std::endl;
   // gzerr << "a = " << state_.rot << std::endl;
 
   // get the course angle and its derivative
-  double chi = atan2(vel_world(0), vel_world(1));
+  // double chi = atan2(vel_world(0), vel_world(1));
+  double chi_e = wrap(command_.chi_c - ea(2));
   // this is really just psiDot, but it will have to suffice
   double chiDot = (state_.rot * state_.omega)(2);
-  double chiDDot = b_.chiDot*(-chiDot) + b_.chi*(command_.chi_c - chi);
+  // double chiDDot = b_.chiDot*(-chiDot) + b_.chi*(command_.chi_c - chi);
+  double chiDDot = b_.chiDot*(chiDot) - b_.chi*(chi_e);
   Eigen::Vector3d alpha_world(0., 0., chiDDot);
-  state_.alpha = state_.rot.transpose() * alpha_world;
-  gzerr << "a = " << state_.rot << std::endl;
-  gzerr << "ea = " << ea << std::endl;
+  state_.alpha = alpha_world;
+  //gzerr << "chi = " << chi_e << std::endl;
+  gzerr << "a = " << state_.accel << std::endl;
+  // gzerr << "ea = " << ea << std::endl;
 
 
   // set the orientation to look like an airplane that actually flies
@@ -255,7 +263,7 @@ void ROSplaneDM::UpdateState()
              * Eigen::AngleAxisd(ea(1), Eigen::Vector3d::UnitY())
              * Eigen::AngleAxisd(ea(2), Eigen::Vector3d::UnitZ());
 
-  gzerr << "b = " << state_.rot << std::endl;
+  // gzerr << "b = " << state_.rot << std::endl;
 }
 
 Eigen::Vector3d ROSplaneDM::vec3_to_eigen_from_gazebo(gazebo::math::Vector3 vec)
@@ -290,6 +298,19 @@ gazebo::math::Quaternion ROSplaneDM::rotation_to_gazebo_from_eigen_mat(Eigen::Ma
   Eigen::Vector3d v = q.vec();
   gazebo::math::Quaternion quat(q.w(), v(0), v(1), v(2));
   return quat;
+}
+
+double ROSplaneDM::wrap(double theta)
+{
+  while (theta > PI)
+  {
+    theta -= 2.*PI;
+  }
+  while (theta < -PI)
+  {
+    theta += 2.*PI;
+  }
+  return theta;
 }
 
 
