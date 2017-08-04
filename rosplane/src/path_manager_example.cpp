@@ -45,11 +45,11 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
 {
 
     Eigen::Vector3f p;
-    p(0) = input.pn;
-    p(1) = input.pe;
-    p(2) = -input.h;
+    p << input.pn, input.pe, -input.h;
+
     waypoint_s* ptr_b;
     waypoint_s* ptr_c;
+
     if(ptr_a_ == &waypoints_[num_waypoints_ - 1])
     {
         ptr_b = &waypoints_[0];
@@ -64,18 +64,9 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
         ptr_c = ptr_b + 1;
     }
 
-    Eigen::Vector3f w_im1;
-    w_im1(0) = ptr_a_->w[0];
-    w_im1(1) = ptr_a_->w[1];
-    w_im1(2) = ptr_a_->w[2];
-    Eigen::Vector3f w_i;
-    w_i(0) = ptr_b->w[0];
-    w_i(1) = ptr_b->w[1];
-    w_i(2) = ptr_b->w[2];
-    Eigen::Vector3f w_ip1;
-    w_ip1(0) = ptr_c->w[0];
-    w_ip1(1) = ptr_c->w[1];
-    w_ip1(2) = ptr_c->w[2];
+    Eigen::Vector3f w_im1(ptr_a_->w);
+    Eigen::Vector3f w_i(ptr_b->w);
+    Eigen::Vector3f w_ip1(ptr_c->w);
 
     output.flag = true;
     output.Va_d = ptr_a_->Va_d;
@@ -106,10 +97,8 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
 
 void path_manager_example::manage_fillet(const params_s &params, const input_s &input, output_s &output)
 {
-  Eigen::Vector3f p;
-    p(0) = input.pn;
-    p(1) = input.pe;
-    p(2) = -input.h;
+    Eigen::Vector3f p;
+    p << input.pn, input.pe, -input.h;
 
     waypoint_s* ptr_b;
     waypoint_s* ptr_c;
@@ -127,18 +116,9 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
         ptr_c = ptr_b + 1;
     }
 
-    Eigen::Vector3f w_im1;
-    w_im1(0) = ptr_a_->w[0];
-    w_im1(1) = ptr_a_->w[1];
-    w_im1(2) = ptr_a_->w[2];
-    Eigen::Vector3f w_i;
-    w_i(0) = ptr_b->w[0];
-    w_i(1) = ptr_b->w[1];
-    w_i(2) = ptr_b->w[2];
-    Eigen::Vector3f w_ip1;
-    w_ip1(0) = ptr_c->w[0];
-    w_ip1(1) = ptr_c->w[1];
-    w_ip1(2) = ptr_c->w[2];
+    Eigen::Vector3f w_im1(ptr_a_->w);
+    Eigen::Vector3f w_i(ptr_b->w);
+    Eigen::Vector3f w_ip1(ptr_c->w);
 
     float R_min = params.R_min;
 
@@ -193,11 +173,9 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
 void path_manager_example::manage_dubins(const params_s &params, const input_s &input, output_s &output)
 {
     Eigen::Vector3f p;
-    p(0) = input.pn;
-    p(1) = input.pe;
-    p(2) = -input.h;
-    float R_min = params.R_min;
+    p << input.pn, input.pe, -input.h;
 
+    output.Va_d = ptr_a_->Va_d;
     output.r[0] = 0;
     output.r[1] = 0;
     output.r[2] = 0;
@@ -211,9 +189,8 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
     switch(dub_state_)
     {
     case dubin_state::First:
-        dubinsParameters(waypoints_[0], waypoints_[1], R_min);
+        dubinsParameters(waypoints_[0], waypoints_[1], params.R_min);
         output.flag = false;
-        output.Va_d = ptr_a_->Va_d;
         output.c[0] = dubinspath_.cs(0);
         output.c[1] = dubinspath_.cs(1);
         output.c[2] = dubinspath_.cs(2);
@@ -230,7 +207,6 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         break;
     case dubin_state::Before_H1:
         output.flag = false;
-        output.Va_d = ptr_a_->Va_d;
         output.c[0] = dubinspath_.cs(0);
         output.c[1] = dubinspath_.cs(1);
         output.c[2] = dubinspath_.cs(2);
@@ -243,7 +219,6 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         break;
     case dubin_state::Before_H1_wrong_side:
         output.flag = false;
-        output.Va_d = ptr_a_->Va_d;
         output.c[0] = dubinspath_.cs(0);
         output.c[1] = dubinspath_.cs(1);
         output.c[2] = dubinspath_.cs(2);
@@ -256,7 +231,6 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         break;
     case dubin_state::Straight:
         output.flag = true;
-        output.Va_d = ptr_a_->Va_d;
         output.r[0] = dubinspath_.w1(0);
         output.r[1] = dubinspath_.w1(1);
         output.r[2] = dubinspath_.w1(2);
@@ -282,7 +256,6 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         break;
     case dubin_state::Before_H3:
         output.flag = false;
-        output.Va_d = ptr_a_->Va_d;
         output.c[0] = dubinspath_.ce(0);
         output.c[1] = dubinspath_.ce(1);
         output.c[2] = dubinspath_.ce(2);
@@ -307,7 +280,7 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
             }
 
             // plan new Dubin's path to next waypoint configuration
-            dubinsParameters(*ptr_a_, *ptr_b, R_min);
+            dubinsParameters(*ptr_a_, *ptr_b, params.R_min);
 
             //start new path
             if((p - dubinspath_.w1).dot(dubinspath_.q1) >= 0) // start in H1
@@ -322,7 +295,6 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         break;
     case dubin_state::Before_H3_wrong_side:
         output.flag = false;
-        output.Va_d = ptr_a_->Va_d;
         output.c[0] = dubinspath_.ce(0);
         output.c[1] = dubinspath_.ce(1);
         output.c[2] = dubinspath_.ce(2);

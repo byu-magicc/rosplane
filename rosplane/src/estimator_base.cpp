@@ -131,7 +131,7 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
 
     if(armed_first_time_ && !baro_init_)
     {
-        if(baro_count_ < 50)
+        if(baro_count_ < 100)
         {
             init_static_ += msg.pressure;
             init_static_vector_.push_back(msg.pressure);
