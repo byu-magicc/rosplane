@@ -29,7 +29,6 @@ class path_manager_base
 {
 public:
     path_manager_base();
-//    void waypoint_init();
 
 protected:
 
