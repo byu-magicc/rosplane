@@ -78,11 +78,14 @@ private:
 
     rosplane_msgs::State vehicle_state_;     /**< vehicle state */
 
+    double update_rate_;
+    ros::Timer update_timer_;
+
     void vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg);
     bool state_init_;
     void new_waypoint_callback(const rosplane_msgs::Waypoint &msg);
     bool waypoint_init_;
-    void current_path_publish(struct output_s &output);
+    void current_path_publish(const ros::TimerEvent &);
 };
 } //end namespace
 #endif // PATH_MANAGER_BASE_H

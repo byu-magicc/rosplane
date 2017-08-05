@@ -8,84 +8,27 @@ path_manager_base::path_manager_base():
     nh_private_(ros::NodeHandle("~"))
 {
     nh_private_.param<double>("R_min", params_.R_min, 25.0);
+    nh_private_.param<double>("update_rate", update_rate_, 10.0);
 
     vehicle_state_sub_ = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
     new_waypoint_sub_ = nh_.subscribe("waypoint_path", 10, &path_manager_base::new_waypoint_callback, this);
     current_path_pub_ = nh_.advertise<rosplane_msgs::Current_Path>("current_path",10);
+
+    update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &path_manager_base::current_path_publish, this);
 
     num_waypoints_ = 0;
     ptr_a_ = &waypoints_[0];
 
     state_init_ = false;
     waypoint_init_ = false;
-
-    //waypoint_init();
 }
 
 void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg)
 {
     vehicle_state_ = *msg;
-    struct input_s input;
-    input.pn = vehicle_state_.position[0];               /** position north */
-    input.pe = vehicle_state_.position[1];               /** position east */
-    input.h =  -vehicle_state_.position[2];                /** altitude */
-    input.chi = vehicle_state_.chi;
 
-    struct output_s outputs;
-    struct params_s params;
     state_init_ = true;
-
-    if (state_init_ == true && waypoint_init_ == true)
-    {
-        manage(params_, input, outputs);
-        current_path_publish(outputs);
-    }
 }
-
-/** Function to initialize waypoints until Path Planner can be developed */
-//void path_manager_base::waypoint_init()
-//{
-//    waypoints_[num_waypoints_].w[0]      = 0;
-//    waypoints_[num_waypoints_].w[1]      = 0;
-//    waypoints_[num_waypoints_].w[2]      = -100;
-//    waypoints_[num_waypoints_].chi_d     = -9999;
-//    waypoints_[num_waypoints_].chi_valid = 0;
-//    waypoints_[num_waypoints_].Va_d      = 30;
-//    num_waypoints_++;
-
-//    waypoints_[num_waypoints_].w[0]      = 1000;
-//    waypoints_[num_waypoints_].w[1]      = 0;
-//    waypoints_[num_waypoints_].w[2]      = -100;
-//    waypoints_[num_waypoints_].chi_d     = -9999;
-//    waypoints_[num_waypoints_].chi_valid = 0;
-//    waypoints_[num_waypoints_].Va_d      = 30;
-//    num_waypoints_++;
-
-//    waypoints_[num_waypoints_].w[0]      = 1000;
-//    waypoints_[num_waypoints_].w[1]      = 1000;
-//    waypoints_[num_waypoints_].w[2]      = -100;
-//    waypoints_[num_waypoints_].chi_d     = -9999;
-//    waypoints_[num_waypoints_].chi_valid = 0;
-//    waypoints_[num_waypoints_].Va_d      = 30;
-//    num_waypoints_++;
-
-//    waypoints_[num_waypoints_].w[0]      = 0;
-//    waypoints_[num_waypoints_].w[1]      = 1000;
-//    waypoints_[num_waypoints_].w[2]      = -100;
-//    waypoints_[num_waypoints_].chi_d     = -9999;
-//    waypoints_[num_waypoints_].chi_valid = 0;
-//    waypoints_[num_waypoints_].Va_d      = 30;
-//    num_waypoints_++;
-
-//    waypoints_[num_waypoints_].w[0]      = 0;
-//    waypoints_[num_waypoints_].w[1]      = 0;
-//    waypoints_[num_waypoints_].w[2]      = -100;
-//    waypoints_[num_waypoints_].chi_d     = -9999;
-//    waypoints_[num_waypoints_].chi_valid = 0;
-//    waypoints_[num_waypoints_].Va_d      = 30;
-//    num_waypoints_++;
-
-//}
 
 void path_manager_base::new_waypoint_callback(const rosplane_msgs::Waypoint& msg)
 {
@@ -99,8 +42,22 @@ void path_manager_base::new_waypoint_callback(const rosplane_msgs::Waypoint& msg
     waypoint_init_ = true;
 }
 
-void path_manager_base::current_path_publish(output_s &output)
+void path_manager_base::current_path_publish(const ros::TimerEvent&)
 {
+
+    struct input_s input;
+    input.pn = vehicle_state_.position[0];               /** position north */
+    input.pe = vehicle_state_.position[1];               /** position east */
+    input.h =  -vehicle_state_.position[2];                /** altitude */
+    input.chi = vehicle_state_.chi;
+
+    struct output_s output;
+
+    if (state_init_ == true && waypoint_init_ == true)
+    {
+        manage(params_, input, output);
+    }
+
     rosplane_msgs::Current_Path current_path;
 
     if(output.flag)

@@ -13,7 +13,7 @@ namespace rosplane {
 
     nh_private_.param<double>("CHI_INFTY", params_.chi_infty, 1.0472);
     nh_private_.param<double>("K_PATH", params_.k_path, 0.025);
-    nh_private_.param<double>("K_ORBIT", params_.k_orbit, 8.0);
+    nh_private_.param<double>("K_ORBIT", params_.k_orbit, 4.0);
 
     func_ = boost::bind(&path_follower_base::reconfigure_callback, this, _1, _2);
     server_.setCallback(func_);
