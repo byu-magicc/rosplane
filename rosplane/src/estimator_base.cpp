@@ -145,14 +145,14 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
 
             //Check that it got a good calibration.
             std::sort(init_static_vector_.begin(),init_static_vector_.end());
-            float q1 = (init_static_vector_[24] + init_static_vector_[25])/2.0;
-            float q3 = (init_static_vector_[74] + init_static_vector_[75])/2.0;
+            float q1 = init_static_vector_[12];
+            float q3 = init_static_vector_[37];
             float IQR = q3 - q1;
-            float upper_bound = q3 + 2.0*IQR;
-            float lower_bound = q1 - 2.0*IQR;
-            for(int i=0; i < 100; i++)
+            float upper_bound = q3 + 1.5*IQR;
+            float lower_bound = q1 - 1.5*IQR;
+            for(int i=0; i < 50; i++)
             {
-                if(init_static_vector_[i] > upper_bound)
+                if(init_static_vector_[i] > upper_bound || init_static_vector_[i] < lower_bound)
                 {
                     baro_init_ = false;
                     baro_count_ = 0;
@@ -160,13 +160,9 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
                     ROS_WARN("Bad baro calibration. Recalibrating");
                     break;
                 }
-                else if(init_static_vector_[i] < lower_bound)
+                if(i == 49 && baro_init_ == true)
                 {
-                    baro_init_ = false;
-                    baro_count_ = 0;
-                    init_static_vector_.clear();
-                    ROS_WARN("Bad baro calibration. Recalibrating");
-                    break;
+                    ROS_INFO("Rosplane baro calibration successful!");
                 }
             }
         }
