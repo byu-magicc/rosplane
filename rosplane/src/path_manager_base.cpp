@@ -30,6 +30,13 @@ void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPt
 
 void path_manager_base::new_waypoint_callback(const rosplane_msgs::Waypoint& msg)
 {
+    if(msg.clear_wp_list == true)
+    {
+        waypoints_.clear();
+        num_waypoints_ = 0;
+        idx_a_ = 0;
+        return;
+    }
     if(msg.set_current || num_waypoints_ == 0)
     {
         waypoint_s currentwp;

@@ -33,6 +33,7 @@ int main(int argc, char** argv) {
             new_waypoint.set_current = true;
         else
             new_waypoint.set_current = false;
+        new_waypoint.clear_wp_list = false;
 
         waypointPublisher.publish(new_waypoint);
     }
