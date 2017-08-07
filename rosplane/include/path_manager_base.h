@@ -22,8 +22,6 @@
 #include <Eigen/Eigen>
 #include <rosplane/ControllerConfig.h>
 
-
-#define SIZE_WAYPOINT_ARRAY 20
 namespace rosplane {
 class path_manager_base
 {
@@ -39,9 +37,9 @@ protected:
         float Va_d;
     };
 
-    struct waypoint_s waypoints_[SIZE_WAYPOINT_ARRAY];
+    std::vector<waypoint_s> waypoints_;
     int num_waypoints_;
-    struct waypoint_s* ptr_a_;
+    int idx_a_;                 /** index to the waypoint that was most recently achieved */
 
     struct input_s{
         float pn;               /** position north */
@@ -84,7 +82,6 @@ private:
     void vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg);
     bool state_init_;
     void new_waypoint_callback(const rosplane_msgs::Waypoint &msg);
-    bool waypoint_init_;
     void current_path_publish(const ros::TimerEvent &);
 };
 } //end namespace

@@ -15,27 +15,22 @@ void path_manager_example::manage(const params_s &params, const input_s &input, 
 
     if(num_waypoints_ < 2)
     {
-        output.flag = true;
-        output.Va_d = 18;
-        output.r[0] = input.pn;
-        output.r[1] = input.pe;
-        output.r[2] = -input.h;
-        output.q[0] = cosf(input.chi);
-        output.q[1] = sinf(input.chi);
-        output.q[2] = 0.0f;
+        ROS_WARN_THROTTLE(4, "No waypoints received! Loitering about origin at 50m");
+        output.flag = false;
+        output.Va_d = 12;
         output.c[0] = 0.0f;
         output.c[1] = 0.0f;
-        output.c[2] = 0.0f;
-        output.rho = 0;
-        output.lambda = 0;
+        output.c[2] = -50.0f;
+        output.rho = params.R_min;
+        output.lambda = 1;
     } else
     {
-        if(ptr_a_->chi_valid)
+        if(waypoints_[idx_a_].chi_valid)
         {
             manage_dubins(params, input, output);
         } else {
             /** Switch the following for flying directly to waypoints, or filleting corners */
-//            manage_line(params, input, output);
+            //manage_line(params, input, output);
             manage_fillet(params, input, output);
         }
     }
@@ -47,29 +42,28 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
     Eigen::Vector3f p;
     p << input.pn, input.pe, -input.h;
 
-    waypoint_s* ptr_b;
-    waypoint_s* ptr_c;
-
-    if(ptr_a_ == &waypoints_[num_waypoints_ - 1])
+    int idx_b;
+    int idx_c;
+    if(idx_a_ == num_waypoints_ - 1)
     {
-        ptr_b = &waypoints_[0];
-        ptr_c = &waypoints_[1];
-    } else if(ptr_a_ == &waypoints_[num_waypoints_ - 2])
+        idx_b = 0;
+        idx_c = 1;
+    } else if(idx_a_ == num_waypoints_ - 2)
     {
-        ptr_b = &waypoints_[num_waypoints_ - 1];
-        ptr_c = &waypoints_[0];
+        idx_b = num_waypoints_ - 1;
+        idx_c = 0;
     } else
     {
-        ptr_b = ptr_a_ + 1;
-        ptr_c = ptr_b + 1;
+        idx_b = idx_a_ + 1;
+        idx_c = idx_b + 1;
     }
 
-    Eigen::Vector3f w_im1(ptr_a_->w);
-    Eigen::Vector3f w_i(ptr_b->w);
-    Eigen::Vector3f w_ip1(ptr_c->w);
+    Eigen::Vector3f w_im1(waypoints_[idx_a_].w);
+    Eigen::Vector3f w_i(waypoints_[idx_b].w);
+    Eigen::Vector3f w_ip1(waypoints_[idx_c].w);
 
     output.flag = true;
-    output.Va_d = ptr_a_->Va_d;
+    output.Va_d = waypoints_[idx_a_].Va_d;
     output.r[0] = w_im1(0);
     output.r[1] = w_im1(1);
     output.r[2] = w_im1(2);
@@ -78,51 +72,52 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
     output.q[0] = q_im1(0);
     output.q[1] = q_im1(1);
     output.q[2] = q_im1(2);
-    output.c[0] = 1;
-    output.c[1] = 1;
-    output.c[2] = 1;
-    output.rho = 1;
-    output.lambda = 1;
 
     Eigen::Vector3f n_i = (q_im1 + q_i).normalized();
     if((p - w_i).dot(n_i) > 0.0f)
     {
-        if(ptr_a_ == &waypoints_[num_waypoints_ - 1])
-            ptr_a_ = &waypoints_[0];
+        if(idx_a_ == num_waypoints_ - 1)
+            idx_a_ = 0;
         else
-            ptr_a_++;
+            idx_a_++;
     }
 
 }
 
 void path_manager_example::manage_fillet(const params_s &params, const input_s &input, output_s &output)
 {
+    if(num_waypoints_ < 3) //since it fillets don't make sense between just two points
+    {
+        manage_line(params, input, output);
+        return;
+    }
+
     Eigen::Vector3f p;
     p << input.pn, input.pe, -input.h;
 
-    waypoint_s* ptr_b;
-    waypoint_s* ptr_c;
-    if(ptr_a_ == &waypoints_[num_waypoints_ - 1])
+    int idx_b;
+    int idx_c;
+    if(idx_a_ == num_waypoints_ - 1)
     {
-        ptr_b = &waypoints_[0];
-        ptr_c = &waypoints_[1];
-    } else if(ptr_a_ == &waypoints_[num_waypoints_ - 2])
+        idx_b = 0;
+        idx_c = 1;
+    } else if(idx_a_ == num_waypoints_ - 2)
     {
-        ptr_b = &waypoints_[num_waypoints_ - 1];
-        ptr_c = &waypoints_[0];
+        idx_b = num_waypoints_ - 1;
+        idx_c = 0;
     } else
     {
-        ptr_b = ptr_a_ + 1;
-        ptr_c = ptr_b + 1;
+        idx_b = idx_a_ + 1;
+        idx_c = idx_b + 1;
     }
 
-    Eigen::Vector3f w_im1(ptr_a_->w);
-    Eigen::Vector3f w_i(ptr_b->w);
-    Eigen::Vector3f w_ip1(ptr_c->w);
+    Eigen::Vector3f w_im1(waypoints_[idx_a_].w);
+    Eigen::Vector3f w_i(waypoints_[idx_b].w);
+    Eigen::Vector3f w_ip1(waypoints_[idx_c].w);
 
     float R_min = params.R_min;
 
-    output.Va_d = ptr_a_->Va_d;
+    output.Va_d = waypoints_[idx_a_].Va_d;
     output.r[0] = w_im1(0);
     output.r[1] = w_im1(1);
     output.r[2] = w_im1(2);
@@ -160,10 +155,10 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
         z = w_i + q_i*(R_min/tanf(beta/2));
         if((p-z).dot(q_i) > 0)
         {
-            if(ptr_a_ == &waypoints_[num_waypoints_ - 1])
-                ptr_a_ = &waypoints_[0];
+            if(idx_a_ == num_waypoints_ - 1)
+                idx_a_ = 0;
             else
-                ptr_a_++;
+                idx_a_++;
             fil_state_ = fillet_state::Straight;
         }
         break;
@@ -175,7 +170,7 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
     Eigen::Vector3f p;
     p << input.pn, input.pe, -input.h;
 
-    output.Va_d = ptr_a_->Va_d;
+    output.Va_d = waypoints_[idx_a_].Va_d;
     output.r[0] = 0;
     output.r[1] = 0;
     output.r[2] = 0;
@@ -264,23 +259,23 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
         if((p - dubinspath_.w3).dot(dubinspath_.q3) >= 0) // entering H3
         {
             // increase the waypoint pointer
-            waypoint_s* ptr_b;
-            if(ptr_a_ == &waypoints_[num_waypoints_ - 1])
+            int idx_b;
+            if(idx_a_ == num_waypoints_ - 1)
             {
-                ptr_a_ = &waypoints_[0];
-                ptr_b = &waypoints_[1];
-            } else if(ptr_a_ == &waypoints_[num_waypoints_ - 2])
+                idx_a_ = 0;
+                idx_b = 1;
+            } else if(idx_a_ == num_waypoints_ - 2)
             {
-                ptr_a_++;
-                ptr_b = &waypoints_[0];
+                idx_a_++;
+                idx_b = 0;
             } else
             {
-                ptr_a_++;
-                ptr_b = ptr_a_ + 1;
+                idx_a_++;
+                idx_b = idx_a_ + 1;
             }
 
             // plan new Dubin's path to next waypoint configuration
-            dubinsParameters(*ptr_a_, *ptr_b, params.R_min);
+            dubinsParameters(waypoints_[idx_a_], waypoints_[idx_b], params.R_min);
 
             //start new path
             if((p - dubinspath_.w1).dot(dubinspath_.q1) >= 0) // start in H1
