@@ -17,10 +17,8 @@ path_manager_base::path_manager_base():
     update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &path_manager_base::current_path_publish, this);
 
     num_waypoints_ = 0;
-    ptr_a_ = &waypoints_[0];
 
     state_init_ = false;
-    waypoint_init_ = false;
 }
 
 void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg)
@@ -32,14 +30,37 @@ void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPt
 
 void path_manager_base::new_waypoint_callback(const rosplane_msgs::Waypoint& msg)
 {
-    waypoints_[num_waypoints_].w[0]      = msg.w[0];
-    waypoints_[num_waypoints_].w[1]      = msg.w[1];
-    waypoints_[num_waypoints_].w[2]      = msg.w[2];
-    waypoints_[num_waypoints_].chi_d     = msg.chi_d;
-    waypoints_[num_waypoints_].chi_valid = msg.chi_valid;
-    waypoints_[num_waypoints_].Va_d      = msg.Va_d;
+    if(msg.clear_wp_list == true)
+    {
+        waypoints_.clear();
+        num_waypoints_ = 0;
+        idx_a_ = 0;
+        return;
+    }
+    if(msg.set_current || num_waypoints_ == 0)
+    {
+        waypoint_s currentwp;
+        currentwp.w[0] = vehicle_state_.position[0];
+        currentwp.w[1] = vehicle_state_.position[1];
+        currentwp.w[2] = (vehicle_state_.position[2] > -25? msg.w[2] : vehicle_state_.position[2]);
+        currentwp.chi_d = vehicle_state_.chi;
+        currentwp.chi_valid = msg.chi_valid;
+        currentwp.Va_d = msg.Va_d;
+
+        waypoints_.clear();
+        waypoints_.push_back(currentwp);
+        num_waypoints_ = 1;
+        idx_a_ = 0;
+    }
+    waypoint_s nextwp;
+    nextwp.w[0]         = msg.w[0];
+    nextwp.w[1]         = msg.w[1];
+    nextwp.w[2]         = msg.w[2];
+    nextwp.chi_d        = msg.chi_d;
+    nextwp.chi_valid    = msg.chi_valid;
+    nextwp.Va_d         = msg.Va_d;
+    waypoints_.push_back(nextwp);
     num_waypoints_++;
-    waypoint_init_ = true;
 }
 
 void path_manager_base::current_path_publish(const ros::TimerEvent&)
@@ -53,7 +74,7 @@ void path_manager_base::current_path_publish(const ros::TimerEvent&)
 
     struct output_s output;
 
-    if (state_init_ == true && waypoint_init_ == true)
+    if (state_init_ == true)
     {
         manage(params_, input, output);
     }

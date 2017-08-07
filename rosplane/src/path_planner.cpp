@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <rosplane_msgs/Waypoint.h>
 
-#define num_waypoints 4
+#define num_waypoints 3
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "rosplane_simple_path_planner");
@@ -11,7 +11,6 @@ int main(int argc, char** argv) {
 
     float Va = 12;
     float wps[5*num_waypoints] = {
-                0, 0, -50, 0, Va,
                 200, 0, -50, 45*M_PI/180, Va,
                 0, 200, -50, 45*M_PI/180, Va,
                 200, 200, -50, 225*M_PI/180, Va,
@@ -30,6 +29,11 @@ int main(int argc, char** argv) {
 
         new_waypoint.chi_valid = true;
         new_waypoint.Va_d = wps[i*5 + 4];
+        if(i == 0)
+            new_waypoint.set_current = true;
+        else
+            new_waypoint.set_current = false;
+        new_waypoint.clear_wp_list = false;
 
         waypointPublisher.publish(new_waypoint);
     }
