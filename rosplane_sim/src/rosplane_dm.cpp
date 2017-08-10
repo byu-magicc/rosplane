@@ -64,8 +64,8 @@ void ROSplaneDM::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   // For the moments of inertia, look into using the BiFilar pendulum method
 
   // Design Model Params
-  b_.chi = nh_->param<double>("b_chi", 2.0);
-  b_.chiDot = nh_->param<double>("b_chiDot", 1.0);
+  b_.chi = nh_->param<double>("b_chi", 10.0);
+  b_.chiDot = nh_->param<double>("b_chiDot", 3.0);
   b_.h = nh_->param<double>("b_h", 0.14);
   b_.hDot = nh_->param<double>("b_hDot", 1.5);
   b_.Va = nh_->param<double>("b_Va", 0.42);
@@ -140,13 +140,15 @@ void ROSplaneDM::OnUpdate(const common::UpdateInfo& _info) {
   //   gzerr << "hi" << std::endl;
   // }
   // i_++;
-  // pose.Set(gazebo::math::Vector3(1.0, 1.0, 1.0), 
-  //          rotation_to_gazebo_from_eigen_mat(NWU_to_NED * state_.rot));
-  link_->SetWorldPose(pose);
+
+  // pose.Set(pose.pos, 
+  //          rotation_to_gazebo_from_eigen_mat(NWU_to_NED.transpose() * state_.rot * NWU_to_NED));
+  // link_->SetWorldPose(pose);
+
   // link_->SetWorldTwist(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.vel),
   //                      vec3_to_gazebo_from_eigen(NWU_to_NED * state_.rot * state_.omega));
   link_->AddForce(vec3_to_gazebo_from_eigen(state_.rot * state_.accel));
-  link_->AddTorque(vec3_to_gazebo_from_eigen(state_.alpha));
+  link_->AddTorque(vec3_to_gazebo_from_eigen(NWU_to_NED * state_.alpha));
 }
 
 void ROSplaneDM::Reset()
@@ -205,6 +207,17 @@ void ROSplaneDM::UpdateState()
     ea(1) -= PI;
     ea(2) += PI;
   }
+  if(ea(1) < -PI/2.) {
+    ea(0) -= PI;
+    ea(1) += PI;
+    ea(2) += PI;
+  }
+  ea(0) = wrap(ea(0));
+  ea(2) = wrap(ea(2));
+  // ea(0) = 
+  ea(1) = -asin(state_.rot(2,0));
+  // ea(2) = 
+
   // ea << 0.0, 0.0, 0.0;
   // get the world frame velocity
   Eigen::Vector3d vel_world = state_.rot * state_.vel;
@@ -226,10 +239,10 @@ void ROSplaneDM::UpdateState()
   state_.accel = state_.rot.transpose() * accel_world;
   // add a body frame force to counteract sideslip
   state_.accel(1) += ssDot;
-  // state_.accel = accel_world;
-  // state_.accel << 0.0, 0.0, 0.2;
+  //// state_.accel = accel_world;
+  //// state_.accel << 0.0, 0.0, 0.2;
   // gzerr << "Va_c = " << command_.va_c << " va = " << Va << std::endl;
-  // gzerr << "a = " << state_.rot << std::endl;
+  // gzerr << "a = " << state_.accel << std::endl;
 
   // get the course angle and its derivative
   // double chi = atan2(vel_world(0), vel_world(1));
@@ -237,11 +250,13 @@ void ROSplaneDM::UpdateState()
   // this is really just psiDot, but it will have to suffice
   double chiDot = (state_.rot * state_.omega)(2);
   // double chiDDot = b_.chiDot*(-chiDot) + b_.chi*(command_.chi_c - chi);
-  double chiDDot = b_.chiDot*(chiDot) - b_.chi*(chi_e);
+  double chiDDot = -b_.chiDot*(chiDot) + b_.chi*(chi_e);
   Eigen::Vector3d alpha_world(0., 0., chiDDot);
   state_.alpha = alpha_world;
-  //gzerr << "chi = " << chi_e << std::endl;
-  gzerr << "a = " << state_.accel << std::endl;
+  //gzerr << "psi" << ea(2) << std::endl;
+  //gzerr << "chi_e = " << chi_e << std::endl;
+  // gzerr << "R = " << state_.rot << std::endl;
+  gzerr << "a = " << state_.alpha << std::endl;
   // gzerr << "ea = " << ea << std::endl;
 
 
