@@ -39,18 +39,19 @@ from math import pi
 
 def tunning_command_publisher():
     pub = rospy.Publisher('controller_commands', Controller_Commands, queue_size=10)
-    rospy.init_node('roll_tunning')
-    rate = rospy.Rate(0.5) # 0.5hz
-    roll_angle = rospy.get_param('~roll_angle', 40*pi/180)
+    rospy.init_node('course_tunning', anonymous=True)
+    rate = rospy.Rate(0.2) # 0.2hz
+    course_angle = rospy.get_param('~course_angle', 20*pi/180)
     airspeed = rospy.get_param('~airspeed', 12)
     toggle = 1.
     while not rospy.is_shutdown():
         toggle *= -1
         msg = Controller_Commands()
         msg.Va_c = airspeed
+        msg.chi_c = toggle*course_angle
         msg.aux_valid = True
-        msg.aux_state = msg.ROLL_PITCH_VA_TUNING
-        msg.aux = [0, toggle*roll_angle, 0, 0]
+        msg.aux_state = msg.COURSE_TUNING
+        msg.aux = [5*pi/180, 0, 0, 0]
         pub.publish(msg)
         rate.sleep()
 
