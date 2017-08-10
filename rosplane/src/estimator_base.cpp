@@ -133,16 +133,12 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
     {
         if(baro_count_ < 50)
         {
-            init_static_ += msg.pressure;
             init_static_vector_.push_back(msg.pressure);
             input_.static_pres = 0;
             baro_count_ += 1;
         }
         else
         {
-            init_static_ = std::accumulate(init_static_vector_.begin(),init_static_vector_.end(), 0.0)/init_static_vector_.size();
-            baro_init_ = true;
-
             //Check that it got a good calibration.
             std::sort(init_static_vector_.begin(),init_static_vector_.end());
             float q1 = init_static_vector_[12];
@@ -150,20 +146,39 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
             float IQR = q3 - q1;
             float upper_bound = q3 + 1.5*IQR;
             float lower_bound = q1 - 1.5*IQR;
-            for(int i=0; i < 50; i++)
+            std::vector<float>::iterator baro_iter = init_static_vector_.begin();
+            std::vector<float>::iterator baro_end = init_static_vector_.end();
+            float baro_accum = 0.0f;
+            int baro_cal_count = 0;
+
+            while(baro_iter != baro_end)
             {
-                if(init_static_vector_[i] > upper_bound || init_static_vector_[i] < lower_bound)
+                float baro_val = *baro_iter++;
+                if(!(baro_val > upper_bound || baro_val < lower_bound))
                 {
-                    baro_init_ = false;
-                    baro_count_ = 0;
-                    init_static_vector_.clear();
-                    ROS_WARN("Bad baro calibration. Recalibrating");
-                    break;
+                    baro_accum += baro_val;
+                    baro_cal_count++;
                 }
-                if(i == 49 && baro_init_ == true)
+            }
+
+            if(baro_cal_count < 10)
+            {
+                ROS_ERROR("Bad Rosplane baro calibration. Recalibrating.");
+                baro_count_ = 0;
+                init_static_vector_.clear();
+            }
+            else
+            {
+                if(baro_cal_count < 40)
                 {
-                    ROS_INFO("Rosplane baro calibration successful!");
+                    ROS_WARN("Out of 50 measurements, baro calibrated with %d", baro_cal_count);
                 }
+                else
+                {
+                    ROS_INFO("Out of 50 measurements, baro calibrated with %d", baro_cal_count);
+                }
+                init_static_ = baro_accum/baro_cal_count;
+                baro_init_ = true;
             }
         }
     }
