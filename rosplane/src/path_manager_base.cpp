@@ -7,108 +7,84 @@ path_manager_base::path_manager_base():
     nh_(ros::NodeHandle()), /** nh_ stuff added here */
     nh_private_(ros::NodeHandle("~"))
 {
-    nh_private_.param<double>("R_min", params_.R_min, 20.0);
+    nh_private_.param<double>("R_min", params_.R_min, 25.0);
+    nh_private_.param<double>("update_rate", update_rate_, 10.0);
 
-    _vehicle_state_sub = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
+    vehicle_state_sub_ = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
+    new_waypoint_sub_ = nh_.subscribe("waypoint_path", 10, &path_manager_base::new_waypoint_callback, this);
+    current_path_pub_ = nh_.advertise<rosplane_msgs::Current_Path>("current_path",10);
 
-    _new_waypoint_sub = nh_.subscribe("waypoint_path", 10, &path_manager_base::new_waypoint_callback, this);
+    update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &path_manager_base::current_path_publish, this);
 
-    /**
-      Publisher added for current path.  Assumes Path Planner Publishes "current_path" topic with message type Float32MultiArray
-      */
-    _current_path_pub = nh_.advertise<rosplane_msgs::Current_Path>("current_path",10);
+    num_waypoints_ = 0;
 
-    _num_waypoints = 0;
-    _ptr_a = &_waypoints[0];
-
-    _state_init = false;
-    _waypoint_init = false;
-
-    //waypoint_init();
+    state_init_ = false;
 }
 
 void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg)
 {
-    _vehicle_state = *msg;
-    struct input_s input;
-    input.pn = _vehicle_state.position[0];               /** position north */
-    input.pe = _vehicle_state.position[1];               /** position east */
-    input.h =  -_vehicle_state.position[2];                /** altitude */
-    input.chi = _vehicle_state.chi;
+    vehicle_state_ = *msg;
 
-    struct output_s outputs;
-    struct params_s params;
-    _state_init = true;
-
-    if (_state_init == true && _waypoint_init == true)
-    {
-        manage(params_, input, outputs);
-        current_path_publish(outputs);
-    }
-}
-
-/** Function to initialize waypoints until Path Planner can be developed */
-void path_manager_base::waypoint_init()
-{
-    _waypoints[_num_waypoints].w[0]      = 0;
-    _waypoints[_num_waypoints].w[1]      = 0;
-    _waypoints[_num_waypoints].w[2]      = -100;
-    _waypoints[_num_waypoints].chi_d     = -9999;
-    _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 30;
-    _num_waypoints++;
-
-    _waypoints[_num_waypoints].w[0]      = 1000;
-    _waypoints[_num_waypoints].w[1]      = 0;
-    _waypoints[_num_waypoints].w[2]      = -100;
-    _waypoints[_num_waypoints].chi_d     = -9999;
-    _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 30;
-    _num_waypoints++;
-
-    _waypoints[_num_waypoints].w[0]      = 1000;
-    _waypoints[_num_waypoints].w[1]      = 1000;
-    _waypoints[_num_waypoints].w[2]      = -100;
-    _waypoints[_num_waypoints].chi_d     = -9999;
-    _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 30;
-    _num_waypoints++;
-
-    _waypoints[_num_waypoints].w[0]      = 0;
-    _waypoints[_num_waypoints].w[1]      = 1000;
-    _waypoints[_num_waypoints].w[2]      = -100;
-    _waypoints[_num_waypoints].chi_d     = -9999;
-    _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 30;
-    _num_waypoints++;
-
-    _waypoints[_num_waypoints].w[0]      = 0;
-    _waypoints[_num_waypoints].w[1]      = 0;
-    _waypoints[_num_waypoints].w[2]      = -100;
-    _waypoints[_num_waypoints].chi_d     = -9999;
-    _waypoints[_num_waypoints].chi_valid = 0;
-    _waypoints[_num_waypoints].Va_d      = 30;
-    _num_waypoints++;
-
+    state_init_ = true;
 }
 
 void path_manager_base::new_waypoint_callback(const rosplane_msgs::Waypoint& msg)
 {
-    _waypoints[_num_waypoints].w[0]      = msg.w[0];
-    _waypoints[_num_waypoints].w[1]      = msg.w[1];
-    _waypoints[_num_waypoints].w[2]      = msg.w[2];
-    _waypoints[_num_waypoints].chi_d     = msg.chi_d;
-    _waypoints[_num_waypoints].chi_valid = msg.chi_valid;
-    _waypoints[_num_waypoints].Va_d      = msg.Va_d;
-    _num_waypoints++;
-    _waypoint_init = true;
+    if(msg.clear_wp_list == true)
+    {
+        waypoints_.clear();
+        num_waypoints_ = 0;
+        idx_a_ = 0;
+        return;
+    }
+    if(msg.set_current || num_waypoints_ == 0)
+    {
+        waypoint_s currentwp;
+        currentwp.w[0] = vehicle_state_.position[0];
+        currentwp.w[1] = vehicle_state_.position[1];
+        currentwp.w[2] = (vehicle_state_.position[2] > -25? msg.w[2] : vehicle_state_.position[2]);
+        currentwp.chi_d = vehicle_state_.chi;
+        currentwp.chi_valid = msg.chi_valid;
+        currentwp.Va_d = msg.Va_d;
+
+        waypoints_.clear();
+        waypoints_.push_back(currentwp);
+        num_waypoints_ = 1;
+        idx_a_ = 0;
+    }
+    waypoint_s nextwp;
+    nextwp.w[0]         = msg.w[0];
+    nextwp.w[1]         = msg.w[1];
+    nextwp.w[2]         = msg.w[2];
+    nextwp.chi_d        = msg.chi_d;
+    nextwp.chi_valid    = msg.chi_valid;
+    nextwp.Va_d         = msg.Va_d;
+    waypoints_.push_back(nextwp);
+    num_waypoints_++;
 }
 
-void path_manager_base::current_path_publish(output_s &output)
+void path_manager_base::current_path_publish(const ros::TimerEvent&)
 {
+
+    struct input_s input;
+    input.pn = vehicle_state_.position[0];               /** position north */
+    input.pe = vehicle_state_.position[1];               /** position east */
+    input.h =  -vehicle_state_.position[2];                /** altitude */
+    input.chi = vehicle_state_.chi;
+
+    struct output_s output;
+
+    if (state_init_ == true)
+    {
+        manage(params_, input, output);
+    }
+
     rosplane_msgs::Current_Path current_path;
 
-    current_path.flag = output.flag;
+    if(output.flag)
+        current_path.path_type = current_path.LINE_PATH;
+    else
+        current_path.path_type = current_path.ORBIT_PATH;
     current_path.Va_d = output.Va_d;
     for(int i=0;i<3;i++)
     {
@@ -119,7 +95,7 @@ void path_manager_base::current_path_publish(output_s &output)
     current_path.rho = output.rho;
     current_path.lambda = output.lambda;
 
-    _current_path_pub.publish(current_path);
+    current_path_pub_.publish(current_path);
 }
 
 } //end namespace

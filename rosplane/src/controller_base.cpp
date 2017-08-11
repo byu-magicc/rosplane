@@ -25,7 +25,7 @@ controller_base::controller_base():
     nh_private_.param<double>("TAU", _params.tau, 5.0);
     nh_private_.param<double>("COURSE_KP", _params.c_kp, 0.7329);
     nh_private_.param<double>("COURSE_KD", _params.c_kd, 0.0);
-    nh_private_.param<double>("COURSE_KI", _params.c_ki, 0.07);
+    nh_private_.param<double>("COURSE_KI", _params.c_ki, 0.0);
     nh_private_.param<double>("ROLL_KP", _params.r_kp, 1.2855);
     nh_private_.param<double>("ROLL_KD", _params.r_kd, -0.325);
     nh_private_.param<double>("ROLL_KI", _params.r_ki, 0.0);//0.10f);

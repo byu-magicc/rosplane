@@ -84,7 +84,7 @@
   </xacro:barometer_plugin_macro>
 
   <!-- Chase Camera -->
-  <!-- <xacro:include filename="$(find fcu_sim_plugins)/xacro/camera.xacro"/>
+  <!-- <xacro:include filename="$(find magicc_sim_plugins)/xacro/camera.xacro"/>
   <xacro:simple_camera
     namespace="${namespace}/chase"
     frame_rate="30"
@@ -96,7 +96,7 @@
   </xacro:simple_camera> -->
 
   <!-- Gimbal -->
-  <!-- <xacro:include filename="$(find fcu_sim_plugins)/xacro/gimbal.xacro"/>
+  <!-- <xacro:include filename="$(find magicc_sim_plugins)/xacro/gimbal.xacro"/>
   <xacro:gimbal_ZENMUSE
     namespace="${namespace}"
     parent_link="${namespace}/base_link"

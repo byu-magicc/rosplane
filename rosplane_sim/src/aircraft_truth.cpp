@@ -136,6 +136,11 @@ void AircraftTruth::PublishTruth()
   msg.header.stamp.fromSec(world_->GetSimTime().Double());
   msg.header.frame_id = 1; // Denotes global frame
 
+  msg.psi_deg = fmod(euler_angles.x,2*M_PI)*180/M_PI; //-360 to 360
+  msg.psi_deg += (msg.psi_deg < -180 ? 360 : 0); msg.psi_deg -= (msg.psi_deg > 180 ? 360 : 0);
+  msg.chi_deg = fmod(msg.chi,2*M_PI)*180/M_PI; //-360 to 360
+  msg.chi_deg += (msg.chi_deg < -180 ? 360 : 0); msg.chi_deg -= (msg.chi_deg > 180 ? 360 : 0);
+
   true_state_pub_.publish(msg);
 }
 

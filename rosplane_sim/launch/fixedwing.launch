@@ -39,11 +39,13 @@
        <remap from="state" to="truth"/>
     </node>
 
-    <!-- <node name="chase" pkg="image_view" type="image_view">
-      <remap from="image" to="chase/camera/rgb"/>
-    </node> -->
+    <!-- <node name="current_path_publisher" pkg="rostopic" type="rostopic"
+      args="pub current_path rosplane_msgs/Current_Path '0' '15.0'  '[0.0, 0.0, -100.0]'  '[1.0, 0.0, 0.0]'  '[0.0, 0.0, -100.0]'  '100.0' '1'"/> -->
 
-    <node name="current_path_publisher" pkg="rostopic" type="rostopic"
-      args="pub current_path rosplane_msgs/Current_Path 'false' '15.0'  '[0.0, 0.0, -100.0]'  '[1.0, 0.0, 0.0]'  '[0.0, 0.0, -100.0]'  '100.0' '1'"/>
+    <node name="pathmanager" pkg="rosplane" type="rosplane_path_manager" output="screen">
+      <remap from="state" to="truth"/>
+    </node>
+
+    <node name="pathplanner" pkg="rosplane" type="rosplane_path_planner"/> 
   </group>
 </launch>

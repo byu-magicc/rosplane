@@ -22,14 +22,11 @@
 #include <Eigen/Eigen>
 #include <rosplane/ControllerConfig.h>
 
-
-#define SIZE_WAYPOINT_ARRAY 20
 namespace rosplane {
 class path_manager_base
 {
 public:
     path_manager_base();
-    void waypoint_init();
 
 protected:
 
@@ -40,9 +37,9 @@ protected:
         float Va_d;
     };
 
-    struct waypoint_s _waypoints[SIZE_WAYPOINT_ARRAY];
-    int _num_waypoints;
-    struct waypoint_s* _ptr_a;
+    std::vector<waypoint_s> waypoints_;
+    int num_waypoints_;
+    int idx_a_;                 /** index to the waypoint that was most recently achieved */
 
     struct input_s{
         float pn;               /** position north */
@@ -71,23 +68,21 @@ private:
 
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
-    ros::Subscriber _vehicle_state_sub;     /**< vehicle state subscription */
-    ros::Subscriber _new_waypoint_sub;      /**< new waypoint subscription */
-    ros::Publisher  _current_path_pub;      /**< controller commands publication */
+    ros::Subscriber vehicle_state_sub_;     /**< vehicle state subscription */
+    ros::Subscriber new_waypoint_sub_;      /**< new waypoint subscription */
+    ros::Publisher  current_path_pub_;      /**< controller commands publication */
 
-    struct params_s                 params_;
-    //    struct {
-    //        param_t R_min;
-    //    } _params_handles; /**< handles for interesting parameters */
+    struct params_s params_;
 
+    rosplane_msgs::State vehicle_state_;     /**< vehicle state */
 
-    rosplane_msgs::State _vehicle_state;     /**< vehicle state */
+    double update_rate_;
+    ros::Timer update_timer_;
 
     void vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg);
-    bool _state_init;
+    bool state_init_;
     void new_waypoint_callback(const rosplane_msgs::Waypoint &msg);
-    bool _waypoint_init;
-    void current_path_publish(struct output_s &output);
+    void current_path_publish(const ros::TimerEvent &);
 };
 } //end namespace
 #endif // PATH_MANAGER_BASE_H
