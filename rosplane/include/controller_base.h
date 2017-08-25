@@ -18,9 +18,11 @@
 #include <dynamic_reconfigure/server.h>
 #include <rosplane/ControllerConfig.h>
 
-namespace rosplane {
+namespace rosplane
+{
 
-enum class alt_zones {
+enum class alt_zones
+{
   TAKE_OFF,
   CLIMB,
   DESCEND,
@@ -35,7 +37,8 @@ public:
 
 protected:
 
-  struct input_s {
+  struct input_s
+  {
     float Ts;               /** time step */
     float h;                /** altitude */
     float va;               /** airspeed */
@@ -51,7 +54,8 @@ protected:
     float phi_ff;           /** feed forward term for orbits (rad) */
   };
 
-  struct output_s {
+  struct output_s
+  {
     float theta_c;
     float delta_e;
     float phi_c;
@@ -61,7 +65,8 @@ protected:
     alt_zones current_zone;
   };
 
-  struct params_s {
+  struct params_s
+  {
     double alt_hz;           /**< altitude hold zone */
     double alt_toz;          /**< altitude takeoff zone */
     double tau;
@@ -115,8 +120,8 @@ private:
   rosplane_msgs::Controller_Commands controller_commands_;
   rosplane_msgs::State vehicle_state_;
 
-  void vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg);
-  void controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr& msg);
+  void vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg);
+  void controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr &msg);
   bool command_recieved_;
 
   dynamic_reconfigure::Server<rosplane::ControllerConfig> server_;

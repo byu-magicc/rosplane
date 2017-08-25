@@ -1,0 +1,9 @@
+style=break
+indent=spaces=2
+pad-header
+unpad-paren
+align-pointer=name
+align-reference=name
+max-code-length=120
+suffix=none
+pad-oper

@@ -1,14 +1,16 @@
 #include "controller_base.h"
 #include "controller_example.h"
 
-namespace rosplane {
+namespace rosplane
+{
 
 controller_base::controller_base():
   nh_(ros::NodeHandle()),
   nh_private_(ros::NodeHandle())
 {
   vehicle_state_sub_ = nh_.subscribe("state", 10, &controller_base::vehicle_state_callback, this);
-  controller_commands_sub_ = nh_.subscribe("controller_commands", 10, &controller_base::controller_commands_callback, this);
+  controller_commands_sub_ = nh_.subscribe("controller_commands", 10, &controller_base::controller_commands_callback,
+                             this);
 
   memset(&vehicle_state_, 0, sizeof(vehicle_state_));
   memset(&controller_commands_, 0, sizeof(controller_commands_));
@@ -53,19 +55,19 @@ controller_base::controller_base():
   func_ = boost::bind(&controller_base::reconfigure_callback, this, _1, _2);
   server_.setCallback(func_);
 
-  actuators_pub_ = nh_.advertise<rosflight_msgs::Command>("command",10);
-  internals_pub_ = nh_.advertise<rosplane_msgs::Controller_Internals>("controller_inners",10);
-  act_pub_timer_ = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
+  actuators_pub_ = nh_.advertise<rosflight_msgs::Command>("command", 10);
+  internals_pub_ = nh_.advertise<rosplane_msgs::Controller_Internals>("controller_inners", 10);
+  act_pub_timer_ = nh_.createTimer(ros::Duration(1.0 / 100.0), &controller_base::actuator_controls_publish, this);
 
   command_recieved_ = false;
 }
 
-void controller_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg)
+void controller_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg)
 {
   vehicle_state_ = *msg;
 }
 
-void controller_base::controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr& msg)
+void controller_base::controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr &msg)
 {
   command_recieved_ = true;
   controller_commands_ = *msg;
@@ -110,12 +112,12 @@ void controller_base::reconfigure_callback(rosplane::ControllerConfig &config, u
 
 void controller_base::convert_to_pwm(controller_base::output_s &output)
 {
-  output.delta_e = output.delta_e*params_.pwm_rad_e;
-  output.delta_a = output.delta_a*params_.pwm_rad_a;
-  output.delta_r = output.delta_r*params_.pwm_rad_r;
+  output.delta_e = output.delta_e * params_.pwm_rad_e;
+  output.delta_a = output.delta_a * params_.pwm_rad_a;
+  output.delta_r = output.delta_r * params_.pwm_rad_r;
 }
 
-void controller_base::actuator_controls_publish(const ros::TimerEvent&)
+void controller_base::actuator_controls_publish(const ros::TimerEvent &)
 {
   struct input_s input;
   input.h = -vehicle_state_.position[2];
@@ -156,7 +158,7 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
       rosplane_msgs::Controller_Internals inners;
       inners.phi_c = output.phi_c;
       inners.theta_c = output.theta_c;
-      switch(output.current_zone)
+      switch (output.current_zone)
       {
       case alt_zones::TAKE_OFF:
         inners.alt_zone = inners.ZONE_TAKE_OFF;
@@ -181,9 +183,10 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent&)
 
 } //end namespace
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
   ros::init(argc, argv, "rosplane_controller");
-  rosplane::controller_base* cont = new rosplane::controller_example();
+  rosplane::controller_base *cont = new rosplane::controller_example();
 
   ros::spin();
 

@@ -21,7 +21,8 @@
 
 #define EARTH_RADIUS 6378145.0f
 
-namespace rosplane {
+namespace rosplane
+{
 
 
 class estimator_base
@@ -31,7 +32,8 @@ public:
 
 protected:
 
-  struct input_s {
+  struct input_s
+  {
     float gyro_x;
     float gyro_y;
     float gyro_z;
@@ -50,7 +52,8 @@ protected:
     bool armed_init;
   };
 
-  struct output_s {
+  struct output_s
+  {
     float pn;
     float pe;
     float h;
@@ -69,7 +72,8 @@ protected:
     float we;
   };
 
-  struct params_s {
+  struct params_s
+  {
     double gravity;
     double rho;
     double sigma_accel;
