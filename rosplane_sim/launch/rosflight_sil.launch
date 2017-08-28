@@ -17,35 +17,29 @@
   <!-- Spawn MAV -->
   <include file="$(find rosplane_sim)/launch/spawn_mav.launch">
     <arg name="mav_name"            value="$(arg mav_name)" />
-    <arg name="model"               value="$(find rosplane_sim)/xacro/$(arg mav_name).xacro" />
+    <arg name="model"               value="$(find rosplane_sim)/xacro/$(arg mav_name)_sil.xacro" />
   </include>
 
   <group ns="$(arg mav_name)">
-    <!-- Load Global Parameters for this MAV -->
-    <rosparam command="load" file="$(find rosplane_sim)/params/$(arg mav_name).yaml"/>
+    <!-- ROS interface rosflight_io -->
+    <node name="rosflight_io" pkg="rosflight" type="rosflight_io" output="screen">
+      <param name="udp" value="true"/>
+    </node>
+
+    <!-- Node for RC from a joystick to implement safety pilot override -->
+    <node name="safety_pilot" pkg="rosflight_utils" type="rc_joy"/>
 
     <node name="autopilot" pkg="rosplane" type="rosplane_controller" >
       <remap from="state" to="truth"/>
     </node>
 
     <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen"/>
-    <!-- Must publish a status: armed to estimate states -->
-    <node name="status_publisher" pkg="rostopic" type="rostopic" output="screen"
-      args="pub status rosflight_msgs/Status '{header: {seq: 0, stamp: 0, frame_id: 'none'},
-      armed: 'true', failsafe: 'false', rc_override: 'false', offboard: 'false',
-      control_mode: 0, error_code: 0, num_errors: 0, loop_time_us: 0}'"/>
 
     <node name="pathfollower" pkg="rosplane" type="rosplane_path_follower">
        <remap from="state" to="truth"/>
     </node>
 
-    <!-- <node name="current_path_publisher" pkg="rostopic" type="rostopic"
-      args="pub current_path rosplane_msgs/Current_Path '0' '15.0'  '[0.0, 0.0, -100.0]'  '[1.0, 0.0, 0.0]'  '[0.0, 0.0, -100.0]'  '100.0' '1'"/> -->
-
-    <node name="pathmanager" pkg="rosplane" type="rosplane_path_manager" output="screen">
-      <remap from="state" to="truth"/>
-    </node>
-
-    <node name="pathplanner" pkg="rosplane" type="rosplane_path_planner"/> 
+    <node name="current_path_publisher" pkg="rostopic" type="rostopic"
+      args="pub current_path rosplane_msgs/Current_Path '0' '15.0'  '[0.0, 0.0, -100.0]'  '[1.0, 0.0, 0.0]'  '[0.0, 0.0, -100.0]'  '100.0' '1'"/>
   </group>
 </launch>

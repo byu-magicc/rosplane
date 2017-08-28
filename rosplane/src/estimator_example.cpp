@@ -139,7 +139,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
     C_a(1) = qhat*Vahat*ct + params.gravity*ct;
     L_a = (P_a*C_a) / (R_accel + C_a.transpose()*P_a*C_a);
     P_a = (I - L_a*C_a.transpose())*P_a;
-    xhat_a += L_a *(lpf_accel_x - h_a);//input.accel_x - h_a);
+    xhat_a += L_a *((hhat<15 ? lpf_accel_x/3 : lpf_accel_x) - h_a);
 
     // y-axis accelerometer
     h_a = rhat*Vahat*ct - phat*Vahat*st - params.gravity*ct*sp;
@@ -148,7 +148,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
     C_a(1) = -rhat*Vahat*st - phat*Vahat*ct + params.gravity*st*sp;
     L_a = (P_a*C_a) / (R_accel + C_a.transpose()*P_a*C_a);
     P_a = (I - L_a*C_a.transpose())*P_a;
-    xhat_a += L_a *(lpf_accel_y - h_a);//input.accel_y - h_a);
+    xhat_a += L_a *(lpf_accel_y - h_a);
 
     // z-axis accelerometer
     h_a = -qhat*Vahat*ct - params.gravity*ct*cp;
@@ -157,7 +157,7 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
     C_a(1) = (qhat*Vahat + params.gravity*cp)*st;
     L_a = (P_a*C_a) / (R_accel + C_a.transpose()*P_a*C_a);
     P_a = (I - L_a*C_a.transpose())*P_a;
-    xhat_a += L_a *(lpf_accel_z - h_a);//input.accel_z - h_a);
+    xhat_a += L_a *(lpf_accel_z - h_a);
 
     check_xhat_a();
 

@@ -14,7 +14,7 @@ wing_M: 50
 wing_epsilon: 0.1592
 wing_alpha0: 0.3040363557
 
-k_motor: 40.0
+k_motor: 30.0
 k_T_P: 0.0
 k_Omega: 0.0
 
@@ -101,3 +101,25 @@ truthTopic: "truth"
 # Forces and Moments
 windSpeedTopic: "wind"
 commandTopic: "command"
+
+# Sensor Noise Parameters (These are empirically-determined)
+gyro_stdev: 0.02
+gyro_bias_range:  0.25
+gyro_bias_walk_stdev: 0.00001
+
+acc_stdev: 0.19
+acc_bias_range: 0.6
+acc_bias_walk_stdev: 0.00001
+
+baro_stdev: 4.0
+baro_bias_range: 500
+baro_bias_walk_stdev: 0.1
+
+sonar_stdev: 0.03
+sonar_min_range: 0.25
+sonar_max_range: 8.0
+
+# TODO: update these with empirically-derived values
+airspeed_stdev: 1.15
+airspeed_bias_range: 0.15
+airspeed_bias_walk_stdev: 0.001

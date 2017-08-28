@@ -11,6 +11,10 @@
 
 namespace rosplane {
 
+enum class path_type {
+    Orbit,
+    Line
+};
 
 class path_follower_base
 {
@@ -21,7 +25,7 @@ public:
 protected:
 
     struct input_s{
-        bool flag;
+        enum path_type p_type;
         float Va_d;
         float r_path[3];
         float q_path[3];
@@ -53,27 +57,25 @@ protected:
 private:
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
-    ros::Subscriber _vehicle_state_sub;
-    ros::Subscriber _current_path_sub;
+    ros::Subscriber vehicle_state_sub_;
+    ros::Subscriber current_path_sub_;
 
     ros::Publisher controller_commands_pub_;
 
     double update_rate_ = 100.0;
     ros::Timer update_timer_;
 
-    rosplane_msgs::State _vehicle_state;
-    rosplane_msgs::Current_Path _current_path;
     rosplane_msgs::Controller_Commands _controller_commands;
-    struct params_s  _params;            /**< params */
-    struct input_s _input;
+    struct params_s  params_;            /**< params */
+    struct input_s input_;
 
     void vehicle_state_callback(const rosplane_msgs::StateConstPtr& msg);
-    bool _state_init;
+    bool state_init_;
     void current_path_callback(const rosplane_msgs::Current_PathConstPtr& msg);
-    bool _current_path_init;
+    bool current_path_init_;
 
-    dynamic_reconfigure::Server<rosplane::FollowerConfig> _server;
-    dynamic_reconfigure::Server<rosplane::FollowerConfig>::CallbackType _func;
+    dynamic_reconfigure::Server<rosplane::FollowerConfig> server_;
+    dynamic_reconfigure::Server<rosplane::FollowerConfig>::CallbackType func_;
     void reconfigure_callback(rosplane::FollowerConfig &config, uint32_t level);
 
     void update(const ros::TimerEvent &);
