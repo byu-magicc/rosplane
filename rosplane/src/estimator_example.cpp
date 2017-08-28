@@ -339,8 +339,8 @@ void estimator_example::estimate(const params_s &params, const input_s &input, o
   }
   if (xhat_p_(6) - xhat_p_(3) > radians(360.0f) || xhat_p_(6) - xhat_p_(3) < radians(-360.0f))
   {
-    //xhat_p(3) = fmodf(xhat_p(3),2*M_PI);
-    xhat_p_(6) = fmodf(xhat_p_(6), 2*M_PI);
+    //xhat_p(3) = fmodf(xhat_p(3),2.0*M_PI);
+    xhat_p_(6) = fmodf(xhat_p_(6), 2.0*M_PI);
   }
 
   float pnhat = xhat_p_(0);

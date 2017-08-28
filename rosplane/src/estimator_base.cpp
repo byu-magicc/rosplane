@@ -82,10 +82,10 @@ void estimator_base::update(const ros::TimerEvent &)
   msg.we = output.we;
   msg.quat_valid = false;
 
-  msg.psi_deg = fmod(output.psi, 2*M_PI)*180/M_PI; //-360 to 360
+  msg.psi_deg = fmod(output.psi, 2.0*M_PI)*180/M_PI; //-360 to 360
   msg.psi_deg += (msg.psi_deg < -180 ? 360 : 0);
   msg.psi_deg -= (msg.psi_deg > 180 ? 360 : 0);
-  msg.chi_deg = fmod(output.chi, 2*M_PI)*180/M_PI; //-360 to 360
+  msg.chi_deg = fmod(output.chi, 2.0*M_PI)*180/M_PI; //-360 to 360
   msg.chi_deg += (msg.chi_deg < -180 ? 360 : 0);
   msg.chi_deg -= (msg.chi_deg > 180 ? 360 : 0);
 

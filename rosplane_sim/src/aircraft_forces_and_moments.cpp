@@ -246,7 +246,7 @@ void AircraftForcesAndMoments::UpdateForcesAndMoments()
     double sign = (alpha >= 0 ? 1 : -1); //Sigmoid function
     double sigma_a = (1 + exp(-(wing_.M*(alpha - wing_.alpha0))) + exp((wing_.M*(alpha + wing_.alpha0))))/((1 + exp(-
                      (wing_.M*(alpha - wing_.alpha0))))*(1 + exp((wing_.M*(alpha + wing_.alpha0)))));
-    double CL_a = (1 - sigma_a)*(CL_.O + CL_.alpha*alpha) + sigma_a*(2*sign*pow(sin(alpha), 2.0)*cos(alpha));
+    double CL_a = (1 - sigma_a)*(CL_.O + CL_.alpha*alpha) + sigma_a*(2.0*sign*pow(sin(alpha), 2.0)*cos(alpha));
     double AR = (pow(wing_.b, 2.0))/wing_.S;
     double CD_a = CD_.p + ((pow((CL_.O + CL_.alpha*(alpha)),
                                 2.0))/(3.14159*0.9 *
