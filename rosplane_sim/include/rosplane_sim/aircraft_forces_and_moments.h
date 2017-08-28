@@ -34,14 +34,14 @@
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Vector3.h>
 
-#include "rosplane_sim/common.h"
-
-namespace gazebo {
+namespace gazebo
+{
 static const std::string kDefaultWindSpeedSubTopic = "gazebo/wind_speed";
 
 
-class AircraftForcesAndMoments : public ModelPlugin {
- public:
+class AircraftForcesAndMoments : public ModelPlugin
+{
+public:
   AircraftForcesAndMoments();
 
   ~AircraftForcesAndMoments();
@@ -50,13 +50,13 @@ class AircraftForcesAndMoments : public ModelPlugin {
   void SendForces();
 
 
- protected:
+protected:
   void UpdateForcesAndMoments();
   void Reset();
   void Load(physics::ModelPtr _model, sdf::ElementPtr _sdf);
   void OnUpdate(const common::UpdateInfo & /*_info*/);
 
- private:
+private:
   std::string command_topic_;
   std::string wind_speed_topic_;
   std::string joint_name_;
@@ -81,7 +81,8 @@ class AircraftForcesAndMoments : public ModelPlugin {
   double rho_;
 
   // aerodynamic coefficients
-  struct WingCoeff{
+  struct WingCoeff
+  {
     double S;
     double b;
     double c;
@@ -91,7 +92,8 @@ class AircraftForcesAndMoments : public ModelPlugin {
   } wing_;
 
   // Propeller Coefficients
-  struct PropCoeff{
+  struct PropCoeff
+  {
     double k_motor;
     double k_T_P;
     double k_Omega;
@@ -101,7 +103,8 @@ class AircraftForcesAndMoments : public ModelPlugin {
   } prop_;
 
   // Lift Coefficients
-  struct LiftCoeff{
+  struct LiftCoeff
+  {
     double O;
     double alpha;
     double beta;
@@ -122,22 +125,25 @@ class AircraftForcesAndMoments : public ModelPlugin {
 
   // not constants
   // actuators
-  struct Actuators{
+  struct Actuators
+  {
     double e;
     double a;
     double r;
     double t;
   } delta_;
 
-    // wind
-  struct Wind{
+  // wind
+  struct Wind
+  {
     double N;
     double E;
     double D;
   } wind_;
 
   // container for forces
-  struct ForcesAndTorques{
+  struct ForcesAndTorques
+  {
     double Fx;
     double Fy;
     double Fz;
@@ -153,16 +159,14 @@ class AircraftForcesAndMoments : public ModelPlugin {
   // For reset handling
   math::Pose initial_pose_;
 
-  ros::NodeHandle* nh_;
+  ros::NodeHandle *nh_;
   ros::Subscriber command_sub_;
   ros::Subscriber wind_speed_sub_;
 
   boost::thread callback_queue_thread_;
-  void QueueThread();
-  void WindSpeedCallback(const geometry_msgs::Vector3& wind);
-  void CommandCallback(const rosflight_msgs::CommandConstPtr& msg);
+  void WindSpeedCallback(const geometry_msgs::Vector3 &wind);
+  void CommandCallback(const rosflight_msgs::CommandConstPtr &msg);
 
-  std::unique_ptr<FirstOrderFilter<double>>  rotor_velocity_filter_;
   math::Vector3 wind_speed_W_;
 };
 }

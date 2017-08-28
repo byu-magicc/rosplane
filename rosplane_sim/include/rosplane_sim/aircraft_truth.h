@@ -36,24 +36,26 @@
 
 #include "rosplane_sim/common.h"
 
-namespace gazebo {
+namespace gazebo
+{
 static const std::string kDefaultWindSpeedSubTopic = "gazebo/wind_speed";
 
 
-class AircraftTruth : public ModelPlugin {
- public:
+class AircraftTruth : public ModelPlugin
+{
+public:
   AircraftTruth();
 
   ~AircraftTruth();
 
   void InitializeParams();
 
- protected:
+protected:
   void PublishTruth();
   void Load(physics::ModelPtr _model, sdf::ElementPtr _sdf);
   void OnUpdate(const common::UpdateInfo & /*_info*/);
 
- private:
+private:
   std::string truth_topic_;
   std::string wind_speed_topic_;
   std::string joint_name_;
@@ -70,7 +72,8 @@ class AircraftTruth : public ModelPlugin {
   event::ConnectionPtr updateConnection_; // Pointer to the update event connection.
 
   // wind
-  struct Wind{
+  struct Wind
+  {
     double N;
     double E;
     double D;
@@ -80,13 +83,13 @@ class AircraftTruth : public ModelPlugin {
   double sampling_time_;
   double prev_sim_time_;
 
-  ros::NodeHandle* nh_;
+  ros::NodeHandle *nh_;
   ros::Subscriber wind_speed_sub_;
   ros::Publisher true_state_pub_;
 
   boost::thread callback_queue_thread_;
   void QueueThread();
-  void WindSpeedCallback(const geometry_msgs::Vector3& wind);
+  void WindSpeedCallback(const geometry_msgs::Vector3 &wind);
 
   std::unique_ptr<FirstOrderFilter<double>>  rotor_velocity_filter_;
   math::Vector3 wind_speed_W_;

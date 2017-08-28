@@ -29,7 +29,8 @@ AircraftTruth::AircraftTruth() :
 AircraftTruth::~AircraftTruth()
 {
   event::Events::DisconnectWorldUpdateBegin(updateConnection_);
-  if (nh_) {
+  if (nh_)
+  {
     nh_->shutdown();
     delete nh_;
   }
@@ -52,7 +53,7 @@ void AircraftTruth::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
     gzerr << "[gazebo_aircraft_truth] Please specify a namespace.\n";
   nh_ = new ros::NodeHandle(namespace_);
 
- if (_sdf->HasElement("linkName"))
+  if (_sdf->HasElement("linkName"))
     link_name_ = _sdf->GetElement("linkName")->Get<std::string>();
   else
     gzerr << "[gazebo_aircraft_truth] Please specify a linkName of the truth plugin.\n";
@@ -68,19 +69,21 @@ void AircraftTruth::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   updateConnection_ = event::Events::ConnectWorldUpdateBegin(boost::bind(&AircraftTruth::OnUpdate, this, _1));
 
   // Connect Subscribers
-  true_state_pub_ = nh_->advertise<rosplane_msgs::State>(truth_topic_,1);
+  true_state_pub_ = nh_->advertise<rosplane_msgs::State>(truth_topic_, 1);
   wind_speed_sub_ = nh_->subscribe(wind_speed_topic_, 1, &AircraftTruth::WindSpeedCallback, this);
 }
 
 // This gets called by the world update event.
-void AircraftTruth::OnUpdate(const common::UpdateInfo& _info) {
+void AircraftTruth::OnUpdate(const common::UpdateInfo &_info)
+{
 
   sampling_time_ = _info.simTime.Double() - prev_sim_time_;
   prev_sim_time_ = _info.simTime.Double();
   PublishTruth();
 }
 
-void AircraftTruth::WindSpeedCallback(const geometry_msgs::Vector3 &wind){
+void AircraftTruth::WindSpeedCallback(const geometry_msgs::Vector3 &wind)
+{
   wind_.N = wind.x;
   wind_.E = wind.y;
   wind_.D = wind.z;
@@ -109,7 +112,7 @@ void AircraftTruth::PublishTruth()
   double u = C_linear_velocity_W_C.x;
   double v = -C_linear_velocity_W_C.y;
   double w = -C_linear_velocity_W_C.z;
-  msg.Vg = sqrt(pow(u,2.0) + pow(v,2.0) + pow(w,2.0));
+  msg.Vg = sqrt(pow(u, 2.0) + pow(v, 2.0) + pow(w, 2.0));
   math::Vector3 C_angular_velocity_W_C = link_->GetRelativeAngularVel();
   msg.p = C_angular_velocity_W_C.x;
   msg.q = -C_angular_velocity_W_C.y;
@@ -123,7 +126,7 @@ void AircraftTruth::PublishTruth()
   double vr = v ;//- wind_.E;
   double wr = w ;//- wind_.D;
 
-  msg.Va = sqrt(pow(ur,2.0) + pow(vr,2.0) + pow(wr,2.0));
+  msg.Va = sqrt(pow(ur, 2.0) + pow(vr, 2.0) + pow(wr, 2.0));
   msg.chi = atan2(msg.Va*sin(msg.psi), msg.Va*cos(msg.psi));
   msg.alpha = atan2(wr , ur);
   msg.beta = asin(vr/msg.Va);
@@ -136,10 +139,12 @@ void AircraftTruth::PublishTruth()
   msg.header.stamp.fromSec(world_->GetSimTime().Double());
   msg.header.frame_id = 1; // Denotes global frame
 
-  msg.psi_deg = fmod(euler_angles.x,2*M_PI)*180/M_PI; //-360 to 360
-  msg.psi_deg += (msg.psi_deg < -180 ? 360 : 0); msg.psi_deg -= (msg.psi_deg > 180 ? 360 : 0);
-  msg.chi_deg = fmod(msg.chi,2*M_PI)*180/M_PI; //-360 to 360
-  msg.chi_deg += (msg.chi_deg < -180 ? 360 : 0); msg.chi_deg -= (msg.chi_deg > 180 ? 360 : 0);
+  msg.psi_deg = fmod(euler_angles.x, 2.0*M_PI)*1/0 / M_PI; //-360 to 360
+  msg.psi_deg += (msg.psi_deg < -180.0 ? 360.0 : 0.0);
+  msg.psi_deg -= (msg.psi_deg > 180.0 ? 360.0 : 0.0);
+  msg.chi_deg = fmod(msg.chi, 2.0*M_PI)*1/0 / M_PI; //-360 to 360
+  msg.chi_deg += (msg.chi_deg < -180.0 ? 360.0 : 0.0);
+  msg.chi_deg -= (msg.chi_deg > 180.0 ? 360.0 : 0.0);
 
   true_state_pub_.publish(msg);
 }
