@@ -57,7 +57,7 @@ controller_base::controller_base():
 
   actuators_pub_ = nh_.advertise<rosflight_msgs::Command>("command", 10);
   internals_pub_ = nh_.advertise<rosplane_msgs::Controller_Internals>("controller_inners", 10);
-  act_pub_timer_ = nh_.createTimer(ros::Duration(1.0 / 100.0), &controller_base::actuator_controls_publish, this);
+  act_pub_timer_ = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
 
   command_recieved_ = false;
 }
@@ -112,9 +112,9 @@ void controller_base::reconfigure_callback(rosplane::ControllerConfig &config, u
 
 void controller_base::convert_to_pwm(controller_base::output_s &output)
 {
-  output.delta_e = output.delta_e * params_.pwm_rad_e;
-  output.delta_a = output.delta_a * params_.pwm_rad_a;
-  output.delta_r = output.delta_r * params_.pwm_rad_r;
+  output.delta_e = output.delta_e*params_.pwm_rad_e;
+  output.delta_a = output.delta_a*params_.pwm_rad_a;
+  output.delta_r = output.delta_r*params_.pwm_rad_r;
 }
 
 void controller_base::actuator_controls_publish(const ros::TimerEvent &)

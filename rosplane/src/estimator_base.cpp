@@ -14,7 +14,7 @@ estimator_base::estimator_base():
   nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "airspeed");
   nh_private_.param<std::string>("status_topic", status_topic_, "status");
   nh_private_.param<double>("update_rate", update_rate_, 100.0);
-  params_.Ts = 1.0f / update_rate_;
+  params_.Ts = 1.0f/update_rate_;
   params_.gravity = 9.8;
   nh_private_.param<double>("rho", params_.rho, 1.225);
   nh_private_.param<double>("sigma_accel", params_.sigma_accel, 0.0245);
@@ -28,7 +28,7 @@ estimator_base::estimator_base():
   baro_sub_ = nh_.subscribe(baro_topic_, 10, &estimator_base::baroAltCallback, this);
   airspeed_sub_ = nh_.subscribe(airspeed_topic_, 10, &estimator_base::airspeedCallback, this);
   status_sub_ = nh_.subscribe(status_topic_, 1, &estimator_base::statusCallback, this);
-  update_timer_ = nh_.createTimer(ros::Duration(1.0 / update_rate_), &estimator_base::update, this);
+  update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &estimator_base::update, this);
   vehicle_state_pub_ = nh_.advertise<rosplane_msgs::State>("state", 10);
   init_static_ = 0;
   baro_count_ = 0;
@@ -82,10 +82,10 @@ void estimator_base::update(const ros::TimerEvent &)
   msg.we = output.we;
   msg.quat_valid = false;
 
-  msg.psi_deg = fmod(output.psi, 2 * M_PI) * 180 / M_PI; //-360 to 360
+  msg.psi_deg = fmod(output.psi, 2*M_PI)*180/M_PI; //-360 to 360
   msg.psi_deg += (msg.psi_deg < -180 ? 360 : 0);
   msg.psi_deg -= (msg.psi_deg > 180 ? 360 : 0);
-  msg.chi_deg = fmod(output.chi, 2 * M_PI) * 180 / M_PI; //-360 to 360
+  msg.chi_deg = fmod(output.chi, 2*M_PI)*180/M_PI; //-360 to 360
   msg.chi_deg += (msg.chi_deg < -180 ? 360 : 0);
   msg.chi_deg -= (msg.chi_deg > 180 ? 360 : 0);
 
@@ -108,8 +108,8 @@ void estimator_base::gpsCallback(const rosflight_msgs::GPS &msg)
   }
   else
   {
-    input_.gps_n = EARTH_RADIUS * (msg.latitude - init_lat_) * M_PI / 180.0;
-    input_.gps_e = EARTH_RADIUS * cos(init_lat_ * M_PI / 180.0) * (msg.longitude - init_lon_) * M_PI / 180.0;
+    input_.gps_n = EARTH_RADIUS*(msg.latitude - init_lat_)*M_PI/180.0;
+    input_.gps_e = EARTH_RADIUS*cos(init_lat_*M_PI/180.0)*(msg.longitude - init_lon_)*M_PI/180.0;
     input_.gps_h = msg.altitude - init_alt_;
     input_.gps_Vg = msg.speed;
     if (msg.speed > 0.3)
@@ -144,16 +144,16 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
     else
     {
       init_static_ = std::accumulate(init_static_vector_.begin(), init_static_vector_.end(),
-                                     0.0) / init_static_vector_.size();
+                                     0.0)/init_static_vector_.size();
       baro_init_ = true;
 
       //Check that it got a good calibration.
       std::sort(init_static_vector_.begin(), init_static_vector_.end());
-      float q1 = (init_static_vector_[24] + init_static_vector_[25]) / 2.0;
-      float q3 = (init_static_vector_[74] + init_static_vector_[75]) / 2.0;
+      float q1 = (init_static_vector_[24] + init_static_vector_[25])/2.0;
+      float q3 = (init_static_vector_[74] + init_static_vector_[75])/2.0;
       float IQR = q3 - q1;
-      float upper_bound = q3 + 2.0 * IQR;
-      float lower_bound = q1 - 2.0 * IQR;
+      float upper_bound = q3 + 2.0*IQR;
+      float lower_bound = q1 - 2.0*IQR;
       for (int i = 0; i < 100; i++)
       {
         if (init_static_vector_[i] > upper_bound)
@@ -180,7 +180,7 @@ void estimator_base::baroAltCallback(const rosflight_msgs::Barometer &msg)
     float static_pres_old = input_.static_pres;
     input_.static_pres = -msg.pressure + init_static_;
 
-    float gate_gain = 1.35 * params_.rho * params_.gravity;
+    float gate_gain = 1.35*params_.rho*params_.gravity;
     if (input_.static_pres < static_pres_old - gate_gain)
     {
       input_.static_pres = static_pres_old - gate_gain;
@@ -197,7 +197,7 @@ void estimator_base::airspeedCallback(const rosflight_msgs::Airspeed &msg)
   float diff_pres_old = input_.diff_pres;
   input_.diff_pres = msg.differential_pressure;
 
-  float gate_gain = pow(3, 2) * params_.rho / 2.0;
+  float gate_gain = pow(3, 2)*params_.rho/2.0;
   if (input_.diff_pres < diff_pres_old - gate_gain)
   {
     input_.diff_pres = diff_pres_old - gate_gain;

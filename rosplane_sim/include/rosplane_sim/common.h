@@ -72,7 +72,7 @@ class FirstOrderFilter
   continous time system:
       dx(t) = (-1/tau)*x(t) + (1/tau)*u(t)
   discretized system (ZoH):
-      x(k+1) = exp(samplingTime*(-1/tau))*x(k) + (1 - exp(samplingTime*(-1/tau))) * u(k)
+      x(k+1) = exp(samplingTime*(-1/tau))*x(k) + (1 - exp(samplingTime*(-1/tau)))*u(k)
   */
 
 public:
@@ -90,16 +90,16 @@ public:
     if (inputState > previousState_)
     {
       // Calcuate the outputState if accelerating.
-      double alphaUp = exp(- samplingTime / timeConstantUp_);
+      double alphaUp = exp(- samplingTime/timeConstantUp_);
       // x(k+1) = Ad*x(k) + Bd*u(k)
-      outputState = alphaUp * previousState_ + (1 - alphaUp) * inputState;
+      outputState = alphaUp*previousState_ + (1 - alphaUp)*inputState;
 
     }
     else
     {
       // Calculate the outputState if decelerating.
-      double alphaDown = exp(- samplingTime / timeConstantDown_);
-      outputState = alphaDown * previousState_ + (1 - alphaDown) * inputState;
+      double alphaDown = exp(- samplingTime/timeConstantDown_);
+      outputState = alphaDown*previousState_ + (1 - alphaDown)*inputState;
     }
     previousState_ = outputState;
     return outputState;
@@ -122,17 +122,17 @@ Eigen::Quaternion<typename Derived::Scalar> QuaternionFromSmallAngle(const Eigen
   typedef typename Derived::Scalar Scalar;
   EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived);
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 3);
-  const Scalar q_squared = theta.squaredNorm() / 4.0;
+  const Scalar q_squared = theta.squaredNorm()/4.0;
 
   if (q_squared < 1)
   {
-    return Eigen::Quaternion<Scalar>(sqrt(1 - q_squared), theta[0] * 0.5, theta[1] * 0.5, theta[2] * 0.5);
+    return Eigen::Quaternion<Scalar>(sqrt(1 - q_squared), theta[0]*0.5, theta[1]*0.5, theta[2]*0.5);
   }
   else
   {
-    const Scalar w = 1.0 / sqrt(1 + q_squared);
-    const Scalar f = w * 0.5;
-    return Eigen::Quaternion<Scalar>(w, theta[0] * f, theta[1] * f, theta[2] * f);
+    const Scalar w = 1.0/sqrt(1 + q_squared);
+    const Scalar f = w*0.5;
+    return Eigen::Quaternion<Scalar>(w, theta[0]*f, theta[1]*f, theta[2]*f);
   }
 }
 

@@ -6,4 +6,4 @@ align-pointer=name
 align-reference=name
 max-code-length=120
 suffix=none
-pad-oper
+pad-comma

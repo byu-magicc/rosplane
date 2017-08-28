@@ -28,7 +28,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
     output.phi_c = 0;
     output.delta_a = roll_hold(0.0, input.phi, input.p, params, input.Ts);
     output.delta_t = params.max_t;
-    output.theta_c = 15.0 * 3.14 / 180.0;
+    output.theta_c = 15.0*3.14/180.0;
     if (input.h >= params.alt_toz)
     {
       ROS_DEBUG("climb");
@@ -105,17 +105,17 @@ float controller_example::course_hold(float chi_c, float chi, float phi_ff, floa
 {
   float error = chi_c - chi;
 
-  c_integrator_ = c_integrator_ + (Ts / 2.0) * (error + c_error_);
+  c_integrator_ = c_integrator_ + (Ts/2.0)*(error + c_error_);
 
-  float up = params.c_kp * error;
-  float ui = params.c_ki * c_integrator_;
-  float ud = params.c_kd * r;
+  float up = params.c_kp*error;
+  float ui = params.c_ki*c_integrator_;
+  float ud = params.c_kd*r;
 
-  float phi_c = sat(up + ui + ud + phi_ff, 40.0 * 3.14 / 180.0, -40.0 * 3.14 / 180.0);
+  float phi_c = sat(up + ui + ud + phi_ff, 40.0*3.14/180.0, -40.0*3.14/180.0);
   if (fabs(params.c_ki) >= 0.00001)
   {
     float phi_c_unsat = up + ui + ud + phi_ff;
-    c_integrator_ = c_integrator_ + (Ts / params.c_ki) * (phi_c - phi_c_unsat);
+    c_integrator_ = c_integrator_ + (Ts/params.c_ki)*(phi_c - phi_c_unsat);
   }
 
   c_error_ = error;
@@ -126,17 +126,17 @@ float controller_example::roll_hold(float phi_c, float phi, float p, const param
 {
   float error = phi_c - phi;
 
-  r_integrator = r_integrator + (Ts / 2.0) * (error + r_error_);
+  r_integrator = r_integrator + (Ts/2.0)*(error + r_error_);
 
-  float up = params.r_kp * error;
-  float ui = params.r_ki * r_integrator;
-  float ud = params.r_kd * p;
+  float up = params.r_kp*error;
+  float ui = params.r_ki*r_integrator;
+  float ud = params.r_kd*p;
 
   float delta_a = sat(up + ui + ud, params.max_a, -params.max_a);
   if (fabs(params.r_ki) >= 0.00001)
   {
     float delta_a_unsat = up + ui + ud;
-    r_integrator = r_integrator + (Ts / params.r_ki) * (delta_a - delta_a_unsat);
+    r_integrator = r_integrator + (Ts/params.r_ki)*(delta_a - delta_a_unsat);
   }
 
   r_error_ = error;
@@ -147,17 +147,17 @@ float controller_example::pitch_hold(float theta_c, float theta, float q, const 
 {
   float error = theta_c - theta;
 
-  p_integrator_ = p_integrator_ + (Ts / 2.0) * (error + p_error_);
+  p_integrator_ = p_integrator_ + (Ts/2.0)*(error + p_error_);
 
-  float up = params.p_kp * error;
-  float ui = params.p_ki * p_integrator_;
-  float ud = params.p_kd * q;
+  float up = params.p_kp*error;
+  float ui = params.p_ki*p_integrator_;
+  float ud = params.p_kd*q;
 
-  float delta_e = sat(params.trim_e / params.pwm_rad_e + up + ui + ud, params.max_e, -params.max_e);
+  float delta_e = sat(params.trim_e/params.pwm_rad_e + up + ui + ud, params.max_e, -params.max_e);
   if (fabs(params.p_ki) >= 0.00001)
   {
-    float delta_e_unsat = params.trim_e / params.pwm_rad_e + up + ui + ud;
-    p_integrator_ = p_integrator_ + (Ts / params.p_ki) * (delta_e - delta_e_unsat);
+    float delta_e_unsat = params.trim_e/params.pwm_rad_e + up + ui + ud;
+    p_integrator_ = p_integrator_ + (Ts/params.p_ki)*(delta_e - delta_e_unsat);
   }
 
   p_error_ = error;
@@ -168,19 +168,19 @@ float controller_example::airspeed_with_pitch_hold(float Va_c, float Va, const p
 {
   float error = Va_c - Va;
 
-  ap_integrator_ = ap_integrator_ + (Ts / 2.0) * (error + ap_error_);
-  ap_differentiator_ = (2.0 * params.tau - Ts) / (2.0 * params.tau + Ts) * ap_differentiator_ + (2.0 /
-                       (2.0 * params.tau + Ts)) * (error - ap_error_);
+  ap_integrator_ = ap_integrator_ + (Ts/2.0)*(error + ap_error_);
+  ap_differentiator_ = (2.0*params.tau - Ts)/(2.0*params.tau + Ts)*ap_differentiator_ + (2.0 /
+                       (2.0*params.tau + Ts))*(error - ap_error_);
 
-  float up = params.a_p_kp * error;
-  float ui = params.a_p_ki * ap_integrator_;
-  float ud = params.a_p_kd * ap_differentiator_;
+  float up = params.a_p_kp*error;
+  float ui = params.a_p_ki*ap_integrator_;
+  float ud = params.a_p_kd*ap_differentiator_;
 
-  float theta_c = sat(up + ui + ud, 20.0 * 3.14 / 180.0, -25.0 * 3.14 / 180.0);
+  float theta_c = sat(up + ui + ud, 20.0*3.14/180.0, -25.0*3.14/180.0);
   if (fabs(params.a_p_ki) >= 0.00001)
   {
     float theta_c_unsat = up + ui + ud;
-    ap_integrator_ = ap_integrator_ + (Ts / params.a_p_ki) * (theta_c - theta_c_unsat);
+    ap_integrator_ = ap_integrator_ + (Ts/params.a_p_ki)*(theta_c - theta_c_unsat);
   }
 
   ap_error_ = error;
@@ -191,19 +191,19 @@ float controller_example::airspeed_with_throttle_hold(float Va_c, float Va, cons
 {
   float error = Va_c - Va;
 
-  at_integrator_ = at_integrator_ + (Ts / 2.0) * (error + at_error_);
-  at_differentiator_ = (2.0 * params.tau - Ts) / (2.0 * params.tau + Ts) * at_differentiator_ + (2.0 /
-                       (2.0 * params.tau + Ts)) * (error - at_error_);
+  at_integrator_ = at_integrator_ + (Ts/2.0)*(error + at_error_);
+  at_differentiator_ = (2.0*params.tau - Ts)/(2.0*params.tau + Ts)*at_differentiator_ + (2.0 /
+                       (2.0*params.tau + Ts))*(error - at_error_);
 
-  float up = params.a_t_kp * error;
-  float ui = params.a_t_ki * at_integrator_;
-  float ud = params.a_t_kd * at_differentiator_;
+  float up = params.a_t_kp*error;
+  float ui = params.a_t_ki*at_integrator_;
+  float ud = params.a_t_kd*at_differentiator_;
 
   float delta_t = sat(params.trim_t + up + ui + ud, params.max_t, 0);
   if (fabs(params.a_t_ki) >= 0.00001)
   {
     float delta_t_unsat = params.trim_t + up + ui + ud;
-    at_integrator_ = at_integrator_ + (Ts / params.a_t_ki) * (delta_t - delta_t_unsat);
+    at_integrator_ = at_integrator_ + (Ts/params.a_t_ki)*(delta_t - delta_t_unsat);
   }
 
   at_error_ = error;
@@ -214,19 +214,19 @@ float controller_example::altitiude_hold(float h_c, float h, const params_s &par
 {
   float error = h_c - h;
 
-  a_integrator_ = a_integrator_ + (Ts / 2.0) * (error + a_error_);
-  a_differentiator_ = (2.0 * params.tau - Ts) / (2.0 * params.tau + Ts) * a_differentiator_ + (2.0 /
-                      (2.0 * params.tau + Ts)) * (error - a_error_);
+  a_integrator_ = a_integrator_ + (Ts/2.0)*(error + a_error_);
+  a_differentiator_ = (2.0*params.tau - Ts)/(2.0*params.tau + Ts)*a_differentiator_ + (2.0 /
+                      (2.0*params.tau + Ts))*(error - a_error_);
 
-  float up = params.a_kp * error;
-  float ui = params.a_ki * a_integrator_;
-  float ud = params.a_kd * a_differentiator_;
+  float up = params.a_kp*error;
+  float ui = params.a_ki*a_integrator_;
+  float ud = params.a_kd*a_differentiator_;
 
-  float theta_c = sat(up + ui + ud, 35.0 * 3.14 / 180.0, -35.0 * 3.14 / 180.0);
+  float theta_c = sat(up + ui + ud, 35.0*3.14/180.0, -35.0*3.14/180.0);
   if (fabs(params.a_ki) >= 0.00001)
   {
     float theta_c_unsat = up + ui + ud;
-    a_integrator_ = a_integrator_ + (Ts / params.a_ki) * (theta_c - theta_c_unsat);
+    a_integrator_ = a_integrator_ + (Ts/params.a_ki)*(theta_c - theta_c_unsat);
   }
 
   at_error_ = error;

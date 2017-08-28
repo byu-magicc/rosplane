@@ -20,7 +20,7 @@ path_follower_base::path_follower_base():
   func_ = boost::bind(&path_follower_base::reconfigure_callback, this, _1, _2);
   server_.setCallback(func_);
 
-  update_timer_ = nh_.createTimer(ros::Duration(1.0 / update_rate_), &path_follower_base::update, this);
+  update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &path_follower_base::update, this);
   controller_commands_pub_ = nh_.advertise<rosplane_msgs::Controller_Commands>("controller_commands", 1);
 
   state_init_ = false;
