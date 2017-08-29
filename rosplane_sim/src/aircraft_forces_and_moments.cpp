@@ -20,13 +20,14 @@
 namespace gazebo
 {
 
-AircraftForcesAndMoments::AircraftForcesAndMoments(){}
+AircraftForcesAndMoments::AircraftForcesAndMoments() {}
 
 
 AircraftForcesAndMoments::~AircraftForcesAndMoments()
 {
   event::Events::DisconnectWorldUpdateBegin(updateConnection_);
-  if (nh_) {
+  if (nh_)
+  {
     nh_->shutdown();
     delete nh_;
   }
@@ -170,7 +171,8 @@ void AircraftForcesAndMoments::Load(physics::ModelPtr _model, sdf::ElementPtr _s
 }
 
 // This gets called by the world update event.
-void AircraftForcesAndMoments::OnUpdate(const common::UpdateInfo& _info) {
+void AircraftForcesAndMoments::OnUpdate(const common::UpdateInfo &_info)
+{
   sampling_time_ = _info.simTime.Double() - prev_sim_time_;
   prev_sim_time_ = _info.simTime.Double();
   UpdateForcesAndMoments();
@@ -190,7 +192,8 @@ void AircraftForcesAndMoments::Reset()
   link_->ResetPhysicsStates();
 }
 
-void AircraftForcesAndMoments::WindSpeedCallback(const geometry_msgs::Vector3 &wind){
+void AircraftForcesAndMoments::WindSpeedCallback(const geometry_msgs::Vector3 &wind)
+{
   wind_.N = wind.x;
   wind_.E = wind.y;
   wind_.D = wind.z;
@@ -210,7 +213,7 @@ void AircraftForcesAndMoments::UpdateForcesAndMoments()
 {
   /* Get state information from Gazebo (in NED)                 *
    * C denotes child frame, P parent frame, and W world frame.  *
-//   * Further C_pose_W_P denotes pose of P wrt. W expressed in C.*/
+  //   * Further C_pose_W_P denotes pose of P wrt. W expressed in C.*/
   math::Vector3 C_linear_velocity_W_C = link_->GetRelativeLinearVel();
   double u = C_linear_velocity_W_C.x;
   double v = -C_linear_velocity_W_C.y;
@@ -226,10 +229,10 @@ void AircraftForcesAndMoments::UpdateForcesAndMoments()
   double vr = v - wind_.E;
   double wr = w - wind_.D;
 
-  double Va = sqrt(pow(ur,2.0) + pow(vr,2.0) + pow(wr,2.0));
+  double Va = sqrt(pow(ur, 2.0) + pow(vr, 2.0) + pow(wr, 2.0));
 
   // Don't divide by zero, and don't let NaN's get through (sometimes GetRelativeLinearVel returns NaNs)
-  if(Va > 0.000001 && std::isfinite(Va))
+  if (Va > 0.000001 && std::isfinite(Va))
   {
     /*
      * The following math follows the method described in chapter 4 of
@@ -240,11 +243,14 @@ void AircraftForcesAndMoments::UpdateForcesAndMoments()
     double alpha = atan2(wr , ur);
     double beta = asin(vr/Va);
 
-    double sign = (alpha >= 0? 1: -1);//Sigmoid function
-    double sigma_a = (1 + exp(-(wing_.M*(alpha - wing_.alpha0))) + exp((wing_.M*(alpha + wing_.alpha0))))/((1 + exp(-(wing_.M*(alpha - wing_.alpha0))))*(1 + exp((wing_.M*(alpha + wing_.alpha0)))));
-    double CL_a = (1 - sigma_a)*(CL_.O + CL_.alpha*alpha) + sigma_a*(2*sign*pow(sin(alpha),2.0)*cos(alpha));
+    double sign = (alpha >= 0 ? 1 : -1); //Sigmoid function
+    double sigma_a = (1 + exp(-(wing_.M*(alpha - wing_.alpha0))) + exp((wing_.M*(alpha + wing_.alpha0))))/((1 + exp(-
+                     (wing_.M*(alpha - wing_.alpha0))))*(1 + exp((wing_.M*(alpha + wing_.alpha0)))));
+    double CL_a = (1 - sigma_a)*(CL_.O + CL_.alpha*alpha) + sigma_a*(2.0*sign*pow(sin(alpha), 2.0)*cos(alpha));
     double AR = (pow(wing_.b, 2.0))/wing_.S;
-    double CD_a = CD_.p + ((pow((CL_.O + CL_.alpha*(alpha)),2.0))/(3.14159*0.9*AR));//the const 0.9 in this equation replaces the e (Oswald Factor) variable and may be inaccurate
+    double CD_a = CD_.p + ((pow((CL_.O + CL_.alpha*(alpha)),
+                                2.0))/(3.14159*0.9 *
+                                         AR)); //the const 0.9 in this equation replaces the e (Oswald Factor) variable and may be inaccurate
 
     double CX_a = -CD_a*cos(alpha) + CL_a*sin(alpha);
     double CX_q_a = -CD_.q*cos(alpha) + CL_.q*sin(alpha);
@@ -254,17 +260,25 @@ void AircraftForcesAndMoments::UpdateForcesAndMoments()
     double CZ_q_a = -CD_.q*sin(alpha) - CL_.q*cos(alpha);
     double CZ_deltaE_a = -CD_.delta_e*sin(alpha) - CL_.delta_e*cos(alpha);
 
-    forces_.Fx = 0.5*(rho_)*pow(Va,2.0)*wing_.S*(CX_a + (CX_q_a*wing_.c*q)/(2.0*Va) + CX_deltaE_a * delta_.e) + 0.5*rho_*prop_.S*prop_.C*(pow((prop_.k_motor*delta_.t),2.0) - pow(Va,2.0));
-    forces_.Fy = 0.5*(rho_)*pow(Va,2.0)*wing_.S*(CY_.O + CY_.beta*beta + ((CY_.p*wing_.b*p)/(2.0*Va)) + ((CY_.r*wing_.b*r)/(2.0*Va)) + CY_.delta_a*delta_.a + CY_.delta_r*delta_.r);
-    forces_.Fz = 0.5*(rho_)*pow(Va,2.0)*wing_.S*(CZ_a + (CZ_q_a*wing_.c*q)/(2.0*Va) + CZ_deltaE_a * delta_.e);
+    forces_.Fx = 0.5*(rho_)*pow(Va, 2.0)*wing_.S*(CX_a + (CX_q_a*wing_.c*q) /
+                 (2.0*Va) + CX_deltaE_a*delta_.e) + 0.5*rho_*prop_.S*prop_.C*(pow((prop_.k_motor*delta_.t), 2.0) - pow(Va,
+                     2.0));
+    forces_.Fy = 0.5*(rho_)*pow(Va, 2.0)*wing_.S*(CY_.O + CY_.beta*beta + ((CY_.p*wing_.b*p) /
+                 (2.0*Va)) + ((CY_.r*wing_.b*r)/(2.0*Va)) + CY_.delta_a*delta_.a + CY_.delta_r*delta_.r);
+    forces_.Fz = 0.5*(rho_)*pow(Va, 2.0)*wing_.S*(CZ_a + (CZ_q_a*wing_.c*q) /
+                 (2.0*Va) + CZ_deltaE_a*delta_.e);
 
-    forces_.l = 0.5*(rho_)*pow(Va,2.0)*wing_.S*wing_.b*(Cell_.O + Cell_.beta*beta + (Cell_.p*wing_.b*p)/(2.0*Va) + (Cell_.r*wing_.b*r)/(2.0*Va) + Cell_.delta_a*delta_.a + Cell_.delta_r*delta_.r) - prop_.k_T_P*pow((prop_.k_Omega*delta_.t),2.0);
-    forces_.m = 0.5*(rho_)*pow(Va,2.0)*wing_.S*wing_.c*(Cm_.O + Cm_.alpha*alpha + (Cm_.q*wing_.c*q)/(2.0*Va) + Cm_.delta_e*delta_.e);
-    forces_.n = 0.5*(rho_)*pow(Va,2.0)*wing_.S*wing_.b*(Cn_.O + Cn_.beta*beta + (Cn_.p*wing_.b*p)/(2.0*Va) + (Cn_.r*wing_.b*r)/(2.0*Va) + Cn_.delta_a*delta_.a + Cn_.delta_r*delta_.r);
+    forces_.l = 0.5*(rho_)*pow(Va, 2.0)*wing_.S*wing_.b*(Cell_.O + Cell_.beta*beta + (Cell_.p*wing_.b*p) /
+                (2.0*Va) + (Cell_.r*wing_.b*r)/(2.0*Va) + Cell_.delta_a*delta_.a + Cell_.delta_r*delta_.r) - prop_.k_T_P *
+                pow((prop_.k_Omega*delta_.t), 2.0);
+    forces_.m = 0.5*(rho_)*pow(Va, 2.0)*wing_.S*wing_.c*(Cm_.O + Cm_.alpha*alpha + (Cm_.q*wing_.c*q) /
+                (2.0*Va) + Cm_.delta_e*delta_.e);
+    forces_.n = 0.5*(rho_)*pow(Va, 2.0)*wing_.S*wing_.b*(Cn_.O + Cn_.beta*beta + (Cn_.p*wing_.b*p) /
+                (2.0*Va) + (Cn_.r*wing_.b*r)/(2.0*Va) + Cn_.delta_a*delta_.a + Cn_.delta_r*delta_.r);
   }
   else
   {
-    if(!std::isfinite(Va))
+    if (!std::isfinite(Va))
     {
       gzerr << "u = " << u << "\n";
       gzerr << "v = " << v << "\n";
@@ -279,7 +293,7 @@ void AircraftForcesAndMoments::UpdateForcesAndMoments()
     }
     else
     {
-      forces_.Fx = 0.5*rho_*prop_.S*prop_.C*(pow((prop_.k_motor*delta_.t),2.0));
+      forces_.Fx = 0.5*rho_*prop_.S*prop_.C*(pow((prop_.k_motor*delta_.t), 2.0));
       forces_.Fy = 0.0;
       forces_.Fz = 0.0;
       forces_.l = 0.0;
@@ -293,7 +307,7 @@ void AircraftForcesAndMoments::UpdateForcesAndMoments()
 void AircraftForcesAndMoments::SendForces()
 {
   // Make sure we are applying reasonable forces
-  if(std::isfinite(forces_.Fx + forces_.Fy + forces_.Fz + forces_.l + forces_.m + forces_.n))
+  if (std::isfinite(forces_.Fx + forces_.Fy + forces_.Fz + forces_.l + forces_.m + forces_.n))
   {
     // apply the forces and torques to the joint
     link_->AddRelativeForce(math::Vector3(forces_.Fx, -forces_.Fy, -forces_.Fz));
