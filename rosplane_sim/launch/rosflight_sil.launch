@@ -30,13 +30,14 @@
     <node name="safety_pilot" pkg="rosflight_utils" type="rc_joy"/>
 
     <node name="autopilot" pkg="rosplane" type="rosplane_controller" >
-      <remap from="state" to="truth"/>
+      <!-- <remap from="state" to="truth"/> -->
     </node>
 
     <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen"/>
+    <node name="plots" pkg="rosplane_utils" type="estimator_plots.py" output="screen"/>
 
     <node name="pathfollower" pkg="rosplane" type="rosplane_path_follower">
-       <remap from="state" to="truth"/>
+       <!-- <remap from="state" to="truth"/> -->
     </node>
 
     <node name="current_path_publisher" pkg="rostopic" type="rostopic"

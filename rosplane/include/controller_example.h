@@ -11,8 +11,9 @@ class controller_example : public controller_base
 public:
   controller_example();
 private:
-  virtual void control(const struct params_s &params, const struct input_s &input, struct output_s &output);
-  alt_zones current_zone;
+    virtual void control(const struct params_s &params, const struct input_s &input, struct output_s &output);
+    virtual void tune(const params_s &params, const input_s &input, const struct tuning_input_s &tuning_input, output_s &output);
+    alt_zones current_zone;
 
   float course_hold(float chi_c, float chi, float phi_ff, float r, const struct params_s &params, float Ts);
   float c_error_;

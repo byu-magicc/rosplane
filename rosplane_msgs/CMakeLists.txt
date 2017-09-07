@@ -13,6 +13,7 @@ add_message_files(
   Waypoint.msg
   Controller_Internals.msg
   State.msg
+  State_Lite.msg
 )
 
 generate_messages(
