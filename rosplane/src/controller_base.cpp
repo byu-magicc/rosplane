@@ -135,20 +135,20 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent &)
   input.Ts = 0.01f;
 
     struct output_s output;
-    if(_command_recieved == true)
+    if(command_recieved_ == true)
     {
-        if(!_controller_commands.aux_valid)
+        if(!controller_commands_.aux_valid)
         {
-            control(_params, input, output);
+            control(params_, input, output);
         }
         else
         {
             struct tuning_input_s tuning_input;
-            tuning_input.mode = static_cast<enum tuning_modes>(_controller_commands.aux_state);
-            tuning_input.theta_c = _controller_commands.aux[0];
-            tuning_input.phi_c = _controller_commands.aux[1];
-            tuning_input.thr_c = _controller_commands.aux[2];
-            tune(_params, input, tuning_input, output);
+            tuning_input.mode = static_cast<enum tuning_modes>(controller_commands_.aux_state);
+            tuning_input.theta_c = controller_commands_.aux[0];
+            tuning_input.phi_c = controller_commands_.aux[1];
+            tuning_input.thr_c = controller_commands_.aux[2];
+            tune(params_, input, tuning_input, output);
         }
         
 

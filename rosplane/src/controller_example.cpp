@@ -104,7 +104,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
 void controller_example::tune(const params_s &params, const input_s &input, const struct tuning_input_s &tuning_input, output_s &output)
 {
     output.delta_r = 0.0f;
-    output.current_zone = alt_zones::AltitudeHold;
+    output.current_zone = alt_zones::ALTITUDE_HOLD;
     switch(tuning_input.mode) {
         case tuning_modes::Roll:
             output.phi_c = tuning_input.phi_c;
