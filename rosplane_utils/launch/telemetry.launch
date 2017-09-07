@@ -1,0 +1,27 @@
+<launch>
+  <!-- topic rates must be from 1-10 hz in order for mavlink to function well at the current baud rate -->
+  <arg name="state_topic" default="state"/>
+  <arg name="state_rate" default="10"/>
+  <arg name="current_path_topic" default="current_path"/>
+  <arg name="current_path_rate" default="2"/>
+  <arg name="waypoint_topic" default="waypoints"/>
+  <arg name="waypoint_rate" default="1"/>
+  <arg name="rc_raw_topic" default="rc_raw"/>
+  <arg name="rc_raw_rate" default="1"/>
+  <arg name="gps_data_topic" default="gps/data"/>
+  <arg name="gps_data_rate" default="1"/>
+  <arg name="controller_inners_topic" default="controller_inners"/>
+  <arg name="controller_inners_rate" default="5"/>
+  <arg name="controller_commands_topic" default="controller_commands"/>
+  <arg name="controller_commands_rate" default="5"/>
+  <!-- throttle incoming topics to avoid overwhelming the serial writer -->
+  <!-- <node name="state_throttler" type="throttle" pkg="topic_tools" args="messages $(arg state_topic) $(arg state_rate) $(arg state_topic)_throttled"/> -->
+  <node name="state_throttler" type="rosplane_telemetry.py" pkg="rosplane_utils" args="--rate $(arg state_rate)"/>
+  <node name="current_path_throttler" type="throttle" pkg="topic_tools" args="messages $(arg current_path_topic) $(arg current_path_rate) $(arg current_path_topic)"/>
+  <node name="waypoint_throttler" type="throttle" pkg="topic_tools" args="messages $(arg waypoint_topic) $(arg waypoint_rate) telem/$(arg waypoint_topic)"/>
+  <node name="rc_raw_throttler" type="throttle" pkg="topic_tools" args="messages $(arg rc_raw_topic) $(arg rc_raw_rate) telem/$(arg rc_raw_topic)"/>
+  <node name="gps_data_throttler" type="throttle" pkg="topic_tools" args="messages $(arg gps_data_topic) $(arg gps_data_rate) telem/$(arg gps_data_topic)"/>
+  <node name="controller_inners_throttler" type="throttle" pkg="topic_tools" args="messages $(arg controller_inners_topic) $(arg controller_inners_rate) telem/$(arg controller_inners_topic)"/>
+  <node name="controller_commands_throttler" type="throttle" pkg="topic_tools" args="messages $(arg controller_commands_topic) $(arg controller_commands_rate) telem/$(arg controller_commands_topic)"/>
+
+</launch>
