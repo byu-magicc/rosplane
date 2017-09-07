@@ -84,7 +84,7 @@ def main():
     arg_fmt = argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(formatter_class=arg_fmt,
                                     description=main.__doc__)
-    parser.add_argument('--rate', type=float, default=20.0)
+    parser.add_argument('--rate', type=float, default=10.0)
     args = parser.parse_args(rospy.myargv()[1:])
 
     print("Initializing node... ")
