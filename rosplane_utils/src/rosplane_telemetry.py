@@ -75,6 +75,7 @@ class ROSplane_Telemetry(object):
         while not rospy.is_shutdown():
             if self.ready:
                 self.state_lite_pub.publish(self.state_lite_msg)
+                self.ready = False
             rate.sleep()
 
 def main():
