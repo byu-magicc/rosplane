@@ -11,9 +11,6 @@
     <arg name="debug" value="false"/>
   </include>
 
-  <!-- Load Global Parameters for this MAV -->
-  <rosparam command="load" file="$(find rosplane_sim)/params/$(arg mav_name).yaml" ns="$(arg mav_name)"/>
-
   <!-- Spawn MAV -->
   <include file="$(find rosplane_sim)/launch/spawn_mav.launch">
     <arg name="mav_name"            value="$(arg mav_name)" />

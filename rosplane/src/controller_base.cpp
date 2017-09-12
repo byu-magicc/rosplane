@@ -5,8 +5,8 @@ namespace rosplane
 {
 
 controller_base::controller_base():
-  nh_(ros::NodeHandle()),
-  nh_private_(ros::NodeHandle())
+  nh_(),
+  nh_private_("~")
 {
   vehicle_state_sub_ = nh_.subscribe("state", 10, &controller_base::vehicle_state_callback, this);
   controller_commands_sub_ = nh_.subscribe("controller_commands", 10, &controller_base::controller_commands_callback,
