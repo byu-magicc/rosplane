@@ -41,14 +41,21 @@ void path_manager_example::manage(const params_s &params, const input_s &input, 
   }
 }
 
+/*
+  Manage_line is the C++ implementation of the Follow Waypoints algorithm (UAVbook page 189, Algorothm 5).
+  It produces paths like that described in UAVbook page 190 figure 11.2.
+*/
 void path_manager_example::manage_line(const params_s &params, const input_s &input, output_s &output)
 {
-//We will be using the Eigen matrix class for math functionality.
-//Create a position vector with north, east, and height inputs
+  //Eigen is a c++ matrix library. It is used here to create a north east down position holder
   Eigen::Vector3f p;
   p << input.pn, input.pe, -input.h;
 
-//These indexes will shuffle through waypoints until it hits the last 3, then it continually flies the last 3
+/*
+Indexes a, b, and c are used to iterate through the waypoints cyclically such that the algorithm always
+has three waypoints to work with. (W_i-1, W_i, W_i+1) A corresponds to W_i-1. B correspondes to W_i.
+C corresponds to W_i+1.
+*/
   int idx_b;
   int idx_c;
   if (idx_a_ == num_waypoints_ - 1)
@@ -67,33 +74,41 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
     idx_c = idx_b + 1;
   }
 
-  //This is implementing code from Dr. McMlain and Dr. Beard's book called Small Unmanned Aircraft
-  //index a is the waypoint that the plane is coming from, b is the waypoint the plane is heading to, and c
-  //is the waypoint after that.
-  Eigen::Vector3f w_im1(waypoints_[idx_a_].w);
-  Eigen::Vector3f w_i(waypoints_[idx_b].w);
-  Eigen::Vector3f w_ip1(waypoints_[idx_c].w);
+//These 3 dimensional column vectors store floats corresponding to the 3 waypoints mentioned above.
+  Eigen::Vector3f w_im1(waypoints_[idx_a_].w); //Corresponds to W_i-1
+  Eigen::Vector3f w_i(waypoints_[idx_b].w); //Corresponds to W_i
+  Eigen::Vector3f w_ip1(waypoints_[idx_c].w); //Corresponds to W_i+1
 
   output.flag = true;
   output.Va_d = waypoints_[idx_a_].Va_d;
+
+  //The r vector to be returned as described in algorithm 5 lines 4 and 11is assigned a value.
   output.r[0] = w_im1(0);
   output.r[1] = w_im1(1);
   output.r[2] = w_im1(2);
+
+  //Unit vectors q_i-1 and q_i are assigned values as described in algorithm 5 lines 5 and 6
   Eigen::Vector3f q_im1 = (w_i - w_im1).normalized();
   Eigen::Vector3f q_i = (w_ip1 - w_i).normalized();
+
+  //The dq vector to be returned us assigned a value as described in algorithm 5 line 11
   output.q[0] = q_im1(0);
   output.q[1] = q_im1(1);
   output.q[2] = q_im1(2);
 
+ //The unit vector n_i is assigned a value as described in algorithm 5 line 7
   Eigen::Vector3f n_i = (q_im1 + q_i).normalized();
+
+  //We check to see if the auv has entered the half space H(w_i, n_i) described in algorithm 5 line 8
   if ((p - w_i).dot(n_i) > 0.0f)
   {
+    //We move one step further in the waypoints. Until we reach N-1 waypoints. At that point we start again at the beginning
     if (idx_a_ == num_waypoints_ - 1)
       idx_a_ = 0;
     else
       idx_a_++;
   }
-
+//Because we are simply using pointers, there is no need to "return" a value. Therefore this function is fine to return type void.
 }
 
 void path_manager_example::manage_fillet(const params_s &params, const input_s &input, output_s &output)
