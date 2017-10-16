@@ -5,6 +5,7 @@
 namespace rosplane
 {
 
+//Constructor for the class. Runs code in path_manager_base() first, then these two lines in addition.
 path_manager_example::path_manager_example() : path_manager_base()
 {
   fil_state_ = fillet_state::STRAIGHT;
@@ -42,10 +43,12 @@ void path_manager_example::manage(const params_s &params, const input_s &input, 
 
 void path_manager_example::manage_line(const params_s &params, const input_s &input, output_s &output)
 {
-
+//We will be using the Eigen matrix class for math functionality.
+//Create a position vector with north, east, and height inputs
   Eigen::Vector3f p;
   p << input.pn, input.pe, -input.h;
 
+//These indexes will shuffle through waypoints until it hits the last 3, then it continually flies the last 3
   int idx_b;
   int idx_c;
   if (idx_a_ == num_waypoints_ - 1)
@@ -64,6 +67,9 @@ void path_manager_example::manage_line(const params_s &params, const input_s &in
     idx_c = idx_b + 1;
   }
 
+  //This is implementing code from Dr. McMlain and Dr. Beard's book called Small Unmanned Aircraft
+  //index a is the waypoint that the plane is coming from, b is the waypoint the plane is heading to, and c
+  //is the waypoint after that.
   Eigen::Vector3f w_im1(waypoints_[idx_a_].w);
   Eigen::Vector3f w_i(waypoints_[idx_b].w);
   Eigen::Vector3f w_ip1(waypoints_[idx_c].w);
@@ -97,10 +103,11 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
     manage_line(params, input, output);
     return;
   }
-
+  //create a position vector with north, east, and height inputs. Note that -h is actually up
   Eigen::Vector3f p;
   p << input.pn, input.pe, -input.h;
-
+  
+  //These indexes shuffle through the waypoints in the correct order
   int idx_b;
   int idx_c;
   if (idx_a_ == num_waypoints_ - 1)
@@ -119,12 +126,17 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
     idx_c = idx_b + 1;
   }
 
+  //This is code directly implemented from the Small Unmanned Aircraft by McClain and Beard (pg. 193)
+  //w_im1 stands for w_(i minus 1); w_ip1 stands for w_(i plus 1). It is referring to the waypoint the 
+  //plane came from, the one it's heading towards, and then the waypoint next in line
   Eigen::Vector3f w_im1(waypoints_[idx_a_].w);
   Eigen::Vector3f w_i(waypoints_[idx_b].w);
   Eigen::Vector3f w_ip1(waypoints_[idx_c].w);
 
+  //This controls the minimum turn radius of the aircraft
   float R_min = params.R_min;
 
+  //output velocity and 
   output.Va_d = waypoints_[idx_a_].Va_d;
   output.r[0] = w_im1(0);
   output.r[1] = w_im1(1);
