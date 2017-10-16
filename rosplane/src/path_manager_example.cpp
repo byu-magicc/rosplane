@@ -118,7 +118,7 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
     manage_line(params, input, output);
     return;
   }
-  //create a position vector with north, east, and height inputs. Note that -h is actually up
+  //create a 3D position vector (float) with north, east, and height inputs. Note that -h is actually up
   Eigen::Vector3f p;
   p << input.pn, input.pe, -input.h;
   
@@ -142,20 +142,20 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
   }
 
   //This is code directly implemented from the Small Unmanned Aircraft by McClain and Beard (pg. 193)
-  //w_im1 stands for w_(i minus 1); w_ip1 stands for w_(i plus 1). It is referring to the waypoint the 
-  //plane came from, the one it's heading towards, and then the waypoint next in line
-  Eigen::Vector3f w_im1(waypoints_[idx_a_].w);
-  Eigen::Vector3f w_i(waypoints_[idx_b].w);
-  Eigen::Vector3f w_ip1(waypoints_[idx_c].w);
+  Eigen::Vector3f w_im1(waypoints_[idx_a_].w); //Corresponds to W_i-1
+  Eigen::Vector3f w_i(waypoints_[idx_b].w);    //Corresponds to W_i
+  Eigen::Vector3f w_ip1(waypoints_[idx_c].w);  //Corresponds to W_i+1
 
   //This controls the minimum turn radius of the aircraft
   float R_min = params.R_min;
 
-  //output velocity and 
+  //output velocity and r
   output.Va_d = waypoints_[idx_a_].Va_d;
   output.r[0] = w_im1(0);
   output.r[1] = w_im1(1);
   output.r[2] = w_im1(2);
+
+  //implement lines 4-6 from UAVbook pg 193
   Eigen::Vector3f q_im1 = (w_i - w_im1).normalized();
   Eigen::Vector3f q_i = (w_ip1 - w_i).normalized();
   float beta = acosf(-q_im1.dot(q_i));
@@ -163,7 +163,7 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
   Eigen::Vector3f z;
   switch (fil_state_)
   {
-  case fillet_state::STRAIGHT:
+  case fillet_state::STRAIGHT: //follows a straight line to the next waypoint
     output.flag = true;
     output.q[0] = q_im1(0);
     output.q[1] = q_im1(1);
@@ -174,10 +174,12 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
     output.rho = 1;
     output.lambda = 1;
     z = w_i - q_im1*(R_min/tanf(beta/2.0));
+    //if plane has crossed first half plane (ie it needs to start the fillet), change state to ORBIT
     if ((p - z).dot(q_im1) > 0)
       fil_state_ = fillet_state::ORBIT;
     break;
-  case fillet_state::ORBIT:
+  case fillet_state::ORBIT:  //this is when the plane follows the orbit that defines the fillet
+    //implement lines 15-25 in UAVbook pg 193
     output.flag = false;
     output.q[0] = q_i(0);
     output.q[1] = q_i(1);
@@ -189,6 +191,7 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
     output.rho = R_min;
     output.lambda = ((q_im1(0)*q_i(1) - q_im1(1)*q_i(0)) > 0 ? 1 : -1);
     z = w_i + q_i*(R_min/tanf(beta/2.0));
+    //If the second half plane is crossed, change state to STRAIGHT
     if ((p - z).dot(q_i) > 0)
     {
       if (idx_a_ == num_waypoints_ - 1)
