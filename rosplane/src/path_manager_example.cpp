@@ -194,12 +194,17 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
   }
 }
 
+/*
+  Manage_dubins is the C++ implementation of the Follow Waypoints with Dubins algorithm (UAVbook page 203, Algorothm 8).
+  It produces paths like that described in UAVbook page 202 figure 11.14.
+*/
 void path_manager_example::manage_dubins(const params_s &params, const input_s &input, output_s &output)
 {
+  // Make a 3 dimesnional column vector of type float to store the position of the UAV
   Eigen::Vector3f p;
+  //Input the position of the UAV into the column vector
   p << input.pn, input.pe, -input.h;
 
-  output.Va_d = waypoints_[idx_a_].Va_d;
   output.r[0] = 0;
   output.r[1] = 0;
   output.r[2] = 0;
@@ -213,7 +218,9 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
   switch (dub_state_)
   {
   case dubin_state::FIRST:
+    //The dubins parameters are found as described in algorithm 8 line 4
     dubinsParameters(waypoints_[0], waypoints_[1], params.R_min);
+
     output.flag = false;
     output.c[0] = dubinspath_.cs(0);
     output.c[1] = dubinspath_.cs(1);
@@ -357,46 +364,66 @@ float path_manager_example::mo(float in)
   return val;
 }
 
+/*
+  Manage_dubins is the C++ implementation of the Find Dubins Parameters algorithm (UAVbook page 201, Algorothm 7).
+  This algorithm finds the parameters that feed into the Follow Waypoints with Dubins algorithm (UAVbook page 203, Algorithm 8)
+*/
 void path_manager_example::dubinsParameters(const waypoint_s start_node, const waypoint_s end_node, float R)
 {
+  //Check to see that the distance from the start point to the end point is greater than or equal to 3R as described in the requirement line of Algorithm 7
   float ell = sqrtf((start_node.w[0] - end_node.w[0])*(start_node.w[0] - end_node.w[0]) +
                     (start_node.w[1] - end_node.w[1])*(start_node.w[1] - end_node.w[1]));
-  if (ell < 2.0*R)
+  //Throw an error if the distance between the waypoints is too small
+  //CHANGE: Changed from (ell < 2.0*R) to (3.0*R) to match requirement line in algorithm 7
+  if (ell < 3.0*R)
   {
-    ROS_ERROR("The distance between nodes must be larger than 2R.");
+    //CHANGE: changed message to reflect requirement change from 2R to 3R
+    ROS_ERROR("The distance between nodes must be larger than 3R.");
   }
   else
   {
+    //Assign ps to be the starting waypoint of the UAV (This may need to be changed to be the actual position of the UAV)
     dubinspath_.ps(0) = start_node.w[0];
     dubinspath_.ps(1) = start_node.w[1];
     dubinspath_.ps(2) = start_node.w[2];
+    //Assign starting course angle to be the starting course of the desired course angle (This may need to be changed to be the actual position of the UAV)
     dubinspath_.chis = start_node.chi_d;
+    //Assign pe to be the desired ending position of the UAV
     dubinspath_.pe(0) = end_node.w[0];
     dubinspath_.pe(1) = end_node.w[1];
     dubinspath_.pe(2) = end_node.w[2];
+    //Assing the ending course angle to be the desired ending course angle
     dubinspath_.chie = end_node.chi_d;
 
-
+    //Initialize a 3 dimensional column vector to store the right starting circle center and insert the starting position of the UAV
     Eigen::Vector3f crs = dubinspath_.ps;
+    //Compute the center of the right starting circle as described in algorithm 8 line 1
     crs(0) += R*(cosf(M_PI_2_F)*cosf(dubinspath_.chis) - sinf(M_PI_2_F)*sinf(dubinspath_.chis));
     crs(1) += R*(sinf(M_PI_2_F)*cosf(dubinspath_.chis) + cosf(M_PI_2_F)*sinf(dubinspath_.chis));
+    //Initialize a 3 dimensional column vector to store the left starting circle center and insert the starting position of the UAV
     Eigen::Vector3f cls = dubinspath_.ps;
+    //Compute the center of the left starting circle as described in algorithm 8 line 2
     cls(0) += R*(cosf(-M_PI_2_F)*cosf(dubinspath_.chis) - sinf(-M_PI_2_F)*sinf(dubinspath_.chis));
     cls(1) += R*(sinf(-M_PI_2_F)*cosf(dubinspath_.chis) + cosf(-M_PI_2_F)*sinf(dubinspath_.chis));
+    //Initialize a 3 dimensional column vector to store the right ending circle center and insert the starting position of the UAV
     Eigen::Vector3f cre = dubinspath_.pe;
+    //Compute the center of the right ending circle as described in algorithm 8 line 3
     cre(0) += R*(cosf(M_PI_2_F)*cosf(dubinspath_.chie) - sinf(M_PI_2_F)*sinf(dubinspath_.chie));
     cre(1) += R*(sinf(M_PI_2_F)*cosf(dubinspath_.chie) + cosf(M_PI_2_F)*sinf(dubinspath_.chie));
+    //Initialize a 3 dimensional column vector to store the left ending circle center and insert the starting position of the UAV
     Eigen::Vector3f cle = dubinspath_.pe;
+    //Compute the center of the left ending circle as described in algorithm 8 line 4
     cle(0) += R*(cosf(-M_PI_2_F)*cosf(dubinspath_.chie) - sinf(-M_PI_2_F)*sinf(dubinspath_.chie));
     cle(1) += R*(sinf(-M_PI_2_F)*cosf(dubinspath_.chie) + cosf(-M_PI_2_F)*sinf(dubinspath_.chie));
 
+    //Initialize two floats to store theta values
     float theta, theta2;
-    // compute L1
+    // compute L1 as described in algorithm 7 line 5 using equation 11.9 (UAVbook page 197)
     theta = atan2f(cre(1) - crs(1), cre(0) - crs(0));
     float L1 = (crs - cre).norm() + R*mo(2.0*M_PI_F + mo(theta - M_PI_2_F) - mo(dubinspath_.chis - M_PI_2_F))
                + R*mo(2.0*M_PI_F + mo(dubinspath_.chie - M_PI_2_F) - mo(theta - M_PI_2_F));
 
-    // compute L2
+    // compute L2 as described in algorithm 7 line 5 using equation 11.10 (UAVbook page 198)
     ell = (cle - crs).norm();
     theta = atan2f(cle(1) - crs(1), cle(0) - crs(0));
     float L2;
@@ -409,7 +436,7 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
            + R*mo(2.0*M_PI_F + mo(theta2 + M_PI_F) - mo(dubinspath_.chie + M_PI_2_F));
     }
 
-    // compute L3
+    // compute L3 as described in algorithm 7 line 5 using equation 11.11 (UAVbook page 199)
     ell = (cre - cls).norm();
     theta = atan2f(cre(1) - cls(1), cre(0) - cls(0));
     float L3;
@@ -422,13 +449,14 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
            + R*mo(2.0*M_PI_F + mo(dubinspath_.chie - M_PI_2_F) - mo(theta + theta2 - M_PI_F));
     }
 
-    // compute L4
+    // compute L4 as described in algorithm 7 line 5 using equation 11.12 (UAVbook page 200)
     theta = atan2f(cle(1) - cls(1), cle(0) - cls(0));
     float L4 = (cls - cle).norm() + R*mo(2.0*M_PI_F + mo(dubinspath_.chis + M_PI_2_F) - mo(theta + M_PI_2_F))
                + R*mo(2.0*M_PI_F + mo(theta + M_PI_2_F) - mo(dubinspath_.chie + M_PI_2_F));
 
-    // L is the minimum distance
+    //Iterator to save which path has the shortest length and easily be used in a switch statement
     int idx = 1;
+    // L is the minimum distance. The following lines of code simply find the shortest value of L as described in algorithm 7 line 6
     dubinspath_.L = L1;
     if (L2 < dubinspath_.L)
     {
