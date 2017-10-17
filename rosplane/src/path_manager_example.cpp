@@ -348,7 +348,7 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
   }
 }
 
-//This function creates a 3D rotation matrix about the z axis
+//This function creates a 3D rotation matrix about the z axis. The input is the angle of rotation
 Eigen::Matrix3f path_manager_example::rotz(float theta)
 {
   Eigen::Matrix3f R;
