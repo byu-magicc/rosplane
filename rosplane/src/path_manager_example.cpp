@@ -113,7 +113,7 @@ C corresponds to W_i+1.
 
 void path_manager_example::manage_fillet(const params_s &params, const input_s &input, output_s &output)
 {
-  if (num_waypoints_ < 3) //since it fillets don't make sense between just two points
+  if (num_waypoints_ < 3) //at least 3 waypoints are needed to implement this algorithym 
   {
     manage_line(params, input, output);
     return;
@@ -122,7 +122,11 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
   Eigen::Vector3f p;
   p << input.pn, input.pe, -input.h;
   
-  //These indexes shuffle through the waypoints in the correct order
+/*
+Indexes a, b, and c are used to iterate through the waypoints cyclically such that the algorithm always
+has three waypoints to work with. (W_i-1, W_i, W_i+1) A corresponds to W_i-1. B correspondes to W_i.
+C corresponds to W_i+1.
+*/
   int idx_b;
   int idx_c;
   if (idx_a_ == num_waypoints_ - 1)
@@ -344,6 +348,7 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
   }
 }
 
+//This function creates a 3D rotation matrix about the z axis
 Eigen::Matrix3f path_manager_example::rotz(float theta)
 {
   Eigen::Matrix3f R;
