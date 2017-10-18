@@ -205,6 +205,7 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
   //Input the position of the UAV into the column vector
   p << input.pn, input.pe, -input.h;
 
+  //initialize the output values to be 0
   output.r[0] = 0;
   output.r[1] = 0;
   output.r[2] = 0;
@@ -215,85 +216,116 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
   output.c[1] = 0;
   output.c[2] = 0;
 
+  //This is the switch statement that covers algorithm 8 lines 5-29
   switch (dub_state_)
   {
   case dubin_state::FIRST:
-    //The dubins parameters are found as described in algorithm 8 line 4
+    //The dubins parameters are found as described in algorithm 8 line 4 implementing algorithm 7
     dubinsParameters(waypoints_[0], waypoints_[1], params.R_min);
 
     output.flag = false;
+    //assign the starting circle
     output.c[0] = dubinspath_.cs(0);
     output.c[1] = dubinspath_.cs(1);
     output.c[2] = dubinspath_.cs(2);
+    //Let rho be the turning radius of the UAV
     output.rho = dubinspath_.R;
+    //assign lambda to be direction of the start circle
     output.lambda = dubinspath_.lams;
+    //Check to see if we're starting in the H1 halfspace
     if ((p - dubinspath_.w1).dot(dubinspath_.q1) >= 0) // start in H1
     {
+    //Switch to the case to handle starting in the H1 half plane
       dub_state_ = dubin_state::BEFORE_H1_WRONG_SIDE;
     }
+    //Otherwise, we can handle things normally
     else
     {
+      //Switch to the state where we can handle things normally
       dub_state_ = dubin_state::BEFORE_H1;
     }
     break;
   case dubin_state::BEFORE_H1:
     output.flag = false;
+    //Assign the starting circle
     output.c[0] = dubinspath_.cs(0);
     output.c[1] = dubinspath_.cs(1);
     output.c[2] = dubinspath_.cs(2);
+    //Let rho be the UAV turning radius
     output.rho = dubinspath_.R;
+    //Let lambda be the direction of the start circle
     output.lambda = dubinspath_.lams;
+    //Check to see if we've entered H1
     if ((p - dubinspath_.w1).dot(dubinspath_.q1) >= 0) // entering H1
     {
+      //Switch to the case that handles the straight path between H1 and H2
       dub_state_ = dubin_state::STRAIGHT;
     }
     break;
   case dubin_state::BEFORE_H1_WRONG_SIDE:
     output.flag = false;
+    //Assign the starting circle
     output.c[0] = dubinspath_.cs(0);
     output.c[1] = dubinspath_.cs(1);
     output.c[2] = dubinspath_.cs(2);
+    //Let rho be the truning radius of the UAV
     output.rho = dubinspath_.R;
+    //Let lambda be the direction of the start circle
     output.lambda = dubinspath_.lams;
+    //Check to see that we've left H1
     if ((p - dubinspath_.w1).dot(dubinspath_.q1) < 0) // exit H1
     {
+      //Switch to the case that handles entering H1 correctly
       dub_state_ = dubin_state::BEFORE_H1;
     }
     break;
   case dubin_state::STRAIGHT:
     output.flag = true;
+    //Let r be the most recent waypoint
     output.r[0] = dubinspath_.w1(0);
     output.r[1] = dubinspath_.w1(1);
     output.r[2] = dubinspath_.w1(2);
     // output.r[0] = dubinspath_.z1(0);
     // output.r[1] = dubinspath_.z1(1);
     // output.r[2] = dubinspath_.z1(2);
+    //Let q be the direction vector for the UAV
     output.q[0] = dubinspath_.q1(0);
     output.q[1] = dubinspath_.q1(1);
     output.q[2] = dubinspath_.q1(2);
+    //Avoid a discontinuity with the turning radius
     output.rho = 1;
+    ////There is no direction for a circle on a straight line
     output.lambda = 1;
+    //Check to see if we've entered H2
     if ((p - dubinspath_.w2).dot(dubinspath_.q1) >= 0) // entering H2
     {
+      //Check to see if we've entered H3 upon entering H2
       if ((p - dubinspath_.w3).dot(dubinspath_.q3) >= 0) // start in H3
       {
+        //If we've entered H3 already, switch to the state that handles entering H3 incorrectly
         dub_state_ = dubin_state::BEFORE_H3_WRONG_SIDE;
       }
       else
       {
+        //Otherwise, head over to H3 by switching to the normal case to handle that.
         dub_state_ = dubin_state::BEFORE_H3;
       }
     }
     break;
   case dubin_state::BEFORE_H3:
     output.flag = false;
+    //Assign the ending circle
     output.c[0] = dubinspath_.ce(0);
     output.c[1] = dubinspath_.ce(1);
     output.c[2] = dubinspath_.ce(2);
+    //Let R be the turning radius of the UAV
     output.rho = dubinspath_.R;
+    //Let lambda be the direction of the ending circle
     output.lambda = dubinspath_.lame;
+    //Check to see if we've entered H3 correctly
     if ((p - dubinspath_.w3).dot(dubinspath_.q3) >= 0) // entering H3
     {
+      //Upon entering H3 we need to iterate through the waypoints and compute the next dubins path
       // increase the waypoint pointer
       int idx_b;
       if (idx_a_ == num_waypoints_ - 1)
@@ -328,13 +360,18 @@ void path_manager_example::manage_dubins(const params_s &params, const input_s &
     break;
   case dubin_state::BEFORE_H3_WRONG_SIDE:
     output.flag = false;
+    //Assign the ending circle
     output.c[0] = dubinspath_.ce(0);
     output.c[1] = dubinspath_.ce(1);
     output.c[2] = dubinspath_.ce(2);
+    //Let rho be the turning radius of the UAV
     output.rho = dubinspath_.R;
+    //Let lambda be the direction of the ending circle
     output.lambda = dubinspath_.lame;
+    //Check to see that we've left H3
     if ((p - dubinspath_.w3).dot(dubinspath_.q3) < 0) // exit H3
     {
+      //Enter H3 (?) This may need to be changed to the state BEFORE_H3
       dub_state_ = dubin_state::BEFORE_H1;
     }
     break;
@@ -474,58 +511,78 @@ void path_manager_example::dubinsParameters(const waypoint_s start_node, const w
       idx = 4;
     }
 
+    //e1 pronounced e-one is initialized and assigned the value defined in UAVbook page 200
     Eigen::Vector3f e1;
-    //        e1.zero();
     e1(0) = 1;
     e1(1) = 0;
     e1(2) = 0;
+
+    //This is the switch statement that covers algorithm 7 lines 7-33
     switch (idx)
     {
     case 1:
+      //Set the parameters as described in algorithm 7 line 8
       dubinspath_.cs = crs;
       dubinspath_.lams = 1;
       dubinspath_.ce = cre;
       dubinspath_.lame = 1;
+      //The q_1 vector is assigned as described in algorithm 7 line 9
       dubinspath_.q1 = (cre - crs).normalized();
+      //The half planes are defined as described in algorithm 7 lines 10-11
       dubinspath_.w1 = dubinspath_.cs + (rotz(-M_PI_2_F)*dubinspath_.q1)*R;
       dubinspath_.w2 = dubinspath_.ce + (rotz(-M_PI_2_F)*dubinspath_.q1)*R;
       break;
     case 2:
+      //The q_1 vector is assigned as described in algorithm 7 line 13
       dubinspath_.cs = crs;
       dubinspath_.lams = 1;
       dubinspath_.ce = cle;
       dubinspath_.lame = -1;
+      //The distance between the circle centers is defined as described in algorithm 7 line 14
       ell = (cle - crs).norm();
+      //The angles are defined as described in algorithm 7 lines 15-16
       theta = atan2f(cle(1) - crs(1), cle(0) - crs(0));
       theta2 = theta - M_PI_2_F + asinf(2.0*R/ell);
+      //The q_1 vector is assigned as described in algorithm 7 line 17
       dubinspath_.q1 = rotz(theta2 + M_PI_2_F)*e1;
+      //The half planes are defined as described in algorithm 7 lines 18-19
       dubinspath_.w1 = dubinspath_.cs + (rotz(theta2)*e1)*R;
       dubinspath_.w2 = dubinspath_.ce + (rotz(theta2 + M_PI_F)*e1)*R;
       break;
     case 3:
+      //The q_1 vector is assigned as described in algorithm 7 line 21
       dubinspath_.cs = cls;
       dubinspath_.lams = -1;
       dubinspath_.ce = cre;
       dubinspath_.lame = 1;
+      //The distance between the circle centers is defined as described in algorithm 7 line 22
       ell = (cre - cls).norm();
+      //The angles are defined as described in algorithm 7 lines 23-24
       theta = atan2f(cre(1) - cls(1), cre(0) - cls(0));
       theta2 = acosf(2.0*R/ ell);
+      //The q_1 vector is assigned as described in algorithm 7 line 25
       dubinspath_.q1 = rotz(theta + theta2 - M_PI_2_F)*e1;
+      //The half planes are defined as described in algorithm 7 lines 26-27
       dubinspath_.w1 = dubinspath_.cs + (rotz(theta + theta2)*e1)*R;
       dubinspath_.w2 = dubinspath_.ce + (rotz(theta + theta2 - M_PI_F)*e1)*R;
       break;
     case 4:
+      //The q_1 vector is assigned as described in algorithm 7 line 29
       dubinspath_.cs = cls;
       dubinspath_.lams = -1;
       dubinspath_.ce = cle;
       dubinspath_.lame = -1;
+      //The q_1 vector is assigned as described in algorithm 7 line 30
       dubinspath_.q1 = (cle - cls).normalized();
+      //The half planes are defined as described in algorithm 7 lines 31-32
       dubinspath_.w1 = dubinspath_.cs + (rotz(M_PI_2_F)*dubinspath_.q1)*R;
       dubinspath_.w2 = dubinspath_.ce + (rotz(M_PI_2_F)*dubinspath_.q1)*R;
       break;
     }
+    //The final half plane is defined to be the final desired position of the UAV using parameters w3 (z3) and q3
     dubinspath_.w3 = dubinspath_.pe;
     dubinspath_.q3 = rotz(dubinspath_.chie)*e1;
+    //The turining radius is reassigned (not sure why)
     dubinspath_.R = R;
   }
 }
