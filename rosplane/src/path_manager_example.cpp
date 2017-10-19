@@ -113,7 +113,7 @@ C corresponds to W_i+1.
 
 void path_manager_example::manage_fillet(const params_s &params, const input_s &input, output_s &output)
 {
-  if (num_waypoints_ < 3) //at least 3 waypoints are needed to implement this algorithym 
+  if (num_waypoints_ < 3) //at least 3 waypoints are needed to implement this algorithym
   {
     manage_line(params, input, output);
     return;
@@ -121,7 +121,7 @@ void path_manager_example::manage_fillet(const params_s &params, const input_s &
   //create a 3D position vector (float) with north, east, and height inputs. Note that -h is actually up
   Eigen::Vector3f p;
   p << input.pn, input.pe, -input.h;
-  
+
 /*
 Indexes a, b, and c are used to iterate through the waypoints cyclically such that the algorithm always
 has three waypoints to work with. (W_i-1, W_i, W_i+1) A corresponds to W_i-1. B correspondes to W_i.
