@@ -1,0 +1,62 @@
+<!--This is the official launch file for the competition -->
+<launch>
+
+  <!--##########################################################################
+  This is where we pull in the parameters for the aircraft that we'll be flying
+#############################################################################-->
+<arg name="mav_name"  default="MTD"/>
+<!-- <rosparam subst_value="True">
+  naze:           { imu_pub_rate: 100.0,
+                    rc_send_rate: 50.0,
+                    timeout: 20 }
+
+ </rosparam> -->
+<!-- <rosparam command="load" file="$(find fcu_io)/param/rc.yaml"/>-->
+ <rosparam command="load" file="$(find rosplane)/param/MTD.yaml" ns="controller"/>
+
+<!--############################################################################
+            This is where all of the sensor nodes are initiated
+#############################################################################-->
+<!-- Naze : The naze is special because it will both receive command signals
+and use those to control the actuators of the aircraft as well as return data
+from the gyro and accelerometer on board-->
+ <node name="naze"  pkg="rosflight"  type="rosflight_io" output="screen">
+        <param name="port" value="/dev/naze"/>
+	<!-- <remap from="/extended_command" to="/command"/> -->
+ </node>
+
+ <!-- GPS -->
+ <node name="gps_driver" pkg="rosflight_utils" type="gps">
+ <param name="port" value="/dev/m8"/>
+ <param name="baud" value="115200"/>
+ </node>
+
+<!-- ###########################################################################
+      This is where all of the nodes for the autopilot are initiated
+#############################################################################-->
+ <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen">
+ 	<!--<remap from="/baro/data" to="/baro"/>
+	<remap from="/airspeed/data" to="/airspeed"/>-->
+ </node>
+
+<!--Controller: This is the node that sends pwm controls to the actuators -->
+<!--
+ <node name="controller" pkg="rosplane" type="rosplane_controller">
+    <param name="PWM_RAD_E" value="2.8"/>
+	<param name="PWM_RAD_A" value="-1.6"/>
+	<param name="PWM_RAD_R" value="1.8"/>
+ </node>
+
+ <node name="path_manager" pkg="rosplane" type="rosplane_path_manager"/>
+
+ <node name="path_follower" pkg="rosplane" type="rosplane_path_follower"/>
+
+ <node name="failsafe_checker" pkg="rosplane" type="failsafe.py" output="screen"/>
+-->
+<!-- ###########################################################################
+    This is where we can decide what data we want to save from flights
+#############################################################################-->
+<!--
+<node name="record" pkg="rosbag" type="record" args="-o $(arg name) /state /gps_state /gps/data /rc_raw" output="screen"/>
+-->
+</launch>
