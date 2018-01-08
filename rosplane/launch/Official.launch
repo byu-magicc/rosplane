@@ -39,14 +39,13 @@ from the gyro and accelerometer on board-->
 	<remap from="/airspeed/data" to="/airspeed"/>-->
  </node>
 
-<!--Controller: This is the node that sends pwm controls to the actuators -->
-<!--
+<!--Controller: This is the node that sends pwm controls to the actuators -->-
  <node name="controller" pkg="rosplane" type="rosplane_controller">
     <param name="PWM_RAD_E" value="2.8"/>
 	<param name="PWM_RAD_A" value="-1.6"/>
 	<param name="PWM_RAD_R" value="1.8"/>
  </node>
-
+<!--
  <node name="path_manager" pkg="rosplane" type="rosplane_path_manager"/>
 
  <node name="path_follower" pkg="rosplane" type="rosplane_path_follower"/>
