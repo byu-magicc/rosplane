@@ -40,9 +40,7 @@ int main(int argc, char **argv)
     new_waypoint.w[0] = all_wps[i][0];
     new_waypoint.w[1] = all_wps[i][1];
     new_waypoint.w[2] = all_wps[i][2];
-    new_waypoint.chi_d = all_wps[i][3];
 
-    new_waypoint.chi_valid = false;
     new_waypoint.Va_d = all_wps[i][4];
     if (i == 0)
       new_waypoint.set_current = true;
@@ -56,4 +54,3 @@ int main(int argc, char **argv)
 
   return 0;
 }
-
