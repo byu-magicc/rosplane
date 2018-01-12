@@ -12,7 +12,7 @@
 
 #include <ros/ros.h>
 #include <rosplane_msgs/Waypoint.h>
-#include <uav_msgs/msg/Mission.h>
+#include <uav_msgs/Mission.h>
 
 namespace rosplane
 {
