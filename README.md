@@ -39,3 +39,14 @@ rosplane_msgs is a ROS package containing the custom message types for ROSplane.
 # rosplane_sim
 
 rosplane_sim contains all the necessary plugins to fly the ROSplane autopilot in the Gazebo simulation. Fixedwing.launch launches a basic simulation with the ROSplane autopilot. rosflight_sil.launch launches a software-in-the-loop simulation for a fixedwing running the ROSflight firmware. An example .yaml file is also included for the simulated airframe.
+
+If you use this work in your research, please cite:
+```
+@INPROCEEDINGS{ellingson2017rosplane,
+  author = {Ellingson, Gary and McLain, Tim},
+  title = {ROSplane: Fixed-wing Autopilot for Education and Research},
+  booktitle = {Unmanned Aircraft Systems (ICUAS), 2017 International Conference on},
+  year = {2017}
+  organization={IEEE}
+}
+```
