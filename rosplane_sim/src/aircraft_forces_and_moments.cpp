@@ -159,6 +159,12 @@ void AircraftForcesAndMoments::Load(physics::ModelPtr _model, sdf::ElementPtr _s
   wind_.E = 0.0;
   wind_.D = 0.0;
 
+  //initialize deltas
+  delta_.t = 0.0;
+  delta_.e = 0.0;
+  delta_.a = 0.0;
+  delta_.r = 0.0;
+
   // Connect the update function to the simulation
   updateConnection_ = event::Events::ConnectWorldUpdateBegin(boost::bind(&AircraftForcesAndMoments::OnUpdate, this, _1));
 
