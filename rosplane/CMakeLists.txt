@@ -51,12 +51,6 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
 
 ## Declare a C++ executable
-add_executable(src/mission_manager_example.cpp
-            src/mission_manager_base.cpp)
-#add_dependencies(mission_manager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
-#target_link_libraries(mission_manager ${catkin_LIBRARIES})
-
-## Declare a C++ executable
 add_executable(rosplane_controller
             src/controller_base.cpp
             src/controller_example.cpp)
