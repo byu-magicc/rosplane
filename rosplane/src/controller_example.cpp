@@ -20,6 +20,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
 {
   output.delta_r = 0; //cooridinated_turn_hold(input.beta, params, input.Ts)
   output.phi_c = course_hold(input.chi_c, input.chi, input.phi_ff, input.r, params, input.Ts);
+  //output.phi_c = 0.0;
   output.delta_a = roll_hold(output.phi_c, input.phi, input.p, params, input.Ts);
 
   switch (current_zone)
@@ -29,9 +30,9 @@ void controller_example::control(const params_s &params, const input_s &input, o
     output.delta_a = roll_hold(0.0, input.phi, input.p, params, input.Ts);
     output.delta_t = params.max_t;
     output.theta_c = 15.0*3.14/180.0;
-    if (input.h >= params.alt_toz)
+    if (input.h >= params.alt_toz + params.alt_hys)
     {
-      ROS_DEBUG("climb");
+      ROS_INFO("climb");
       current_zone = alt_zones::CLIMB;
       ap_error_ = 0;
       ap_integrator_ = 0;
@@ -41,9 +42,9 @@ void controller_example::control(const params_s &params, const input_s &input, o
   case alt_zones::CLIMB:
     output.delta_t = params.max_t;
     output.theta_c = airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
-    if (input.h >= input.h_c - params.alt_hz)
+    if (input.h >= input.h_c - params.alt_hz + params.alt_hys)
     {
-      ROS_DEBUG("hold");
+      ROS_INFO("hold");
       current_zone = alt_zones::ALTITUDE_HOLD;
       at_error_ = 0;
       at_integrator_ = 0;
@@ -54,16 +55,16 @@ void controller_example::control(const params_s &params, const input_s &input, o
     }
     else if (input.h <= params.alt_toz)
     {
-      ROS_DEBUG("takeoff");
+      ROS_INFO("takeoff");
       current_zone = alt_zones::TAKE_OFF;
     }
     break;
   case alt_zones::DESCEND:
     output.delta_t = 0;
     output.theta_c = airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
-    if (input.h <= input.h_c + params.alt_hz)
+    if (input.h <= input.h_c + params.alt_hz - params.alt_hys)
     {
-      ROS_DEBUG("hold");
+      ROS_INFO("hold");
       current_zone = alt_zones::ALTITUDE_HOLD;
       at_error_ = 0;
       at_integrator_ = 0;
@@ -76,17 +77,17 @@ void controller_example::control(const params_s &params, const input_s &input, o
   case alt_zones::ALTITUDE_HOLD:
     output.delta_t = airspeed_with_throttle_hold(input.Va_c, input.va, params, input.Ts);
     output.theta_c = altitiude_hold(input.h_c, input.h, params, input.Ts);
-    if (input.h >= input.h_c + params.alt_hz)
+    if (input.h >= input.h_c + params.alt_hz + params.alt_hys)
     {
-      ROS_DEBUG("desend");
+      ROS_INFO("desend");
       current_zone = alt_zones::DESCEND;
       ap_error_ = 0;
       ap_integrator_ = 0;
       ap_differentiator_ = 0;
     }
-    else if (input.h <= input.h_c - params.alt_hz)
+    else if (input.h <= input.h_c - params.alt_hz - params.alt_hys)
     {
-      ROS_DEBUG("climb");
+      ROS_INFO("climb");
       current_zone = alt_zones::CLIMB;
       ap_error_ = 0;
       ap_integrator_ = 0;
@@ -103,7 +104,17 @@ void controller_example::control(const params_s &params, const input_s &input, o
 
 float controller_example::course_hold(float chi_c, float chi, float phi_ff, float r, const params_s &params, float Ts)
 {
-  float error = chi_c - chi;
+  float error = chi_c - chi; // mod by 2 PI
+
+  while (error < (float (-M_PI)))
+  {
+    error = error + (float (2.0f*M_PI));
+  }
+  while (error > (float (M_PI)))
+  {
+    error = error - (float (2.0f*M_PI));
+  }
+  //float error = fmod(chi_c - chi,(float (2.0*M_PI))); // mod 2 Pi
 
   c_integrator_ = c_integrator_ + (Ts/2.0)*(error + c_error_);
 
@@ -212,6 +223,7 @@ float controller_example::airspeed_with_throttle_hold(float Va_c, float Va, cons
 
 float controller_example::altitiude_hold(float h_c, float h, const params_s &params, float Ts)
 {
+  ROS_INFO("h_c: %f, h: %f, error: %f", h_c, h, h_c - h);
   float error = h_c - h;
 
   a_integrator_ = a_integrator_ + (Ts/2.0)*(error + a_error_);

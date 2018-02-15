@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosplane_msgs
   dynamic_reconfigure
   sensor_msgs
+  uav_msgs
 )
 find_package(Eigen3 REQUIRED)
 
@@ -43,7 +44,7 @@ generate_dynamic_reconfigure_options(
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES
-  CATKIN_DEPENDS roscpp rospy rosflight_msgs rosplane_msgs
+  CATKIN_DEPENDS roscpp rospy rosflight_msgs rosplane_msgs uav_msgs
 #  DEPENDS system_lib
 )
 
