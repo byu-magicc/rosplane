@@ -69,6 +69,7 @@ protected:
   {
     double alt_hz;           /**< altitude hold zone */
     double alt_toz;          /**< altitude takeoff zone */
+    double alt_hys;         /**< Altitude hold zone hysteresis */
     double tau;
     double c_kp;
     double c_kd;
