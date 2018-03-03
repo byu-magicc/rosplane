@@ -10,6 +10,7 @@
 #define ESTIMATOR_BASE_H
 
 #include <ros/ros.h>
+#include <nav_msgs/Odometry.h>
 #include <rosplane_msgs/State.h>
 #include <rosflight_msgs/GPS.h>
 #include <sensor_msgs/Imu.h>
@@ -95,6 +96,7 @@ private:
   ros::Subscriber baro_sub_;
   ros::Subscriber airspeed_sub_;
   ros::Subscriber status_sub_;
+  ros::Subscriber inertial_sense_sub_;
 
   void update(const ros::TimerEvent &);
   void gpsCallback(const rosflight_msgs::GPS &msg);
@@ -102,6 +104,8 @@ private:
   void baroAltCallback(const rosflight_msgs::Barometer &msg);
   void airspeedCallback(const rosflight_msgs::Airspeed &msg);
   void statusCallback(const rosflight_msgs::Status &msg);
+  void inertialSenseCallback(const nav_msgs::Odometry &msg_in);
+  void updateAirspeed(const ros::TimerEvent &);
 
   double update_rate_;
   ros::Timer update_timer_;
@@ -111,6 +115,9 @@ private:
   std::string airspeed_topic_;
   std::string status_topic_;
 
+  float lpf_diff_base_;
+  float alpha1_base_;
+  float Vahat_;
   bool gps_new_;
   bool gps_init_;
   double init_lat_;       /**< Initial latitude in degrees */

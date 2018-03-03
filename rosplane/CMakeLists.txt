@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
   sensor_msgs
   uav_msgs
+  nav_msgs
 )
 find_package(Eigen3 REQUIRED)
 

@@ -8,10 +8,14 @@ estimator_base::estimator_base():
   nh_(ros::NodeHandle()),
   nh_private_(ros::NodeHandle("~"))
 {
+  bool use_inertial_sense;
+  std::string inertial_sense_topic;
+  nh_private_.param<std::string>("inertial_sense_topic", inertial_sense_topic, "INS");
   nh_private_.param<std::string>("gps_topic", gps_topic_, "gps");
   nh_private_.param<std::string>("imu_topic", imu_topic_, "imu/data");
   nh_private_.param<std::string>("baro_topic", baro_topic_, "baro");
   nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "airspeed");
+  nh_private_.param<std::string>("status_topic", status_topic_, "status");
   nh_private_.param<std::string>("status_topic", status_topic_, "status");
   nh_private_.param<double>("update_rate", update_rate_, 100.0);
   params_.Ts = 1.0f/update_rate_;
@@ -22,19 +26,106 @@ estimator_base::estimator_base():
   nh_private_.param<double>("sigma_e_gps", params_.sigma_e_gps, 0.21);
   nh_private_.param<double>("sigma_Vg_gps", params_.sigma_Vg_gps, 0.0500);
   nh_private_.param<double>("sigma_couse_gps", params_.sigma_course_gps, 0.0045);
+  nh_private_.param<bool>("use_inertial_sense", use_inertial_sense, false);
 
-  gps_sub_ = nh_.subscribe(gps_topic_, 10, &estimator_base::gpsCallback, this);
-  imu_sub_ = nh_.subscribe(imu_topic_, 10, &estimator_base::imuCallback, this);
-  baro_sub_ = nh_.subscribe(baro_topic_, 10, &estimator_base::baroAltCallback, this);
+  if (use_inertial_sense)
+  {
+    inertial_sense_sub_ = nh_.subscribe(inertial_sense_topic, 1, &estimator_base::inertialSenseCallback, this);
+    update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &estimator_base::updateAirspeed, this);
+    ROS_INFO("Using InertialSense.");
+  }
+  else
+  {
+    gps_sub_ = nh_.subscribe(gps_topic_, 10, &estimator_base::gpsCallback, this);
+    imu_sub_ = nh_.subscribe(imu_topic_, 10, &estimator_base::imuCallback, this);
+    baro_sub_ = nh_.subscribe(baro_topic_, 10, &estimator_base::baroAltCallback, this);
+    status_sub_ = nh_.subscribe(status_topic_, 1, &estimator_base::statusCallback, this);
+    update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &estimator_base::update, this);
+  }
   airspeed_sub_ = nh_.subscribe(airspeed_topic_, 10, &estimator_base::airspeedCallback, this);
-  status_sub_ = nh_.subscribe(status_topic_, 1, &estimator_base::statusCallback, this);
-  update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &estimator_base::update, this);
   vehicle_state_pub_ = nh_.advertise<rosplane_msgs::State>("state", 10);
   init_static_ = 0;
   baro_count_ = 0;
   armed_first_time_ = false;
-}
 
+  float lpf_a1   = 8.0;
+  lpf_diff_base_ = 0.0f;
+  alpha1_base_   = exp(-lpf_a1*params_.Ts);
+}
+void estimator_base::inertialSenseCallback(const nav_msgs::Odometry &msg_in)
+{
+  rosplane_msgs::State msg;
+  msg.header.stamp    = ros::Time::now();
+  msg.header.frame_id = 1; // Denotes global frame
+
+  msg.position[0]     = msg_in.pose.pose.position.x;
+  msg.position[1]     = msg_in.pose.pose.position.y;
+  msg.position[2]     = msg_in.pose.pose.position.z;
+  if (gps_init_)
+  {
+    msg.initial_lat   = init_lat_;
+    msg.initial_lon   = init_lon_;
+    msg.initial_alt   = init_alt_;
+  }
+
+  // Convert quaterion to roll pitch and yaw
+  float e0       = msg_in.pose.pose.orientation.w;
+  float e1       = msg_in.pose.pose.orientation.x;
+  float e2       = msg_in.pose.pose.orientation.y;
+  float e3       = msg_in.pose.pose.orientation.z;
+  float phi      = atan2(2.0f*(e0*e1 + e2*e3),(e0*e0 + e3*e3 - e1*e1 - e2*e2));
+  float theta    = asin(2.0f*(e0*e2 - e1*e3));
+  float psi      = atan2(2.0f*(e0*e3 + e1*e2),(e0*e0 + e1*e1 - e2*e2 - e3*e3));
+  float c_theta  = cosf(theta);
+  float s_theta  = sinf(theta);
+  float c_psi    = cosf(psi);
+  float s_psi    = sinf(psi);
+  float c_phi    = cosf(phi);
+  float s_phi    = sinf(phi);
+
+  float R[2][3];
+  R[0][0]        = c_theta*c_psi;
+  R[0][1]        = s_phi*s_theta*c_psi - c_phi*s_psi;
+  R[0][2]        = c_phi*s_theta*c_psi + s_phi*s_psi;
+  R[1][0]        = c_theta*s_psi;
+  R[1][1]        = s_phi*s_theta*s_psi;
+  R[1][2]        = c_phi*s_theta*s_psi - s_phi*c_psi;
+  float u        = msg_in.twist.twist.linear.x;
+  float v        = msg_in.twist.twist.linear.y;
+  float w        = msg_in.twist.twist.linear.z;
+  float Vn       = R[0][0]*u + R[0][1]*v + R[0][2]*w;
+  float Ve       = R[1][0]*u + R[1][1]*v + R[1][2]*w;
+
+  msg.Va         = Vahat_;
+  msg.alpha      = 0.0;
+  msg.beta       = 0.0;
+  msg.phi        = phi;
+  msg.theta      = theta;
+  msg.psi        = psi;
+  msg.chi        = atan2f(Ve, Vn);
+  msg.p          = msg_in.twist.twist.angular.x;
+  msg.q          = msg_in.twist.twist.angular.y;
+  msg.r          = msg_in.twist.twist.angular.z;
+  msg.Vg         = sqrtf(Vn*Vn + Ve*Ve);
+  msg.wn         = 0.0;
+  msg.we         = 0.0;
+  msg.quat_valid = false;
+
+  msg.psi_deg    = fmod(msg.psi, 2.0*M_PI)*180/M_PI; //-360 to 360
+  msg.psi_deg   += (msg.psi_deg < -180 ? 360 : 0);
+  msg.psi_deg   -= (msg.psi_deg > 180 ? 360 : 0);
+  msg.chi_deg    = fmod(msg.chi, 2.0*M_PI)*180/M_PI; //-360 to 360
+  msg.chi_deg   += (msg.chi_deg < -180 ? 360 : 0);
+  msg.chi_deg   -= (msg.chi_deg > 180 ? 360 : 0);
+
+  vehicle_state_pub_.publish(msg);
+}
+void estimator_base::updateAirspeed(const ros::TimerEvent &)
+{
+  // Low Pass filter airspeed
+  lpf_diff_base_ = alpha1_base_*lpf_diff_base_ + (1.0f - alpha1_base_)*input_.diff_pres;
+  Vahat_ = sqrtf(2.0f/params_.rho*lpf_diff_base_);
+}
 void estimator_base::update(const ros::TimerEvent &)
 {
   struct output_s output;
