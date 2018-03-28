@@ -10,7 +10,7 @@ estimator_base::estimator_base():
 {
   bool use_inertial_sense;
   std::string inertial_sense_topic;
-  nh_private_.param<std::string>("inertial_sense_topic", inertial_sense_topic, "INS");
+  nh_private_.param<std::string>("inertial_sense_topic", inertial_sense_topic, "ins");
   nh_private_.param<std::string>("gps_topic", gps_topic_, "gps");
   nh_private_.param<std::string>("imu_topic", imu_topic_, "imu/data");
   nh_private_.param<std::string>("baro_topic", baro_topic_, "baro");
@@ -124,6 +124,8 @@ void estimator_base::updateAirspeed(const ros::TimerEvent &)
 {
   // Low Pass filter airspeed
   lpf_diff_base_ = alpha1_base_*lpf_diff_base_ + (1.0f - alpha1_base_)*input_.diff_pres;
+  if (lpf_diff_base_ <= 0.00001)
+    lpf_diff_base_ = 0.000001;
   Vahat_ = sqrtf(2.0f/params_.rho*lpf_diff_base_);
 }
 void estimator_base::update(const ros::TimerEvent &)
