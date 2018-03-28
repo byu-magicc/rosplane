@@ -20,7 +20,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
 {
   output.delta_r = 0; //cooridinated_turn_hold(input.beta, params, input.Ts)
   output.phi_c = course_hold(input.chi_c, input.chi, input.phi_ff, input.r, params, input.Ts);
-  //output.phi_c = 0.0;
+ //output.phi_c = 0.0;
   output.delta_a = roll_hold(output.phi_c, input.phi, input.p, params, input.Ts);
 
   switch (current_zone)
@@ -41,7 +41,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
     break;
   case alt_zones::CLIMB:
     output.delta_t = params.max_t;
-    output.theta_c = airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
+    output.theta_c = 12.5*3.141592653/180.0; // airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
     if (input.h >= input.h_c - params.alt_hz + params.alt_hys)
     {
       ROS_INFO("hold");
@@ -75,7 +75,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
     }
     break;
   case alt_zones::ALTITUDE_HOLD:
-    output.delta_t = airspeed_with_throttle_hold(input.Va_c, input.va, params, input.Ts);
+    output.delta_t = params.trim_t; //airspeed_with_throttle_hold(input.Va_c, input.va, params, input.Ts);
     output.theta_c = altitiude_hold(input.h_c, input.h, params, input.Ts);
     if (input.h >= input.h_c + params.alt_hz + params.alt_hys)
     {
@@ -138,7 +138,6 @@ float controller_example::roll_hold(float phi_c, float phi, float p, const param
   float error = phi_c - phi;
 
   r_integrator = r_integrator + (Ts/2.0)*(error + r_error_);
-
   float up = params.r_kp*error;
   float ui = params.r_ki*r_integrator;
   float ud = params.r_kd*p;
@@ -223,7 +222,6 @@ float controller_example::airspeed_with_throttle_hold(float Va_c, float Va, cons
 
 float controller_example::altitiude_hold(float h_c, float h, const params_s &params, float Ts)
 {
-  ROS_INFO("h_c: %f, h: %f, error: %f", h_c, h, h_c - h);
   float error = h_c - h;
 
   a_integrator_ = a_integrator_ + (Ts/2.0)*(error + a_error_);
