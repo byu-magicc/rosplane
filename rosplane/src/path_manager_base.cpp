@@ -8,7 +8,7 @@ path_manager_base::path_manager_base():
   nh_(ros::NodeHandle()), /** nh_ stuff added here */
   nh_private_(ros::NodeHandle("~"))
 {
-  nh_private_.param<double>("R_min", params_.R_min, 25.0);
+  nh_private_.param<double>("R_min", params_.R_min, 75.0);
   nh_private_.param<double>("update_rate", update_rate_, 10.0);
 
   vehicle_state_sub_ = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);

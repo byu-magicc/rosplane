@@ -108,6 +108,7 @@ void controller_base::reconfigure_callback(rosplane::ControllerConfig &config, u
   params_.b_kp = config.BETA_KP;
   params_.b_kd = config.BETA_KD;
   params_.b_ki = config.BETA_KI;
+  ROS_WARN("GAINS RESET");
 }
 
 void controller_base::convert_to_pwm(controller_base::output_s &output)
