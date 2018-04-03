@@ -41,33 +41,33 @@ class gps_writer:
 
     def plot_path(self, i):
         if self.initial:
-            # n = 200.0
-            # e = 200.0
-            # plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
-            # self.wps[0].append(n)
-            # self.wps[1].append(e)
-            # plt.text(e, n, str(1), fontsize=12)
-            #
-            # n = 200.0
-            # e = -200.0
-            # plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
-            # self.wps[0].append(n)
-            # self.wps[1].append(e)
-            # plt.text(e, n, str(2), fontsize=12)
-            #
-            # n = 40.0
-            # e = -200.0
-            # plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
-            # self.wps[0].append(n)
-            # self.wps[1].append(e)
-            # plt.text(e, n, str(3), fontsize=12)
-            #
-            # n = 40.0
-            # e = 200.0
-            # plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
-            # self.wps[0].append(n)
-            # self.wps[1].append(e)
-            # plt.text(e, n, str(4), fontsize=12)
+            n = 200.0
+            e = 200.0
+            plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
+            self.wps[0].append(n)
+            self.wps[1].append(e)
+            plt.text(e, n, str(1), fontsize=12)
+
+            n = 200.0
+            e = -200.0
+            plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
+            self.wps[0].append(n)
+            self.wps[1].append(e)
+            plt.text(e, n, str(2), fontsize=12)
+
+            n = 40.0
+            e = -200.0
+            plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
+            self.wps[0].append(n)
+            self.wps[1].append(e)
+            plt.text(e, n, str(3), fontsize=12)
+
+            n = 40.0
+            e = 200.0
+            plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
+            self.wps[0].append(n)
+            self.wps[1].append(e)
+            plt.text(e, n, str(4), fontsize=12)
             #
             # n = 200.0
             # e = 0.0
