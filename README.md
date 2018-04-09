@@ -10,6 +10,12 @@ To fly in simulation, simply build these packages in a catkin workspace and laun
 
 `$ roslaunch rosplane_sim fixedwing.launch`
 
+Note: To successfully build, it may be needed to clone [rosflight_plugins](https://github.com/byu-magicc/rosflight_plugins.git) and [ROSflight](https://github.com/rosflight/rosflight.git) into your catkin workspace. Additionally, retrieve the necessary ROSflight submodules with:
+
+`cd rosflight/`
+
+`git submodule update --init --recursive`
+
 
 # rosplane
 
@@ -17,11 +23,11 @@ rosplane contains the principal nodes behind the ROSplane autopilot. Each node i
 
 ## - Estimator 
 
-The estimator is a standard ekf, as defined mostly in the way in the reference above.  It has a attitude filter and a position filter for gps smoothing. We are estimating position, velocity, and attitude. The state is then published in the rosplane_msgs/msg/State.msg.
+The estimator is a standard extended Kalman Filter (EKF), implemented as defined in the above reference. It has an attitude filter and a position filter for gps smoothing. We are estimating position, velocity, and attitude. The state is then published in the rosplane_msgs/msg/State.msg.
 
 ## - Controller
 
-Implements a nested PID controller according to the revefereance above.  Requires State and Controller_Commands messages to be published.  Altitude is controlled in a longitudinal state machine including take-off, climb, desend, and hold zones. Controller can be tuned using rqt_reconfigure.
+Implements a nested PID controller according to the reference above.  Requires State and Controller_Commands messages to be published.  Altitude is controlled in a longitudinal state machine including take-off, climb, desend, and hold zones. Controller can be tuned using rqt_reconfigure.
 
 ## - Path Follower
 
