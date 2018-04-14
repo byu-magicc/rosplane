@@ -14,7 +14,10 @@ int main(int argc, char **argv)
   std::fstream fin;
   fin.open("output_path.txt", std::ifstream::in);
   if (!(fin.is_open()))
+  {
     ROS_ERROR("WAYPOINTS FILE DID NOT OPEN."); // try putting it in the ~/.ros directory.
+    ros::shutdown();
+  }
   float N, E, D;
   std::vector<std::vector<float>> all_wps;
   std::vector<float> wp;

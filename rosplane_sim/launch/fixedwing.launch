@@ -19,8 +19,8 @@
 
   <group ns="$(arg mav_name)">
     <!-- Load Global Parameters for this MAV -->
-    <rosparam command="load" file="$(find rosplane_sim)/params/$(arg mav_name).yaml"/>
-
+    <rosparam command="load" file="$(find rosplane_sim)/params/$(arg mav_name).yaml"/> <!-- Aerodynamic parameters -->
+    <rosparam command="load" file="$(find rosplane)/param/fixedwing.yaml" ns="autopilot"/> <!-- simulation gains -->
     <node name="autopilot" pkg="rosplane" type="rosplane_controller" >
       <remap from="state" to="truth"/>
     </node>
@@ -41,8 +41,9 @@
 
     <node name="pathmanager" pkg="rosplane" type="rosplane_path_manager" output="screen">
       <remap from="state" to="truth"/>
+      <param name="R_min" value="25.0"/>
     </node>
 
-    <node name="pathplanner" pkg="rosplane" type="rosplane_path_planner"/> 
+    <!-- <node name="pathplanner" pkg="rosplane" type="rosplane_path_planner"/>  -->
   </group>
 </launch>

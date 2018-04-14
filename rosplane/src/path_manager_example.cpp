@@ -154,7 +154,10 @@ namespace rosplane
     //implement lines 4-6 from UAVbook pg 193
     Eigen::Vector3f q_im1 = (w_i - w_im1).normalized();
     Eigen::Vector3f q_i = (w_ip1 - w_i).normalized();
-    float beta = acosf(-q_im1.dot(q_i));
+    float n_qim1_dot_qi = -q_im1.dot(q_i);
+    n_qim1_dot_qi = -q_im1.dot(q_i) < -1.0f + 0.0001f ? -1.0f + 0.0001f : n_qim1_dot_qi; // this prevents beta from being nan
+    n_qim1_dot_qi = -q_im1.dot(q_i) >  1.0f - 0.0001f ?  1.0f - 0.0001f : n_qim1_dot_qi; // Still allows for 0.8 - 179.2 degrees
+    float beta    = acosf(n_qim1_dot_qi);
 
     Eigen::Vector3f z;
     switch (fil_state_)
@@ -169,7 +172,9 @@ namespace rosplane
       output.c[2] = 1;
       output.rho = 1;
       output.lambda = 1;
+
       z = w_i - q_im1*(R_min/tanf(beta/2.0));
+
       //if plane has crossed first half plane (ie it needs to start the fillet), change state to ORBIT
       if ((p - z).dot(q_im1) > 0)
         fil_state_ = fillet_state::ORBIT;
