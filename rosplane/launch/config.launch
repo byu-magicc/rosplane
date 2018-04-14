@@ -7,10 +7,9 @@
   </node>
   
   <!-- starts the GPS unit-->
-  <node name="gps_driver" pkg="rosflight_utils" type="gps">
-      <param name="port" value="/dev/m8"/>
-      <param name="baud" value="115200"/>
-  </node>
+  <node name="uINS" pkg="inertial_sense" type="inertial_sense_node" output="screen">
+    <param name="~port" value="/dev/uINS"/>
+  </node> 
 
   <!-- run all of the necessary sensor calibration--> 
   <node pkg="rosservice" type="rosservice" name="calibration_of_imu" args="call --wait /calibrate_imu"/>
