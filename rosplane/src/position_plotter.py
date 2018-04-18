@@ -34,41 +34,41 @@ class gps_writer:
         plt.draw()
         plt.pause(0.0000001)
         # style.use('fivethirtyeight')
-        ROS_INFO("POSITION PLOTTER INITIALIZED")
+        # ROS_INFO("POSITION PLOTTER INITIALIZED")
 
         while not rospy.is_shutdown():
             rospy.spin()
 
     def plot_path(self, i):
         if self.initial:
-            n = 200.0
-            e = 200.0
-            plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
-            self.wps[0].append(n)
-            self.wps[1].append(e)
-            plt.text(e, n, str(1), fontsize=12)
-
-            n = 200.0
-            e = -200.0
-            plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
-            self.wps[0].append(n)
-            self.wps[1].append(e)
-            plt.text(e, n, str(2), fontsize=12)
-
-            n = 40.0
-            e = -200.0
-            plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
-            self.wps[0].append(n)
-            self.wps[1].append(e)
-            plt.text(e, n, str(3), fontsize=12)
-
-            n = 40.0
-            e = 200.0
-            plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
-            self.wps[0].append(n)
-            self.wps[1].append(e)
-            plt.text(e, n, str(4), fontsize=12)
+            # n = 200.0
+            # e = 200.0
+            # plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
+            # self.wps[0].append(n)
+            # self.wps[1].append(e)
+            # plt.text(e, n, str(1), fontsize=12)
             #
+            # n = 200.0
+            # e = -200.0
+            # plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
+            # self.wps[0].append(n)
+            # self.wps[1].append(e)
+            # plt.text(e, n, str(2), fontsize=12)
+            #
+            # n = 40.0
+            # e = -200.0
+            # plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
+            # self.wps[0].append(n)
+            # self.wps[1].append(e)
+            # plt.text(e, n, str(3), fontsize=12)
+            #
+            # n = 40.0
+            # e = 200.0
+            # plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
+            # self.wps[0].append(n)
+            # self.wps[1].append(e)
+            # plt.text(e, n, str(4), fontsize=12)
+            # #
             # n = 200.0
             # e = 0.0
             # plt.fill(e + self.R*np.cos(self.theta),n + self.R*np.sin(self.theta),"r")
@@ -89,10 +89,10 @@ class gps_writer:
             plt.draw()
             plt.pause(0.000000001)
             # Change the colors of the waypoints if you get to it.
-            if (len(self.wps) > self.next_wp and len( self.wps[self.next_wp]) == 2):
-                if (np.sqrt((distE - self.wps[self.next_wp][1])**2.0 + (distN - self.wps[self.next_wp][0])**2.0) < self.R):
-                    plt.fill(self.wps[self.next_wp][1] + self.R*np.cos(self.theta),self.wps[self.next_wp][0]+ self.R*np.sin(self.theta),"b")
-                    self.next_wp = self.next_wp + 1
+            # if (len(self.wps) > self.next_wp and len( self.wps[self.next_wp]) == 2):
+            #     if (np.sqrt((distE - self.wps[self.next_wp][1])**2.0 + (distN - self.wps[self.next_wp][0])**2.0) < self.R):
+            #         plt.fill(self.wps[self.next_wp][1] + self.R*np.cos(self.theta),self.wps[self.next_wp][0]+ self.R*np.sin(self.theta),"b")
+            #         self.next_wp = self.next_wp + 1
 
     def stateCallback(self, msg):
         self.Ns.append(msg.position[0])
