@@ -60,7 +60,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
     }
     break;
   case alt_zones::DESCEND:
-    output.delta_t = 0;
+   output.delta_t = 0;
     output.theta_c = airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
     if (input.h <= input.h_c + params.alt_hz - params.alt_hys)
     {
