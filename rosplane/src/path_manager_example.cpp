@@ -110,7 +110,7 @@ namespace rosplane
       manage_line(params, input, output);
       return;
     }
-    ROS_WARN("manage fillet");
+    //ROS_WARN("manage fillet");
     //create a 3D position vector (float) with north, east, and height inputs. Note that -h is actually up
     Eigen::Vector3f p;
     p << input.pn, input.pe, -input.h;
