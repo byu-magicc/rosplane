@@ -54,7 +54,7 @@ protected:
     float chi_c;            /** commanded course (rad) */
     float phi_ff;           /** feed forward term for orbits (rad) */
 		float delta_t; 					/** keep track of the previous delta_t to enable throttle ramp up on takeoff */
-		bool armed;							/** Autopilot armed */
+		bool rc_override;				/** Autopilot armed */
   };
 
   struct output_s

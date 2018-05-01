@@ -28,7 +28,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
   case alt_zones::TAKE_OFF:
     output.phi_c = 0;
     output.delta_a = roll_hold(0.0, input.phi, input.p, params, input.Ts);
-		if(input.armed){
+		if(!input.rc_override){
 			output.delta_t = params.max_t;
 		}
 		else{
@@ -41,7 +41,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
 				output.delta_t = input.delta_t + params.max_t/500.0;
 			}
 		}
-	ROS_WARN("%f", output.delta_t);
+		ROS_WARN("%f", output.delta_t);
     output.theta_c = 15.0*3.14/180.0;
     if (input.h >= params.alt_toz + params.alt_hys)
     {

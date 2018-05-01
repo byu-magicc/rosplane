@@ -147,7 +147,7 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent &)
   input.phi_ff = controller_commands_.phi_ff;
   input.Ts = 0.01f;
 	input.delta_t = prev_actuators_.F;
-	input.armed = status_.armed;
+	input.rc_override = status_.rc_override;
 
   struct output_s output;
   if (command_recieved_ == true)
