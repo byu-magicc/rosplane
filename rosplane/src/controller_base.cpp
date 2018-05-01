@@ -11,6 +11,7 @@ controller_base::controller_base():
   vehicle_state_sub_ = nh_.subscribe("state", 10, &controller_base::vehicle_state_callback, this);
   controller_commands_sub_ = nh_.subscribe("controller_commands", 10, &controller_base::controller_commands_callback,
                              this);
+	actuators_sub_ = nh_.subscribe("command", 10, &controller_base::actuators_callback, this);
 
   memset(&vehicle_state_, 0, sizeof(vehicle_state_));
   memset(&controller_commands_, 0, sizeof(controller_commands_));
@@ -65,6 +66,11 @@ controller_base::controller_base():
 void controller_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg)
 {
   vehicle_state_ = *msg;
+}
+
+void controller_base::actuators_callback(const rosflight_msgs::CommandConstPtr &msg)
+{
+  prev_actuators_ = *msg;
 }
 
 void controller_base::controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr &msg)
@@ -134,6 +140,7 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent &)
   input.chi_c = controller_commands_.chi_c;
   input.phi_ff = controller_commands_.phi_ff;
   input.Ts = 0.01f;
+	input.delta_t = prev_actuators_.F;
 
   struct output_s output;
   if (command_recieved_ == true)

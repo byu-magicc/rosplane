@@ -28,7 +28,15 @@ void controller_example::control(const params_s &params, const input_s &input, o
   case alt_zones::TAKE_OFF:
     output.phi_c = 0;
     output.delta_a = roll_hold(0.0, input.phi, input.p, params, input.Ts);
-    output.delta_t = params.max_t;
+		output.delta_t = params.max_t;
+
+		// A simple ramp function for takeoff
+		if(input.va < 2.0){
+			if(input.delta_t < output.delta_t){
+				output.delta_t = input.delta_t + params.max_t/100.0;
+			}
+		}
+
     output.theta_c = 15.0*3.14/180.0;
     if (input.h >= params.alt_toz + params.alt_hys)
     {
