@@ -11,6 +11,7 @@
 
 #include <ros/ros.h>
 #include <rosflight_msgs/Command.h>
+#include <rosflight_msgs/Status.h>
 #include <rosplane_msgs/State.h>
 #include <rosplane_msgs/Controller_Commands.h>
 #include <rosplane_msgs/Controller_Internals.h>
@@ -130,6 +131,7 @@ private:
   void vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg);
   void controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr &msg);
 	void actuators_callback(const rosflight_msgs::CommandConstPtr &msg);
+	void status_callback(const rosflight_msgs::StatusConstPtr &msg);
   bool command_recieved_;
 
   dynamic_reconfigure::Server<rosplane::ControllerConfig> server_;
