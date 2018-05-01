@@ -53,6 +53,7 @@ protected:
     float chi_c;            /** commanded course (rad) */
     float phi_ff;           /** feed forward term for orbits (rad) */
 		float delta_t; 					/** keep track of the previous delta_t to enable throttle ramp up on takeoff */
+		bool armed;							/** Autopilot armed */
   };
 
   struct output_s
@@ -115,6 +116,7 @@ private:
   ros::Subscriber vehicle_state_sub_;
   ros::Subscriber controller_commands_sub_;
 	ros::Subscriber actuators_sub_;
+	ros::Subscriber status_sub_;
   ros::Publisher actuators_pub_;
   ros::Publisher internals_pub_;
   ros::Timer act_pub_timer_;
@@ -123,6 +125,7 @@ private:
   rosplane_msgs::Controller_Commands controller_commands_;
   rosplane_msgs::State vehicle_state_;
 	rosflight_msgs::Command prev_actuators_;
+	rosflight_msgs::Status status_;
 
   void vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg);
   void controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr &msg);
