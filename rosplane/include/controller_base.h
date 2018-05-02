@@ -11,6 +11,7 @@
 
 #include <ros/ros.h>
 #include <rosflight_msgs/Command.h>
+#include <rosflight_msgs/Status.h>
 #include <rosplane_msgs/State.h>
 #include <rosplane_msgs/Controller_Commands.h>
 #include <rosplane_msgs/Controller_Internals.h>
@@ -52,6 +53,8 @@ protected:
     float h_c;              /** commanded altitude (m) */
     float chi_c;            /** commanded course (rad) */
     float phi_ff;           /** feed forward term for orbits (rad) */
+		float delta_t; 					/** keep track of the previous delta_t to enable throttle ramp up on takeoff */
+		bool rc_override;				/** Autopilot armed */
   };
 
   struct output_s
@@ -113,6 +116,8 @@ private:
   ros::NodeHandle nh_private_;
   ros::Subscriber vehicle_state_sub_;
   ros::Subscriber controller_commands_sub_;
+	ros::Subscriber actuators_sub_;
+	ros::Subscriber status_sub_;
   ros::Publisher actuators_pub_;
   ros::Publisher internals_pub_;
   ros::Timer act_pub_timer_;
@@ -120,9 +125,13 @@ private:
   struct params_s params_;            /**< params */
   rosplane_msgs::Controller_Commands controller_commands_;
   rosplane_msgs::State vehicle_state_;
+	rosflight_msgs::Command prev_actuators_;
+	rosflight_msgs::Status status_;
 
   void vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg);
   void controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr &msg);
+	void actuators_callback(const rosflight_msgs::CommandConstPtr &msg);
+	void status_callback(const rosflight_msgs::StatusConstPtr &msg);
   bool command_recieved_;
 
   dynamic_reconfigure::Server<rosplane::ControllerConfig> server_;

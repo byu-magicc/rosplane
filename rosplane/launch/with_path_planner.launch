@@ -7,7 +7,6 @@
  </node>
  <node name="uINS" pkg="inertial_sense" type="inertial_sense_node" output="screen">
  <param name="~port" value="/dev/uINS"/>
-   <rosparam param="~GPS_ref_lla"> [39.9706002, -111.9684566, 1430.999]</rosparam>
  </node>
 
  <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen">

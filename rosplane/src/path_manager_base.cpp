@@ -56,6 +56,7 @@ void path_manager_base::new_waypoint_callback(const rosplane_msgs::Waypoint &msg
   nextwp.w[1]         = msg.w[1];
   nextwp.w[2]         = msg.w[2];
   nextwp.Va_d         = msg.Va_d;
+  ROS_WARN("recieved waypoint: n: %f, e: %f, d: %f", nextwp.w[0], nextwp.w[1], nextwp.w[2]);
   waypoints_.push_back(nextwp);
   num_waypoints_++;
 }

@@ -9,7 +9,7 @@ int main(int argc, char **argv)
 
   ros::NodeHandle nh_;
   ros::Publisher waypointPublisher = nh_.advertise<rosplane_msgs::Waypoint>("waypoint_path", 10);
-  float Va = 16.0;
+  float Va = 20.0;
 
   std::fstream fin;
   fin.open("output_path.txt", std::ifstream::in);
