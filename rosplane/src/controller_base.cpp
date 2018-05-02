@@ -148,6 +148,7 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent &)
   input.Ts = 0.01f;
 	input.delta_t = prev_actuators_.F;
 	input.rc_override = status_.rc_override;
+	input.landing = controller_commands_.landing;
 
   struct output_s output;
   if (command_recieved_ == true)

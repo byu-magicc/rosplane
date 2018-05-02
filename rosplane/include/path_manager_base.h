@@ -35,6 +35,7 @@ namespace rosplane
     {
       float w[3];
       float Va_d;
+			bool landing;
     };
 
     std::vector<waypoint_s> waypoints_;
@@ -58,6 +59,7 @@ namespace rosplane
       float c[3];             /** Center of orbital path (m) */
       float rho;              /** Radius of orbital path (m) */
       int8_t lambda;          /** Direction of orbital path (cw is 1, ccw is -1) */
+			bool landing;						/** True if we want to land */
     };
 
     struct params_s

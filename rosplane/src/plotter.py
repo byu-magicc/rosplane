@@ -7,7 +7,7 @@ import collections as cl
 from rosplane_msgs.msg import Controller_Commands
 from rosplane_msgs.msg import State
 from rosflight_msgs.msg import Status
-from rosflight_msgs.msg import OutputRaw
+from rosflight_msgs.msg import Command
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -82,7 +82,7 @@ class plotter():
 		self.cmd_sub_ = rospy.Subscriber('controller_commands', Controller_Commands, self.cmd_callback, queue_size=10)
 		self.state_sub_ = rospy.Subscriber('state', State, self.state_callback, queue_size=10)
 		self.RC_sub_ = rospy.Subscriber('status', Status, self.RC_callback, queue_size=10)
-		self.actuator_sub_ = rospy.Subscriber('output_raw', OutputRaw, self.actuator_callback, queue_size=10)
+		self.actuator_sub_ = rospy.Subscriber('command', Command, self.actuator_callback, queue_size=10)
 
 		# Show the animation
 		plt.show()
@@ -194,10 +194,10 @@ class plotter():
 		self.RC = msg.rc_override
 
 	def actuator_callback(self, msg):
-		self.e_q.append(msg.values[0])
-		self.a_q.append(msg.values[1])
-		self.r_q.append(msg.values[2])
-		self.t_q.append(msg.values[3])
+		self.e_q.append(msg.x)
+		self.a_q.append(msg.y)
+		self.r_q.append(msg.z)
+		self.t_q.append(msg.F)
 
 		# Record the ROS time
 		self.actuator_t_q.append(rospy.get_time())

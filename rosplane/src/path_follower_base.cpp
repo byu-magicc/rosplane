@@ -40,6 +40,7 @@ void path_follower_base::update(const ros::TimerEvent &)
     msg.Va_c = output.Va_c;
     msg.h_c = output.h_c;
     msg.phi_ff = output.phi_ff;
+		msg.landing = input_.landing;
     controller_commands_pub_.publish(msg);
   }
 }
@@ -71,6 +72,7 @@ void path_follower_base::current_path_callback(const rosplane_msgs::Current_Path
   }
   input_.rho_orbit = msg->rho;
   input_.lam_orbit = msg->lambda;
+	input_.landing = msg->landing;
   current_path_init_ = true;
 }
 
