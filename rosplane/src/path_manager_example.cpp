@@ -73,6 +73,7 @@ namespace rosplane
 
     output.flag = true;
     output.Va_d = waypoints_[idx_a_].Va_d;
+		output.landing = waypoints_[idx_b].landing;
 
     //The r vector to be returned as described in algorithm 5 lines 4 and 11is assigned a value.
     output.r[0] = w_im1(0);
@@ -104,7 +105,7 @@ namespace rosplane
   }
 
   void path_manager_example::manage_fillet(const params_s &params, const input_s &input, output_s &output)
-  { 
+  {
     if (num_waypoints_ < 3) //at least 3 waypoints are needed to implement this algorithym
     {
       manage_line(params, input, output);
@@ -151,6 +152,8 @@ namespace rosplane
     output.r[0] = w_im1(0);
     output.r[1] = w_im1(1);
     output.r[2] = w_im1(2);
+
+		output.landing = waypoints_[idx_b].landing;
 
     //implement lines 4-6 from UAVbook pg 193
     Eigen::Vector3f q_im1 = (w_i - w_im1).normalized();

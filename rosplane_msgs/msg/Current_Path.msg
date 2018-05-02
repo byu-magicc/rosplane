@@ -16,3 +16,5 @@ uint8 LINE_PATH = 1
 
 int8 CLOCKWISE = 1
 int8 COUNT_CLOCKWISE = -1
+
+bool landing	# True if we want to land

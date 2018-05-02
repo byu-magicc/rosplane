@@ -22,95 +22,102 @@ void controller_example::control(const params_s &params, const input_s &input, o
   output.phi_c = course_hold(input.chi_c, input.chi, input.phi_ff, input.r, params, input.Ts);
  //output.phi_c = 0.0;
   output.delta_a = roll_hold(output.phi_c, input.phi, input.p, params, input.Ts);
-
-  switch (current_zone)
-  {
-  case alt_zones::TAKE_OFF:
-    output.phi_c = 0;
-    output.delta_a = roll_hold(0.0, input.phi, input.p, params, input.Ts);
-		if(!input.rc_override){
-			output.delta_t = params.max_t;
+	if(input.landing){
+		output.delta_t = 0.0;
+		output.theta_c = 15.0*3.14159/180.0;
+		if(input.h < 10.0){
+			output.delta_a = roll_hold(0.0, input.phi, input.p, params, input.Ts);
 		}
-		else{
-			output.delta_t = 0.0;
-		}
-
-		// A simple ramp function for takeoff
-		if(input.va < 5.0){
-			if(input.delta_t < output.delta_t){
-				output.delta_t = input.delta_t + params.max_t/500.0;
+	}
+	else{
+	  switch (current_zone)
+	  {
+	  case alt_zones::TAKE_OFF:
+	    output.phi_c = 0;
+	    output.delta_a = roll_hold(0.0, input.phi, input.p, params, input.Ts);
+			if(!input.rc_override){
+				output.delta_t = params.max_t;
 			}
-		}
-		ROS_WARN("%f", output.delta_t);
-    output.theta_c = 15.0*3.14/180.0;
-    if (input.h >= params.alt_toz + params.alt_hys)
-    {
-      ROS_INFO("climb");
-      current_zone = alt_zones::CLIMB;
-      ap_error_ = 0;
-      ap_integrator_ = 0;
-      ap_differentiator_ = 0;
-    }
-    break;
-  case alt_zones::CLIMB:
-    output.delta_t = params.max_t;
-    output.theta_c = 12.5*3.141592653/180.0; // airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
-    if (input.h >= input.h_c - params.alt_hz + params.alt_hys)
-    {
-      ROS_INFO("hold");
-      current_zone = alt_zones::ALTITUDE_HOLD;
-      at_error_ = 0;
-      at_integrator_ = 0;
-      at_differentiator_ = 0;
-      a_error_ = 0;
-      a_integrator_ = 0;
-      a_differentiator_ = 0;
-    }
-    else if (input.h <= params.alt_toz)
-    {
-      ROS_INFO("takeoff");
-      current_zone = alt_zones::TAKE_OFF;
-    }
-    break;
-  case alt_zones::DESCEND:
-   output.delta_t = 0;
-    output.theta_c = airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
-    if (input.h <= input.h_c + params.alt_hz - params.alt_hys)
-    {
-      ROS_INFO("hold");
-      current_zone = alt_zones::ALTITUDE_HOLD;
-      at_error_ = 0;
-      at_integrator_ = 0;
-      at_differentiator_ = 0;
-      a_error_ = 0;
-      a_integrator_ = 0;
-      a_differentiator_ = 0;
-    }
-    break;
-  case alt_zones::ALTITUDE_HOLD:
-    output.delta_t = params.trim_t; //airspeed_with_throttle_hold(input.Va_c, input.va, params, input.Ts);
-    output.theta_c = altitiude_hold(input.h_c, input.h, params, input.Ts);
-    if (input.h >= input.h_c + params.alt_hz + params.alt_hys)
-    {
-      ROS_INFO("desend");
-      current_zone = alt_zones::DESCEND;
-      ap_error_ = 0;
-      ap_integrator_ = 0;
-      ap_differentiator_ = 0;
-    }
-    else if (input.h <= input.h_c - params.alt_hz - params.alt_hys)
-    {
-      ROS_INFO("climb");
-      current_zone = alt_zones::CLIMB;
-      ap_error_ = 0;
-      ap_integrator_ = 0;
-      ap_differentiator_ = 0;
-    }
-    break;
-  default:
-    break;
-  }
+			else{
+				output.delta_t = 0.0;
+			}
 
+			// A simple ramp function for takeoff
+			if(input.va < 5.0){
+				if(input.delta_t < output.delta_t){
+					output.delta_t = input.delta_t + params.max_t/500.0;
+				}
+			}
+			ROS_WARN("%f", output.delta_t);
+	    output.theta_c = 15.0*3.14/180.0;
+	    if (input.h >= params.alt_toz + params.alt_hys)
+	    {
+	      ROS_INFO("climb");
+	      current_zone = alt_zones::CLIMB;
+	      ap_error_ = 0;
+	      ap_integrator_ = 0;
+	      ap_differentiator_ = 0;
+	    }
+	    break;
+	  case alt_zones::CLIMB:
+	    output.delta_t = params.max_t;
+	    output.theta_c = 12.5*3.141592653/180.0; // airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
+	    if (input.h >= input.h_c - params.alt_hz + params.alt_hys)
+	    {
+	      ROS_INFO("hold");
+	      current_zone = alt_zones::ALTITUDE_HOLD;
+	      at_error_ = 0;
+	      at_integrator_ = 0;
+	      at_differentiator_ = 0;
+	      a_error_ = 0;
+	      a_integrator_ = 0;
+	      a_differentiator_ = 0;
+	    }
+	    else if (input.h <= params.alt_toz)
+	    {
+	      ROS_INFO("takeoff");
+	      current_zone = alt_zones::TAKE_OFF;
+	    }
+	    break;
+	  case alt_zones::DESCEND:
+	   output.delta_t = 0;
+	    output.theta_c = airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
+	    if (input.h <= input.h_c + params.alt_hz - params.alt_hys)
+	    {
+	      ROS_INFO("hold");
+	      current_zone = alt_zones::ALTITUDE_HOLD;
+	      at_error_ = 0;
+	      at_integrator_ = 0;
+	      at_differentiator_ = 0;
+	      a_error_ = 0;
+	      a_integrator_ = 0;
+	      a_differentiator_ = 0;
+	    }
+	    break;
+	  case alt_zones::ALTITUDE_HOLD:
+	    output.delta_t = params.trim_t; //airspeed_with_throttle_hold(input.Va_c, input.va, params, input.Ts);
+	    output.theta_c = altitiude_hold(input.h_c, input.h, params, input.Ts);
+	    if (input.h >= input.h_c + params.alt_hz + params.alt_hys)
+	    {
+	      ROS_INFO("desend");
+	      current_zone = alt_zones::DESCEND;
+	      ap_error_ = 0;
+	      ap_integrator_ = 0;
+	      ap_differentiator_ = 0;
+	    }
+	    else if (input.h <= input.h_c - params.alt_hz - params.alt_hys)
+	    {
+	      ROS_INFO("climb");
+	      current_zone = alt_zones::CLIMB;
+	      ap_error_ = 0;
+	      ap_integrator_ = 0;
+	      ap_differentiator_ = 0;
+	    }
+	    break;
+	  default:
+	    break;
+	  }
+	}
   output.current_zone = current_zone;
   output.delta_e = pitch_hold(output.theta_c, input.theta, input.q, params, input.Ts);
 }

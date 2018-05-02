@@ -56,6 +56,7 @@ void path_manager_base::new_waypoint_callback(const rosplane_msgs::Waypoint &msg
   nextwp.w[1]         = msg.w[1];
   nextwp.w[2]         = msg.w[2];
   nextwp.Va_d         = msg.Va_d;
+	nextwp.landing			= msg.landing;
   ROS_WARN("recieved waypoint: n: %f, e: %f, d: %f", nextwp.w[0], nextwp.w[1], nextwp.w[2]);
   waypoints_.push_back(nextwp);
   num_waypoints_++;
@@ -92,7 +93,8 @@ void path_manager_base::current_path_publish(const ros::TimerEvent &)
   }
   current_path.rho = output.rho;
   current_path.lambda = output.lambda;
-
+	current_path.landing = output.landing;
+	
   current_path_pub_.publish(current_path);
 }
 

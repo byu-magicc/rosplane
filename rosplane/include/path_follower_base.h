@@ -40,6 +40,7 @@ protected:
     float h;                /** altitude */
     float Va;               /** airspeed */
     float chi;              /** course angle */
+		bool landing;						/** True if we want to land */
   };
 
   struct output_s
@@ -48,6 +49,7 @@ protected:
     double h_c;              /** commanded altitude (m) */
     double chi_c;            /** commanded course (rad) */
     double phi_ff;           /** feed forward term for orbits (rad) */
+		bool landing;						 /** True if we want to land */
   };
 
   struct params_s
