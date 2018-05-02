@@ -20,11 +20,10 @@ void controller_example::control(const params_s &params, const input_s &input, o
 {
   output.delta_r = 0; //cooridinated_turn_hold(input.beta, params, input.Ts)
   output.phi_c = course_hold(input.chi_c, input.chi, input.phi_ff, input.r, params, input.Ts);
-  output.phi_c = 0.0;
   output.delta_a = roll_hold(output.phi_c, input.phi, input.p, params, input.Ts);
 	if(input.landing){
 		output.delta_t = 0.0;
-		output.theta_c = 15.0*3.14159/180.0;
+		output.theta_c = 0.0*3.14159/180.0;
 		if(input.h < 10.0){
 			output.delta_a = roll_hold(0.0, input.phi, input.p, params, input.Ts);
 		}
