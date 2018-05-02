@@ -20,7 +20,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
 {
   output.delta_r = 0; //cooridinated_turn_hold(input.beta, params, input.Ts)
   output.phi_c = course_hold(input.chi_c, input.chi, input.phi_ff, input.r, params, input.Ts);
- //output.phi_c = 0.0;
+  output.phi_c = 0.0;
   output.delta_a = roll_hold(output.phi_c, input.phi, input.p, params, input.Ts);
 
   switch (current_zone)
@@ -36,12 +36,10 @@ void controller_example::control(const params_s &params, const input_s &input, o
 		}
 
 		// A simple ramp function for takeoff
-		if(input.va < 5.0){
 			if(input.delta_t < output.delta_t){
 				output.delta_t = input.delta_t + params.max_t/500.0;
 			}
-		}
-		ROS_WARN("%f", output.delta_t);
+	//ROS_WARN("%f", output.delta_t);
     output.theta_c = 15.0*3.14/180.0;
     if (input.h >= params.alt_toz + params.alt_hys)
     {
@@ -54,7 +52,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
     break;
   case alt_zones::CLIMB:
     output.delta_t = params.max_t;
-    output.theta_c = 12.5*3.141592653/180.0; // airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
+    output.theta_c = 12.5*3.1415926539/180.0; //airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
     if (input.h >= input.h_c - params.alt_hz + params.alt_hys)
     {
       ROS_INFO("hold");
@@ -88,7 +86,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
     }
     break;
   case alt_zones::ALTITUDE_HOLD:
-    output.delta_t = params.trim_t; //airspeed_with_throttle_hold(input.Va_c, input.va, params, input.Ts);
+    output.delta_t = airspeed_with_throttle_hold(input.Va_c, input.va, params, input.Ts); // params.trim_t;
     output.theta_c = altitiude_hold(input.h_c, input.h, params, input.Ts);
     if (input.h >= input.h_c + params.alt_hz + params.alt_hys)
     {
