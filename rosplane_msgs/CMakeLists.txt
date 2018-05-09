@@ -14,6 +14,10 @@ add_message_files(
   Controller_Internals.msg
   State.msg
 )
+add_service_files(
+  FILES
+  NewWaypoints.srv
+)
 
 generate_messages(
   DEPENDENCIES
