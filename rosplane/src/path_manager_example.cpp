@@ -9,6 +9,8 @@ namespace rosplane
   path_manager_example::path_manager_example() : path_manager_base()
   {
     fil_state_ = fillet_state::STRAIGHT;
+    if (!(ros::param::get("~loiter_radius",loiter_radius_)))
+      ROS_WARN("No param named 'loiter_radius'");
   }
 
   void path_manager_example::manage(const params_s &params, const input_s &input, output_s &output)
@@ -66,8 +68,20 @@ namespace rosplane
       idx_b = idx_a_ + 1;
       idx_c = idx_b + 1;
     }
+    if (idx_b == num_waypoints_ - 1 && waypoints_[idx_b].loiter_point == true)
+    {
+      output.flag    = false;                  // fly an orbit
+      output.Va_d    = waypoints_[idx_b].Va_d;
+      output.c[0]    = waypoints_[idx_b].w[0];
+      output.c[1]    = waypoints_[idx_b].w[1];
+      output.c[2]    = waypoints_[idx_b].w[2];
+      output.rho     = loiter_radius_;
+      output.lambda  = -1;
+      output.landing = false;
+      return;
+    }
 
-  //These 3 dimensional column vectors store floats corresponding to the 3 waypoints mentioned above.
+   //These 3 dimensional column vectors store floats corresponding to the 3 waypoints mentioned above.
     Eigen::Vector3f w_im1(waypoints_[idx_a_].w); //Corresponds to W_i-1
     Eigen::Vector3f w_i(waypoints_[idx_b].w); //Corresponds to W_i
     Eigen::Vector3f w_ip1(waypoints_[idx_c].w); //Corresponds to W_i+1
@@ -93,7 +107,7 @@ namespace rosplane
    //The unit vector n_i is assigned a value as described in algorithm 5 line 7
     Eigen::Vector3f n_i = (q_im1 + q_i).normalized();
 
-    //We check to see if the auv has entered the half space H(w_i, n_i) described in algorithm 5 line 8
+    //We check to see if the uav has entered the half space H(w_i, n_i) described in algorithm 5 line 8
     if ((p - w_i).dot(n_i) > 0.0f)
     {
       //We move one step further in the waypoints. Until we reach N-1 waypoints. At that point we start again at the beginning
@@ -179,6 +193,8 @@ namespace rosplane
       output.lambda = 1;
 
       z = w_i - q_im1*(R_min/tanf(beta/2.0));
+      if (waypoints_[idx_c].loiter_point == true && w_i == w_ip1)
+        z = w_i;
 
       //if plane has crossed first half plane (ie it needs to start the fillet), change state to ORBIT
       if ((p - z).dot(q_im1) > 0)
@@ -186,6 +202,18 @@ namespace rosplane
       break;
     case fillet_state::ORBIT:  //this is when the plane follows the orbit that defines the fillet
       //implement lines 15-25 in UAVbook pg 193
+      if (idx_c == num_waypoints_ - 1 && waypoints_[idx_c].loiter_point == true)
+      {
+        output.flag    = false;                  // fly an orbit
+        output.Va_d    = waypoints_[idx_c].Va_d;
+        output.c[0]    = waypoints_[idx_c].w[0];
+        output.c[1]    = waypoints_[idx_c].w[1];
+        output.c[2]    = waypoints_[idx_c].w[2];
+        output.rho     = loiter_radius_;
+        output.lambda  = -1;
+        output.landing = false;
+        return;
+      }
       output.flag = false;
       output.q[0] = q_i(0);
       output.q[1] = q_i(1);

@@ -27,6 +27,8 @@ namespace rosplane
     void manage_line(const struct params_s &params, const struct input_s &input, struct output_s &output);
     void manage_fillet(const struct params_s &params, const struct input_s &input, struct output_s &output);
     fillet_state fil_state_;
+
+    float loiter_radius_;
   };
 } //end namespace
 #endif // PATH_MANAGER_EXAMPLE_H

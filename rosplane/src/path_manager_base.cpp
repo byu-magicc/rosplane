@@ -12,8 +12,8 @@ path_manager_base::path_manager_base():
   nh_private_.param<double>("update_rate", update_rate_, 10.0);
 
   vehicle_state_sub_ = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
-  new_waypoint_service_ = nh_.advertiseService("/theseus/waypoint_path", &rosplane::path_manager_base::new_waypoint_callback, this);
-  ROS_ERROR("advertised service");
+  new_waypoint_service_ = nh_.advertiseService("/waypoint_path", &rosplane::path_manager_base::new_waypoint_callback, this);
+
   current_path_pub_ = nh_.advertise<rosplane_msgs::Current_Path>("current_path", 10);
 
   update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &path_manager_base::current_path_publish, this);
@@ -32,7 +32,6 @@ void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPt
 
 bool path_manager_base::new_waypoint_callback(rosplane_msgs::NewWaypoints::Request &req, rosplane_msgs::NewWaypoints::Response &res)
 {
-  ROS_FATAL("ENTERED THE SERVER FUNCTION");
   int priority_level = 0;
   for (int i = 0; i < req.waypoints.size(); i++)
     if (req.waypoints[i].priority > priority_level)
