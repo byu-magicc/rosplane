@@ -24,6 +24,7 @@ namespace rosplane
       output.c[2] = -50.0f;
       output.rho = params.R_min;
       output.lambda = 1;
+      output.landing = false;
     }
     else
     {
