@@ -214,17 +214,29 @@ namespace rosplane
         output.landing = false;
         return;
       }
+
+      // The NED_s and fillet_s code is added to address a few problems with the UAV book implementation
+      // The calculation of the fillet this way prevents problems when w_im1, w_i, and w_ip1 are all
+      // different altitudes. Before the the down component of c would be put to a weird altitude
+      // Straight lines (w_im1 to w_i to w_ip1 all in a line) used to cause c to be at w_i and a
+      // weird z1 and z2. It would also put the arc in a weird spot for 3d paths. slightly off from the lines.
+      NED_s w_im1_s(w_im1(0), w_im1(1), w_im1(2));
+      NED_s w_i_s  (w_i(0)  , w_i(1)  , w_i(2)  );
+      NED_s w_ip1_s(w_ip1(0), w_ip1(1), w_ip1(2));
+      fillet_s fil;
+      fil.calculate(w_im1_s, w_i_s, w_ip1_s, R_min);
+      Eigen::Vector3f c;
+      c << fil.c.N, fil.c.E, fil.c.D;
       output.flag = false;
-      output.q[0] = q_i(0);
-      output.q[1] = q_i(1);
-      output.q[2] = q_i(2);
-      Eigen::Vector3f c = w_i - (q_im1 - q_i).normalized()*(R_min/sinf(beta/2.0));
+      output.q[0] = fil.q_i.N;
+      output.q[1] = fil.q_i.E;
+      output.q[2] = fil.q_i.D;
       output.c[0] = c(0);
       output.c[1] = c(1);
       output.c[2] = c(2);
-      output.rho = R_min;
-      output.lambda = ((q_im1(0)*q_i(1) - q_im1(1)*q_i(0)) > 0 ? 1 : -1);
-      z = w_i + q_i*(R_min/tanf(beta/2.0));
+      output.rho  = R_min;
+      output.lambda = fil.lambda;
+      z << fil.z2.N, fil.z2.E, fil.z2.D;
       //If the second half plane is crossed, change state to STRAIGHT
       if ((p - z).dot(q_i) > 0)
       {
@@ -236,5 +248,101 @@ namespace rosplane
       }
       break;
     }
+  }
+  bool NED_s::operator==(const NED_s s)
+  {
+    return N == s.N && E == s.E && D == s.D;
+  }
+  bool NED_s::operator!=(const NED_s s)
+  {
+    return N != s.N || E != s.E || D != s.D;
+  }
+  NED_s NED_s::operator+(const NED_s s)
+  {
+    NED_s n;
+    n.N = N + s.N;
+    n.E = E + s.E;
+    n.D = D + s.D;
+    return n;
+  }
+  NED_s NED_s::operator-(const NED_s s)
+  {
+    NED_s n;
+    n.N = N - s.N;
+    n.E = E - s.E;
+    n.D = D - s.D;
+    return n;
+  }
+  float NED_s::norm()
+  {
+    return sqrtf(N*N + E*E + D*D);
+  }
+  NED_s NED_s::normalize()
+  {
+    NED_s out;
+    float magnitude = norm();
+    out.N = N/magnitude;
+    out.E = E/magnitude;
+    out.D = D/magnitude;
+    return out;
+  }
+  float NED_s::dot(NED_s in)
+  {
+    return N*in.N + E*in.E + D*in.D;
+  }
+  float NED_s::getChi()
+  {
+    return atan2f(E, N);
+  }
+  NED_s NED_s::operator*(const float num)
+  {
+    NED_s n;
+    n.N = N*num;
+    n.E = E*num;
+    n.D = D*num;
+    return n;
+  }
+  bool fillet_s::calculate(NED_s w_im1_in, NED_s w_i_in, NED_s w_ip1_in, float R_in)
+  {
+    // calculates fillet variables and determines if it is possible
+    // possible is defined as consisting of a straight line, an arc, and a straight line
+    // ie it can't go backwards to start the arc
+    // see Small Unmanned Aircraft: Theory and Practice (Beard and McLain) Algorithm 6
+
+    w_im1           = w_im1_in;
+    w_i             = w_i_in;
+    w_ip1           = w_ip1_in;
+    R               = R_in;
+    q_im1           = (w_i   - w_im1).normalize();
+    q_i             = (w_ip1 - w_i  ).normalize();
+    float n_qim1_dot_qi = -q_im1.dot(q_i);
+    float tolerance = 0.0001f;
+    n_qim1_dot_qi   = n_qim1_dot_qi < -1.0f + tolerance ? -1.0f + tolerance : n_qim1_dot_qi; // this prevents beta from being nan
+    n_qim1_dot_qi   = n_qim1_dot_qi >  1.0f - tolerance ?  1.0f - tolerance : n_qim1_dot_qi; // Still allows for a lot of degrees
+    float varrho    = acosf(n_qim1_dot_qi);
+    z1              = w_i - q_im1*(R/tanf(varrho/2.0f));
+    z2              = w_i + q_i*(R/tanf(varrho/2.0f));
+    z1.D            = w_i.D;
+    z2.D            = w_i.D;
+    c               = w_i - ((q_im1 - q_i).normalize())*(R/sinf(varrho/2.0f));
+    c.D             = w_i.D;
+    lambda          = q_im1.N*q_i.E - q_im1.E*q_i.N > 0.0f ? 1 : -1;                         // 1 = cw; -1 = ccw
+    adj             = 2.0f*R/tanf(varrho/2.0f) - 2.0f*asinf((z2 - z1).norm()/(2.0f*R))*R;    // adjustment length
+    if ((w_i - c).norm() < R)
+    {
+      NED_s q_rotated;
+      float rot = M_PI/2.0f;
+      if (lambda == -1)
+        rot = -M_PI/2.0f;
+      q_rotated.N = q_i.N*cosf(rot) - q_i.E*sinf(rot);
+      q_rotated.E = q_i.N*sinf(rot) + q_i.E*cosf(rot);
+      q_rotated.D = q_i.D;
+      c       = w_i + q_rotated*(R/sinf(varrho/2.0f));
+    }
+    // check to see if this is possible
+    if (q_im1.dot(z1 - w_im1) > 0.0f && (q_i*-1.0f).dot(z2 - w_ip1) > 0.0f)
+      return true;
+    else
+      return false;
   }
 }//end namespace

@@ -38,7 +38,10 @@ bool path_manager_base::new_waypoint_callback(rosplane_msgs::NewWaypoints::Reque
       priority_level = req.waypoints[i].priority;
   for (int i = 0; i < waypoints_.size(); i++)
     if (waypoints_[i].priority < priority_level)
+    {
       waypoints_.erase(waypoints_.begin() + i);
+      i--;
+    }
   for (int i = 0; i < req.waypoints.size(); i++)
   {
     if (req.waypoints[i].set_current || num_waypoints_ == 0)
@@ -78,7 +81,6 @@ bool path_manager_base::new_waypoint_callback(rosplane_msgs::NewWaypoints::Reque
   }
   return true;
 }
-
 void path_manager_base::current_path_publish(const ros::TimerEvent &)
 {
 
