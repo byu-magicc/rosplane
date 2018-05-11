@@ -38,7 +38,10 @@ bool path_manager_base::new_waypoint_callback(rosplane_msgs::NewWaypoints::Reque
       priority_level = req.waypoints[i].priority;
   for (int i = 0; i < waypoints_.size(); i++)
     if (waypoints_[i].priority < priority_level)
+    {
       waypoints_.erase(waypoints_.begin() + i);
+      i--;
+    }
   for (int i = 0; i < req.waypoints.size(); i++)
   {
     if (req.waypoints[i].set_current || num_waypoints_ == 0)
@@ -107,10 +110,18 @@ void path_manager_base::current_path_publish(const ros::TimerEvent &)
     current_path.r[i] = output.r[i];
     current_path.q[i] = output.q[i];
     current_path.c[i] = output.c[i];
+
+    if (std::isnan(current_path.r[i])) {ROS_FATAL("caught nan 1 path_manager %i", i);}
+    if (std::isnan(current_path.q[i])) {ROS_FATAL("caught nan 2 path_manager %i", i);}
+    if (std::isnan(current_path.c[i])) {ROS_FATAL("caught nan 3 path_manager %i", i);}
   }
   current_path.rho = output.rho;
   current_path.lambda = output.lambda;
 	current_path.landing = output.landing;
+
+  if (std::isnan(current_path.path_type)) {ROS_FATAL("caught nan 5 path_manager");}
+  if (std::isnan(current_path.rho)) {ROS_FATAL("caught nan 6 path_manager");}
+  if (std::isnan(current_path.lambda)) {ROS_FATAL("caught nan 7 path_manager");}
 
   current_path_pub_.publish(current_path);
 }
