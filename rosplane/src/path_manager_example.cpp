@@ -234,6 +234,7 @@ namespace rosplane
       output.c[0] = c(0);
       output.c[1] = c(1);
       output.c[2] = c(2);
+
       output.rho  = R_min;
       output.lambda = fil.lambda;
       z << fil.z2.N, fil.z2.E, fil.z2.D;
@@ -281,6 +282,8 @@ namespace rosplane
   {
     NED_s out;
     float magnitude = norm();
+    if (magnitude <= 1.0e-9f)
+      return out; // 0, 0, 0
     out.N = N/magnitude;
     out.E = E/magnitude;
     out.D = D/magnitude;
@@ -317,7 +320,7 @@ namespace rosplane
     q_i             = (w_ip1 - w_i  ).normalize();
     float n_qim1_dot_qi = -q_im1.dot(q_i);
     float tolerance = 0.0001f;
-    n_qim1_dot_qi   = n_qim1_dot_qi < -1.0f + tolerance ? -1.0f + tolerance : n_qim1_dot_qi; // this prevents beta from being nan
+    n_qim1_dot_qi   = n_qim1_dot_qi < -1.0f + tolerance ? -1.0f + tolerance : n_qim1_dot_qi; // this prevents varrho from being nan
     n_qim1_dot_qi   = n_qim1_dot_qi >  1.0f - tolerance ?  1.0f - tolerance : n_qim1_dot_qi; // Still allows for a lot of degrees
     float varrho    = acosf(n_qim1_dot_qi);
     z1              = w_i - q_im1*(R/tanf(varrho/2.0f));
