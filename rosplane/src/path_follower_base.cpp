@@ -41,6 +41,10 @@ void path_follower_base::update(const ros::TimerEvent &)
     msg.h_c = output.h_c;
     msg.phi_ff = output.phi_ff;
 		msg.landing = input_.landing;
+    if (std::isnan(msg.chi_c)) {ROS_FATAL("caught nan 1 path_follower");}
+    if (std::isnan(msg.Va_c)) {ROS_FATAL("caught nan 2 path_follower");}
+    if (std::isnan(msg.h_c)) {ROS_FATAL("caught nan 3 path_follower");}
+    if (std::isnan(msg.phi_ff)) {ROS_FATAL("caught nan 4 path_follower");}
     controller_commands_pub_.publish(msg);
   }
 }
