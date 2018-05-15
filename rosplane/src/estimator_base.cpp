@@ -126,7 +126,19 @@ void estimator_base::updateAirspeed(const ros::TimerEvent &)
   lpf_diff_base_ = alpha1_base_*lpf_diff_base_ + (1.0f - alpha1_base_)*input_.diff_pres;
   if (lpf_diff_base_ <= 0.00001)
     lpf_diff_base_ = 0.000001;
-  Vahat_ = sqrtf(2.0f/params_.rho*lpf_diff_base_);
+  //Vahat_ = sqrtf(2.0f/params_.rho*lpf_diff_base_);
+	Vahat_ = sqrtf(2.0f/params_.rho*input_.diff_pres);
+	estimator_base::filterAirspeed(Vahat_);
+}
+void estimator_base::filterAirspeed(float &Va){
+	for(int NN = FILTER_LENGTH-1; NN > 0; NN--){
+		Va_history_[NN] = Va_history_[NN-1];
+	}
+	Va_history_[0] = Va;
+	Va = 0;
+	for(int NN = 0; NN < FILTER_LENGTH; NN++){
+		Va += Va_history_[NN]*filter_taps_[NN];
+	}
 }
 void estimator_base::update(const ros::TimerEvent &)
 {
