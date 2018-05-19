@@ -76,7 +76,8 @@ void path_follower_base::current_path_callback(const rosplane_msgs::Current_Path
   }
   input_.rho_orbit = msg->rho;
   input_.lam_orbit = msg->lambda;
-	input_.landing = msg->landing;
+	input_.landing   = msg->landing;
+  input_.drop_bomb = msg->drop_bomb;
   current_path_init_ = true;
 }
 

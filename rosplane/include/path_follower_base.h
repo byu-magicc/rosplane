@@ -41,6 +41,7 @@ protected:
     float Va;               /** airspeed */
     float chi;              /** course angle */
 		bool landing;						/** True if we want to land */
+    bool drop_bomb;         /** True if want to use pursuit guidance to c */
   };
 
   struct output_s

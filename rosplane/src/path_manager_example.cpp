@@ -10,7 +10,9 @@ namespace rosplane
   {
     fil_state_ = fillet_state::STRAIGHT;
     if (!(ros::param::get("~loiter_radius",loiter_radius_)))
-      ROS_WARN("No param named 'loiter_radius'");
+      ROS_FATAL("No param named 'loiter_radius'");
+    if (!(ros::param::get("~groundD",groundD_)))
+      ROS_FATAL("No param named 'groundD'");
   }
 
   void path_manager_example::manage(const params_s &params, const input_s &input, output_s &output)
@@ -27,6 +29,7 @@ namespace rosplane
       output.rho = params.R_min;
       output.lambda = 1;
       output.landing = false;
+      output.drop_bomb = false;
     }
     else
     {
@@ -78,6 +81,7 @@ namespace rosplane
       output.rho     = loiter_radius_;
       output.lambda  = -1;
       output.landing = false;
+      output.drop_bomb = false;
       return;
     }
 
@@ -106,6 +110,15 @@ namespace rosplane
 
    //The unit vector n_i is assigned a value as described in algorithm 5 line 7
     Eigen::Vector3f n_i = (q_im1 + q_i).normalized();
+    output.drop_bomb = waypoints_[idx_b].drop_bomb;
+    if (waypoints_[idx_b].drop_bomb)
+    {
+      ROS_WARN("On line to drop bomb");
+      output.c[0] = w_i(0);
+      output.c[1] = w_i(1);
+      output.c[2] = w_i(2);
+      output.rho  = groundD_; // distance that c is above the target.
+    }
 
     //We check to see if the uav has entered the half space H(w_i, n_i) described in algorithm 5 line 8
     if ((p - w_i).dot(n_i) > 0.0f)
@@ -195,6 +208,16 @@ namespace rosplane
       z = w_i - q_im1*(R_min/tanf(beta/2.0));
       if (waypoints_[idx_c].loiter_point == true && w_i == w_ip1)
         z = w_i;
+      if (waypoints_[idx_b].drop_bomb)
+      {
+        ROS_WARN("On line to drop bomb");
+        z = w_i;
+        output.c[0] = w_i(0);
+        output.c[1] = w_i(1);
+        output.c[2] = w_i(2);
+        output.rho  = groundD_; // distance that c is above the target.
+      }
+      output.drop_bomb = waypoints_[idx_b].drop_bomb;
 
       //if plane has crossed first half plane (ie it needs to start the fillet), change state to ORBIT
       if ((p - z).dot(q_im1) > 0)
@@ -202,6 +225,7 @@ namespace rosplane
       break;
     case fillet_state::ORBIT:  //this is when the plane follows the orbit that defines the fillet
       //implement lines 15-25 in UAVbook pg 193
+      output.drop_bomb = false;
       if (idx_c == num_waypoints_ - 1 && waypoints_[idx_c].loiter_point == true)
       {
         output.flag    = false;                  // fly an orbit
@@ -212,17 +236,17 @@ namespace rosplane
         output.rho     = loiter_radius_;
         output.lambda  = -1;
         output.landing = false;
-        return;
+        return; // then loiter at this point
       }
 
-      // The NED_s and fillet_s code is added to address a few problems with the UAV book implementation
+      // The NED_t and fillet_s code is added to address a few problems with the UAV book implementation
       // The calculation of the fillet this way prevents problems when w_im1, w_i, and w_ip1 are all
       // different altitudes. Before the the down component of c would be put to a weird altitude
       // Straight lines (w_im1 to w_i to w_ip1 all in a line) used to cause c to be at w_i and a
       // weird z1 and z2. It would also put the arc in a weird spot for 3d paths. slightly off from the lines.
-      NED_s w_im1_s(w_im1(0), w_im1(1), w_im1(2));
-      NED_s w_i_s  (w_i(0)  , w_i(1)  , w_i(2)  );
-      NED_s w_ip1_s(w_ip1(0), w_ip1(1), w_ip1(2));
+      NED_t w_im1_s(w_im1(0), w_im1(1), w_im1(2));
+      NED_t w_i_s  (w_i(0)  , w_i(1)  , w_i(2)  );
+      NED_t w_ip1_s(w_ip1(0), w_ip1(1), w_ip1(2));
       fillet_s fil;
       fil.calculate(w_im1_s, w_i_s, w_ip1_s, R_min);
       Eigen::Vector3f c;
@@ -250,62 +274,7 @@ namespace rosplane
       break;
     }
   }
-  bool NED_s::operator==(const NED_s s)
-  {
-    return N == s.N && E == s.E && D == s.D;
-  }
-  bool NED_s::operator!=(const NED_s s)
-  {
-    return N != s.N || E != s.E || D != s.D;
-  }
-  NED_s NED_s::operator+(const NED_s s)
-  {
-    NED_s n;
-    n.N = N + s.N;
-    n.E = E + s.E;
-    n.D = D + s.D;
-    return n;
-  }
-  NED_s NED_s::operator-(const NED_s s)
-  {
-    NED_s n;
-    n.N = N - s.N;
-    n.E = E - s.E;
-    n.D = D - s.D;
-    return n;
-  }
-  float NED_s::norm()
-  {
-    return sqrtf(N*N + E*E + D*D);
-  }
-  NED_s NED_s::normalize()
-  {
-    NED_s out;
-    float magnitude = norm();
-    if (magnitude <= 1.0e-9f)
-      return out; // 0, 0, 0
-    out.N = N/magnitude;
-    out.E = E/magnitude;
-    out.D = D/magnitude;
-    return out;
-  }
-  float NED_s::dot(NED_s in)
-  {
-    return N*in.N + E*in.E + D*in.D;
-  }
-  float NED_s::getChi()
-  {
-    return atan2f(E, N);
-  }
-  NED_s NED_s::operator*(const float num)
-  {
-    NED_s n;
-    n.N = N*num;
-    n.E = E*num;
-    n.D = D*num;
-    return n;
-  }
-  bool fillet_s::calculate(NED_s w_im1_in, NED_s w_i_in, NED_s w_ip1_in, float R_in)
+  bool fillet_s::calculate(NED_t w_im1_in, NED_t w_i_in, NED_t w_ip1_in, float R_in)
   {
     // calculates fillet variables and determines if it is possible
     // possible is defined as consisting of a straight line, an arc, and a straight line
@@ -320,7 +289,7 @@ namespace rosplane
     q_i             = (w_ip1 - w_i  ).normalize();
     float n_qim1_dot_qi = -q_im1.dot(q_i);
     float tolerance = 0.0001f;
-    n_qim1_dot_qi   = n_qim1_dot_qi < -1.0f + tolerance ? -1.0f + tolerance : n_qim1_dot_qi; // this prevents varrho from being nan
+    n_qim1_dot_qi   = n_qim1_dot_qi < -1.0f + tolerance ? -1.0f + tolerance : n_qim1_dot_qi; // this prevents beta from being nan
     n_qim1_dot_qi   = n_qim1_dot_qi >  1.0f - tolerance ?  1.0f - tolerance : n_qim1_dot_qi; // Still allows for a lot of degrees
     float varrho    = acosf(n_qim1_dot_qi);
     z1              = w_i - q_im1*(R/tanf(varrho/2.0f));
@@ -333,7 +302,7 @@ namespace rosplane
     adj             = 2.0f*R/tanf(varrho/2.0f) - 2.0f*asinf((z2 - z1).norm()/(2.0f*R))*R;    // adjustment length
     if ((w_i - c).norm() < R)
     {
-      NED_s q_rotated;
+      NED_t q_rotated;
       float rot = M_PI/2.0f;
       if (lambda == -1)
         rot = -M_PI/2.0f;

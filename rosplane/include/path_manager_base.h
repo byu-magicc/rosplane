@@ -36,6 +36,7 @@ namespace rosplane
     {
       float w[3];
       float Va_d;
+      bool  drop_bomb;
 			bool  landing;
       int   priority;
       bool  loiter_point;
@@ -63,6 +64,7 @@ namespace rosplane
       float rho;              /** Radius of orbital path (m) */
       int8_t lambda;          /** Direction of orbital path (cw is 1, ccw is -1) */
 			bool landing;						/** True if we want to land */
+      bool drop_bomb;         /** True if we want to use pursuit guidance to c */
     };
 
     struct params_s

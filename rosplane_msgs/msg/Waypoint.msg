@@ -3,6 +3,7 @@
 # @warning w and Va_d always have to be valid; the chi_d is optional.
 float32[3] w		    # Waypoint in local NED (m)
 float32 Va_d		    # Desired airspeed (m/s)
+bool drop_bomb      # True if we want to drop the bomb near this waypoint (the waypoint is directly above the target location)
 bool landing		    # True if we want to land
 bool set_current	  # Sets this waypoint to be executed now! Starts a new list, clears all waypoints
 bool clear_wp_list  # Removes all waypoints and returns to origin.  The rest of

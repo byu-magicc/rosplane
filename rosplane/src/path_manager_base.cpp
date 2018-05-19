@@ -65,6 +65,7 @@ bool path_manager_base::new_waypoint_callback(rosplane_msgs::NewWaypoints::Reque
     nextwp.w[1]         = req.waypoints[i].w[1];
     nextwp.w[2]         = req.waypoints[i].w[2];
     nextwp.Va_d         = req.waypoints[i].Va_d;
+    nextwp.drop_bomb    = req.waypoints[i].drop_bomb;
   	nextwp.landing			= req.waypoints[i].landing;
     nextwp.priority     = req.waypoints[i].priority;
     nextwp.loiter_point = req.waypoints[i].loiter_point;
@@ -72,6 +73,8 @@ bool path_manager_base::new_waypoint_callback(rosplane_msgs::NewWaypoints::Reque
     ROS_WARN("                   Va_d: %f, priority %i", nextwp.Va_d, nextwp.priority);
     if (nextwp.landing)     {ROS_WARN("                   landing = true");}
     else                    {ROS_WARN("                   landing = false");}
+    if (nextwp.loiter_point){ROS_WARN("                   loiter_point = true");}
+    else                    {ROS_WARN("                   loiter_point = false");}
     if (nextwp.loiter_point){ROS_WARN("                   loiter_point = true");}
     else                    {ROS_WARN("                   loiter_point = false");}
     waypoints_.push_back(nextwp);
@@ -114,9 +117,10 @@ void path_manager_base::current_path_publish(const ros::TimerEvent &)
     current_path.q[i] = output.q[i];
     current_path.c[i] = output.c[i];
   }
-  current_path.rho = output.rho;
-  current_path.lambda = output.lambda;
-	current_path.landing = output.landing;
+  current_path.rho       = output.rho;
+  current_path.lambda    = output.lambda;
+	current_path.landing   = output.landing;
+  current_path.drop_bomb = output.drop_bomb;
 
   current_path_pub_.publish(current_path);
 }

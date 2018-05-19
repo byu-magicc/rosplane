@@ -23,6 +23,7 @@
     <rosparam command="load" file="$(find rosplane)/param/fixedwing.yaml" ns="autopilot"/> <!-- simulation gains -->
     <node name="autopilot" pkg="rosplane" type="rosplane_controller" >
       <remap from="state" to="truth"/>
+      <param name="groundD" value="0.0"/>
     </node>
 <!--  -->
     <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen"/>
@@ -43,8 +44,12 @@
       <remap from="state" to="truth"/>
       <param name="R_min" value="25.0"/>
       <param name="loiter_radius" value="125.0"/>
+      <param name="groundD" value="0.0"/>
     </node>
 
     <!-- <node name="pathplanner" pkg="rosplane" type="rosplane_path_planner" output="screen"/>  -->
+    <node name="bomber" pkg="rosplane" type="bomb_dropper" output="screen">
+
+    </node>
   </group>
 </launch>
