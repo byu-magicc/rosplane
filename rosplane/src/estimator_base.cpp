@@ -97,6 +97,7 @@ void estimator_base::inertialSenseCallback(const nav_msgs::Odometry &msg_in)
   float Ve       = R[1][0]*u + R[1][1]*v + R[1][2]*w;
 
   msg.Va         = Vahat_;
+  msg.Va         = msg_in.twist.twist.linear.x;
   msg.alpha      = 0.0;
   msg.beta       = 0.0;
   msg.phi        = phi;

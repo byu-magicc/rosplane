@@ -1,0 +1,36 @@
+<!--This launch file controls the plane to be level. -->
+<launch>
+<arg name="mav_name"  default="MTD"/>
+ <rosparam command="load" file="$(find rosplane)/param/MTD.yaml" ns="controller"/>
+ <node name="naze"  pkg="rosflight"  type="rosflight_io" output="screen">
+   <param name="port" value="/dev/naze"/>
+ </node>
+ <node name="uINS" pkg="inertial_sense" type="inertial_sense_node" output="screen">
+ <param name="~port" value="/dev/uINS"/> 
+ </node>
+ 
+ <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen">
+   <param name="~use_inertial_sense" type="bool" value="true"/>
+ </node>
+
+<!--Path Manager-->
+<!--<node name="path_manager" pkg="rosplane" type="rosplane_path_manager"/>-->
+
+<!--Path Follower-->
+<node name="path_follower" pkg="rosplane" type="rosplane_path_follower"/>
+
+<!--Path Planner-->
+<!--<node name="pathplanner" pkg="rosplane" type="rosplane_path_planner" output="screen"/>-->
+
+<node name="controller" pkg="rosplane" type="rosplane_controller" output="screen">
+   <param name="PWM_RAD_E" value="2.8"/>
+	 <param name="PWM_RAD_A" value="-1.6"/>
+	 <param name="PWM_RAD_R" value="1.8"/>
+         <param name="ALT_TOZ" value="20"/>
+         <param name="ALT_HZ" value="40"/>
+         <param name="MAX_T" value="0.70"/>
+ </node>
+ <node pkg="rosservice" type="rosservice" name="calibration_of_imu" args="call --wait /calibrate_imu"/>
+ <node pkg="rosservice" type="rosservice" name="calibration_of_baro" args="call --wait /calibrate_baro"/>
+ <node pkg="rosservice" type="rosservice" name="calibration_of_airspeed" args="call --wait /calibrate_airspeed"/>
+</launch>
