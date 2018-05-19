@@ -1,0 +1,6 @@
+# send a list of waypoints to the path manager
+
+Waypoint[] waypoints
+---
+
+# No response.

@@ -1,6 +1,6 @@
 #include "controller_base.h"
 #include "controller_example.h"
-
+#include <math.h>
 namespace rosplane
 {
 
@@ -166,6 +166,13 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent &)
     actuators.y = output.delta_e;//(isfinite(output.delta_e)) ? output.delta_e : 0.0f;
     actuators.z = output.delta_r;//(isfinite(output.delta_r)) ? output.delta_r : 0.0f;
     actuators.F = output.delta_t;//(isfinite(output.delta_t)) ? output.delta_t : 0.0f;
+
+
+    // adding nan checks
+    if (std::isnan(actuators.x)) {ROS_FATAL("caught nan 1 controller_base");}
+    if (std::isnan(actuators.y)) {ROS_FATAL("caught nan 2 controller_base");}
+    if (std::isnan(actuators.z)) {ROS_FATAL("caught nan 3 controller_base");}
+    if (std::isnan(actuators.F)) {ROS_FATAL("caught nan 4 controller_base");}
 
     actuators_pub_.publish(actuators);
 

@@ -6,6 +6,8 @@ namespace rosplane
 controller_example::controller_example() : controller_base()
 {
   current_zone = alt_zones::TAKE_OFF;
+  if (!(ros::param::get("~groundD",groundD_)))
+    ROS_FATAL("No param named 'groundD'");
 
   c_error_ = 0;
   c_integrator_ = 0;
@@ -23,6 +25,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
   //output.phi_c = 0.0f;
   output.delta_a = roll_hold(output.phi_c, input.phi, input.p, params, input.Ts);
 	if(input.landing){
+    ROS_FATAL_ONCE("LANDING");
 		output.delta_t = 0.0;
 		output.theta_c = 0.0*3.14159/180.0;
 		if(input.h < 10.0){
@@ -48,7 +51,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
 				}
 		//ROS_WARN("%f", output.delta_t);
 	    output.theta_c = 15.0*3.14/180.0;
-	    if (input.h >= params.alt_toz + params.alt_hys)
+	    if (input.h >= params.alt_toz + params.alt_hys + (-groundD_))
 	    {
 	      ROS_INFO("climb");
 	      current_zone = alt_zones::CLIMB;

@@ -21,6 +21,7 @@
 #include <Eigen/Eigen>
 
 #define EARTH_RADIUS 6378145.0f
+#define FILTER_LENGTH 16
 
 namespace rosplane
 {
@@ -106,6 +107,7 @@ private:
   void statusCallback(const rosflight_msgs::Status &msg);
   void inertialSenseCallback(const nav_msgs::Odometry &msg_in);
   void updateAirspeed(const ros::TimerEvent &);
+	void filterAirspeed(float &Va);
 
   double update_rate_;
   ros::Timer update_timer_;
@@ -118,6 +120,11 @@ private:
   float lpf_diff_base_;
   float alpha1_base_;
   float Vahat_;
+	float filter_taps_[FILTER_LENGTH] = {0.00970489747784546,	0.0145629416394102,	0.0282895307460455,	0.0485513149017384,
+		0.0718604720902472,	0.0941826681792385,	0.111642954778265,	0.121205220187210,	0.121205220187210,
+		0.111642954778265,	0.0941826681792385,	0.0718604720902472,	0.0485513149017384,	0.0282895307460455,
+		0.0145629416394102,	0.00970489747784546};
+	float Va_history_[FILTER_LENGTH];
   bool gps_new_;
   bool gps_init_;
   double init_lat_;       /**< Initial latitude in degrees */

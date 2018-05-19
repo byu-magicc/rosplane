@@ -14,6 +14,7 @@
 #include <rosplane_msgs/State.h>
 #include <rosplane_msgs/Current_Path.h>
 #include <rosplane_msgs/Waypoint.h>
+#include <rosplane_msgs/NewWaypoints.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Float32MultiArray.h>
@@ -35,7 +36,10 @@ namespace rosplane
     {
       float w[3];
       float Va_d;
-			bool landing;
+      bool  drop_bomb;
+			bool  landing;
+      int   priority;
+      bool  loiter_point;
     };
 
     std::vector<waypoint_s> waypoints_;
@@ -60,6 +64,7 @@ namespace rosplane
       float rho;              /** Radius of orbital path (m) */
       int8_t lambda;          /** Direction of orbital path (cw is 1, ccw is -1) */
 			bool landing;						/** True if we want to land */
+      bool drop_bomb;         /** True if we want to use pursuit guidance to c */
     };
 
     struct params_s
@@ -73,9 +78,10 @@ namespace rosplane
 
     ros::NodeHandle nh_;
     ros::NodeHandle nh_private_;
-    ros::Subscriber vehicle_state_sub_;     /**< vehicle state subscription */
-    ros::Subscriber new_waypoint_sub_;      /**< new waypoint subscription */
-    ros::Publisher  current_path_pub_;      /**< controller commands publication */
+    ros::Subscriber vehicle_state_sub_;       /**< vehicle state subscription */
+    ros::Subscriber new_waypoint_sub_;        /**< new waypoint subscription */
+    ros::Publisher  current_path_pub_;        /**< controller commands publication */
+    ros::ServiceServer new_waypoint_service_;
 
     struct params_s params_;
 
@@ -86,7 +92,7 @@ namespace rosplane
 
     void vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg);
     bool state_init_;
-    void new_waypoint_callback(const rosplane_msgs::Waypoint &msg);
+    bool new_waypoint_callback(rosplane_msgs::NewWaypoints::Request &req, rosplane_msgs::NewWaypoints::Response &res);
     void current_path_publish(const ros::TimerEvent &);
   };
 } //end namespace

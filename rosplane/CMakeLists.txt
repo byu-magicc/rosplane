@@ -88,3 +88,9 @@ add_executable(rosplane_path_planner
             src/path_planner.cpp)
 add_dependencies(rosplane_path_planner ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rosplane_path_planner ${catkin_LIBRARIES})
+
+## Declare a C++ executable
+add_executable(bomb_dropper
+            src/bomb.cpp)
+add_dependencies(bomb_dropper ${catkin_EXPORTED_TARGETS})
+target_link_libraries(bomb_dropper ${catkin_LIBRARIES})

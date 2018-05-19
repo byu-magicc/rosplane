@@ -16,6 +16,8 @@
 <!--Path Manager-->
 <node name="path_manager" pkg="rosplane" type="rosplane_path_manager" output="screen">
    <param name="R_min" value="75.0"/>
+   <param name="loiter_radius" value="125.0"/>
+   <param name="groundD" value="0.0"/>
 </node>
 
 <!--Path Follower-->
@@ -28,9 +30,10 @@
    <param name="PWM_RAD_E" value="2.8"/>
 	 <param name="PWM_RAD_A" value="-1.6"/>
 	 <param name="PWM_RAD_R" value="1.8"/>
-         <param name="ALT_TOZ" value="20"/>
-         <param name="ALT_HZ" value="10"/>
-         <param name="MAX_T" value="0.70"/>
+   <param name="ALT_TOZ" value="20"/>
+   <param name="ALT_HZ" value="10"/>
+   <param name="MAX_T" value="0.70"/>
+   <param name="groundD" value="0.0"/>
  </node>
  <node pkg="rosservice" type="rosservice" name="calibration_of_imu" args="call --wait /calibrate_imu"/>
  <node pkg="rosservice" type="rosservice" name="calibration_of_baro" args="call --wait /calibrate_baro"/>

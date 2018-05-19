@@ -12,7 +12,8 @@ path_manager_base::path_manager_base():
   nh_private_.param<double>("update_rate", update_rate_, 10.0);
 
   vehicle_state_sub_ = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
-  new_waypoint_sub_ = nh_.subscribe("waypoint_path", 10, &path_manager_base::new_waypoint_callback, this);
+  new_waypoint_service_ = nh_.advertiseService("/waypoint_path", &rosplane::path_manager_base::new_waypoint_callback, this);
+
   current_path_pub_ = nh_.advertise<rosplane_msgs::Current_Path>("current_path", 10);
 
   update_timer_ = nh_.createTimer(ros::Duration(1.0/update_rate_), &path_manager_base::current_path_publish, this);
@@ -29,39 +30,64 @@ void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPt
   state_init_ = true;
 }
 
-void path_manager_base::new_waypoint_callback(const rosplane_msgs::Waypoint &msg)
+bool path_manager_base::new_waypoint_callback(rosplane_msgs::NewWaypoints::Request &req, rosplane_msgs::NewWaypoints::Response &res)
 {
-  if (msg.clear_wp_list == true)
+  int priority_level = 0;
+  for (int i = 0; i < req.waypoints.size(); i++)
+    if (req.waypoints[i].priority > priority_level)
+      priority_level = req.waypoints[i].priority;
+  for (int i = 0; i < waypoints_.size(); i++)
+    if (waypoints_[i].priority < priority_level)
+    {
+      waypoints_.erase(waypoints_.begin() + i);
+      i--;
+    }
+  for (int i = 0; i < req.waypoints.size(); i++)
   {
-    waypoints_.clear();
-    num_waypoints_ = 0;
-    idx_a_ = 0;
-    return;
-  }
-  if (msg.set_current || num_waypoints_ == 0)
-  {
-    waypoint_s currentwp;
-    currentwp.w[0] = vehicle_state_.position[0];
-    currentwp.w[1] = vehicle_state_.position[1];
-    currentwp.w[2] = (vehicle_state_.position[2] > -25 ? msg.w[2] : vehicle_state_.position[2]);
-    currentwp.Va_d = msg.Va_d;
+    if (req.waypoints[i].set_current || num_waypoints_ == 0)
+    {
+      waypoint_s currentwp;
+      currentwp.w[0]         = vehicle_state_.position[0];
+      currentwp.w[1]         = vehicle_state_.position[1];
+      currentwp.w[2]         = (vehicle_state_.position[2] > -25 ? req.waypoints[i].w[2] : vehicle_state_.position[2]);
+      currentwp.Va_d         = req.waypoints[i].Va_d;
+      currentwp.landing      = false;
+      currentwp.priority     = 5;
+      currentwp.loiter_point = false;
 
-    waypoints_.clear();
-    waypoints_.push_back(currentwp);
-    num_waypoints_ = 1;
-    idx_a_ = 0;
+      waypoints_.clear();
+      waypoints_.push_back(currentwp);
+      num_waypoints_ = 1;
+      idx_a_ = 0;
+    }
+    waypoint_s nextwp;
+    nextwp.w[0]         = req.waypoints[i].w[0];
+    nextwp.w[1]         = req.waypoints[i].w[1];
+    nextwp.w[2]         = req.waypoints[i].w[2];
+    nextwp.Va_d         = req.waypoints[i].Va_d;
+    nextwp.drop_bomb    = req.waypoints[i].drop_bomb;
+  	nextwp.landing			= req.waypoints[i].landing;
+    nextwp.priority     = req.waypoints[i].priority;
+    nextwp.loiter_point = req.waypoints[i].loiter_point;
+    ROS_WARN("recieved waypoint: n: %f, e: %f, d: %f", nextwp.w[0], nextwp.w[1], nextwp.w[2]);
+    ROS_WARN("                   Va_d: %f, priority %i", nextwp.Va_d, nextwp.priority);
+    if (nextwp.landing)     {ROS_WARN("                   landing = true");}
+    else                    {ROS_WARN("                   landing = false");}
+    if (nextwp.loiter_point){ROS_WARN("                   loiter_point = true");}
+    else                    {ROS_WARN("                   loiter_point = false");}
+    if (nextwp.loiter_point){ROS_WARN("                   loiter_point = true");}
+    else                    {ROS_WARN("                   loiter_point = false");}
+    waypoints_.push_back(nextwp);
+    num_waypoints_++;
+    if (req.waypoints[i].clear_wp_list == true)
+    {
+      waypoints_.clear();
+      num_waypoints_ = 0;
+      idx_a_ = 0;
+    }
   }
-  waypoint_s nextwp;
-  nextwp.w[0]         = msg.w[0];
-  nextwp.w[1]         = msg.w[1];
-  nextwp.w[2]         = msg.w[2];
-  nextwp.Va_d         = msg.Va_d;
-	nextwp.landing			= msg.landing;
-  ROS_WARN("recieved waypoint: n: %f, e: %f, d: %f", nextwp.w[0], nextwp.w[1], nextwp.w[2]);
-  waypoints_.push_back(nextwp);
-  num_waypoints_++;
+  return true;
 }
-
 void path_manager_base::current_path_publish(const ros::TimerEvent &)
 {
 
@@ -91,10 +117,11 @@ void path_manager_base::current_path_publish(const ros::TimerEvent &)
     current_path.q[i] = output.q[i];
     current_path.c[i] = output.c[i];
   }
-  current_path.rho = output.rho;
-  current_path.lambda = output.lambda;
-	current_path.landing = output.landing;
-	
+  current_path.rho       = output.rho;
+  current_path.lambda    = output.lambda;
+	current_path.landing   = output.landing;
+  current_path.drop_bomb = output.drop_bomb;
+
   current_path_pub_.publish(current_path);
 }
 
