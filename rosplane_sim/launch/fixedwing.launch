@@ -21,9 +21,10 @@
     <!-- Load Global Parameters for this MAV -->
     <rosparam command="load" file="$(find rosplane_sim)/params/$(arg mav_name).yaml"/> <!-- Aerodynamic parameters -->
     <rosparam command="load" file="$(find rosplane)/param/fixedwing.yaml" ns="autopilot"/> <!-- simulation gains -->
-    <node name="autopilot" pkg="rosplane" type="rosplane_controller" >
+    <node name="autopilot" pkg="rosplane" type="rosplane_controller" output="screen">
       <remap from="state" to="truth"/>
       <param name="groundD" value="0.0"/>
+      <param name="use_rudder_for_bomb_drop" value="false"/>
     </node>
 <!--  -->
     <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen"/>
@@ -33,7 +34,7 @@
       armed: 'true', failsafe: 'false', rc_override: 'false', offboard: 'false',
       control_mode: 0, error_code: 0, num_errors: 0, loop_time_us: 0}'"/>
 
-    <node name="pathfollower" pkg="rosplane" type="rosplane_path_follower">
+    <node name="pathfollower" pkg="rosplane" type="rosplane_path_follower" output="screen">
        <remap from="state" to="truth"/>
     </node>
 

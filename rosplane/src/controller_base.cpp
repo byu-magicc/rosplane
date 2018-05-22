@@ -59,11 +59,19 @@ controller_base::controller_base():
 
   actuators_pub_ = nh_.advertise<rosflight_msgs::Command>("command", 10);
   internals_pub_ = nh_.advertise<rosplane_msgs::Controller_Internals>("controller_inners", 10);
+  bomb_drop_srv_ = nh_.advertiseService("actuate_drop_bomb", &rosplane::controller_base::dropBomb, this);
   act_pub_timer_ = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
 
   command_recieved_ = false;
+  drop_bomb_        = false;
 }
-
+bool controller_base::dropBomb(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+{
+  ROS_INFO("DROPPING THE BOMB");
+  drop_bomb_  = true;
+  res.success = true;
+  return true;
+}
 void controller_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg)
 {
   vehicle_state_ = *msg;

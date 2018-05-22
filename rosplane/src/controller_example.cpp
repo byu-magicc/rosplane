@@ -8,6 +8,8 @@ controller_example::controller_example() : controller_base()
   current_zone = alt_zones::TAKE_OFF;
   if (!(ros::param::get("~groundD",groundD_)))
     ROS_FATAL("No param named 'groundD'");
+  if (!(ros::param::get("~use_rudder_for_bomb_drop",use_rudder_for_bomb_drop_)))
+    use_rudder_for_bomb_drop_ = true;
 
   c_error_ = 0;
   c_integrator_ = 0;
@@ -20,7 +22,11 @@ controller_example::controller_example() : controller_base()
 
 void controller_example::control(const params_s &params, const input_s &input, output_s &output)
 {
-  output.delta_r = 0; //cooridinated_turn_hold(input.beta, params, input.Ts)
+  // use the rudder to drop the bomb... Yeah this is odd but wayyyy easier than doing it properly through rosflight (feature_191 is the best option, worth trying for 2019)
+  if (drop_bomb_ && use_rudder_for_bomb_drop_)
+    output.delta_r = -1.0;
+  else
+    output.delta_r = 0.0;
   output.phi_c = course_hold(input.chi_c, input.chi, input.phi_ff, input.r, params, input.Ts);
   //output.phi_c = 0.0f;
   output.delta_a = roll_hold(output.phi_c, input.phi, input.p, params, input.Ts);

@@ -75,8 +75,8 @@ bool path_manager_base::new_waypoint_callback(rosplane_msgs::NewWaypoints::Reque
     else                    {ROS_WARN("                   landing = false");}
     if (nextwp.loiter_point){ROS_WARN("                   loiter_point = true");}
     else                    {ROS_WARN("                   loiter_point = false");}
-    if (nextwp.loiter_point){ROS_WARN("                   loiter_point = true");}
-    else                    {ROS_WARN("                   loiter_point = false");}
+    if (nextwp.drop_bomb){ROS_WARN("                   drop_bomb = true");}
+    else                    {ROS_WARN("                   drop_bomb = false");}
     waypoints_.push_back(nextwp);
     num_waypoints_++;
     if (req.waypoints[i].clear_wp_list == true)

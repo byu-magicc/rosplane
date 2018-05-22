@@ -18,6 +18,7 @@
 
 #include <dynamic_reconfigure/server.h>
 #include <rosplane/ControllerConfig.h>
+#include <std_srvs/Trigger.h>
 
 namespace rosplane
 {
@@ -122,19 +123,22 @@ private:
   ros::Publisher actuators_pub_;
   ros::Publisher internals_pub_;
   ros::Timer act_pub_timer_;
+  ros::ServiceServer bomb_drop_srv_;
 
   struct params_s params_;            /**< params */
   rosplane_msgs::Controller_Commands controller_commands_;
   rosplane_msgs::State vehicle_state_;
 	rosflight_msgs::Command prev_actuators_;
 	rosflight_msgs::Status status_;
-
+  bool dropBomb(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
   void vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg);
   void controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr &msg);
 	void actuators_callback(const rosflight_msgs::CommandConstPtr &msg);
 	void status_callback(const rosflight_msgs::StatusConstPtr &msg);
   bool command_recieved_;
-
+protected:
+  bool drop_bomb_;
+private:
   dynamic_reconfigure::Server<rosplane::ControllerConfig> server_;
   dynamic_reconfigure::Server<rosplane::ControllerConfig>::CallbackType func_;
 

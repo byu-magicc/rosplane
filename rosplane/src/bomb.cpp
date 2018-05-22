@@ -8,8 +8,10 @@ Bomb::Bomb():
   double update_rate      = 100.0; // Hz of update
   vehicle_state_sub_      = nh_.subscribe("state", 10, &Bomb::vehicleStateCallback, this);
   current_path_sub_       = nh_.subscribe("current_path", 1, &Bomb::currentPathCallback, this);
+  drop_bomb_client_       = nh_.serviceClient<std_srvs::Trigger>("actuate_drop_bomb");
   update_timer_           = nh_.createTimer(ros::Duration(1.0/update_rate), &Bomb::updateMissDistance, this);
   current_path_.drop_bomb = false;
+  already_dropped_        = false;
 
   Vwind_n_     = 0.0;
   Vwind_e_     = 0.0;
@@ -35,10 +37,12 @@ void Bomb::vehicleStateCallback(const rosplane_msgs::StateConstPtr &msg)
 void Bomb::currentPathCallback(const rosplane_msgs::Current_PathConstPtr &msg)
 {
   current_path_ = *msg;
+  if (already_dropped_ && current_path_.drop_bomb == false) // this resets it so it can drop multiple times...
+    already_dropped_ = false;
 }
 void Bomb::updateMissDistance(const ros::TimerEvent& event)
 {
-  if (current_path_.drop_bomb)
+  if (current_path_.drop_bomb && already_dropped_ == false)
   {
     // Maybe only do the calculation if you are a certain distance away?
     float Vg2 = vehicle_state_.Vg;
@@ -106,9 +110,15 @@ NED_t Bomb::calculateDropPoint(NED_t Vg3, double chi, double Va, double target_h
 void Bomb::dropNow()
 {
   // signal the okay to drop the bomb.
+  std_srvs::Trigger ping;
+  bool called = drop_bomb_client_.call(ping);
+  if (called == false)
+    ROS_FATAL("Bomb drop service failed");
+  else
+    already_dropped_ = true;
 
   // Do some post calculations
-  ROS_FATAL("DROPPING THE BOMB");
+  ROS_FATAL("DROPPING THE BOMB from bomb.cpp");
   float Vg2 = vehicle_state_.Vg;
   float chi = vehicle_state_.chi;
   NED_t Vg3(Vg2*cos(chi), Vg2*sin(chi), 0.0); //estimate a down velocity of 0
