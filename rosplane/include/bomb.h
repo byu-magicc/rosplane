@@ -21,6 +21,7 @@ namespace rosplane
     ros::Subscriber vehicle_state_sub_;
     ros::Subscriber current_path_sub_;
     ros::ServiceClient drop_bomb_client_;
+    ros::ServiceClient arm_bomb_client_;
     rosplane_msgs::State vehicle_state_;
     rosplane_msgs::Current_Path current_path_;
     void vehicleStateCallback(const rosplane_msgs::StateConstPtr &msg);
@@ -30,6 +31,7 @@ namespace rosplane
     void updateMissDistance(const ros::TimerEvent& event);
     NED_t calculateDropPoint(NED_t Vg3, double chi, double Va, double target_height);
     void dropNow();
+    void armBomb();
 
     double Vwind_n_;
     double Vwind_e_;
@@ -38,6 +40,7 @@ namespace rosplane
     double k_z_;     // drag constant (fudge factor in parenthesis())
     double k_x_;     // drag constant (fudge factor in parenthesis())
     bool already_dropped_;
+    bool bomb_armed_;
   };
 } //end namespace rosplane
 #endif // BOMB_H

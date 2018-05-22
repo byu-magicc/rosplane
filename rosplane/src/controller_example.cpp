@@ -25,9 +25,11 @@ void controller_example::control(const params_s &params, const input_s &input, o
   // use the rudder to drop the bomb... Yeah this is odd but wayyyy easier than doing it properly through rosflight (feature_191 is the best option, worth trying for 2019)
   if (use_rudder_for_bomb_drop_ == false)
     output.delta_r = 0.0/params.pwm_rad_r;
-  else if (drop_bomb_ == false)
+  else if (bomb_armed_ == false)
+    output.delta_r = 0.0/params.pwm_rad_r;
+  else if (bomb_armed_ && drop_bomb_ == false)
     output.delta_r = 1.0/params.pwm_rad_r;
-  else if (drop_bomb_)
+  else if (bomb_armed_ && drop_bomb_)
     output.delta_r = -1.0/params.pwm_rad_r;
 
   output.phi_c = course_hold(input.chi_c, input.chi, input.phi_ff, input.r, params, input.Ts);

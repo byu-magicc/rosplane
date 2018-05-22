@@ -113,7 +113,6 @@ namespace rosplane
     output.drop_bomb = waypoints_[idx_b].drop_bomb;
     if (waypoints_[idx_b].drop_bomb)
     {
-      ROS_WARN("On line to drop bomb");
       output.c[0] = w_i(0);
       output.c[1] = w_i(1);
       output.c[2] = w_i(2);
@@ -210,7 +209,6 @@ namespace rosplane
         z = w_i;
       if (waypoints_[idx_b].drop_bomb)
       {
-        ROS_WARN("On line to drop bomb");
         z = w_i;
         output.c[0] = w_i(0);
         output.c[1] = w_i(1);

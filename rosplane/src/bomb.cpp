@@ -9,9 +9,11 @@ Bomb::Bomb():
   vehicle_state_sub_      = nh_.subscribe("state", 10, &Bomb::vehicleStateCallback, this);
   current_path_sub_       = nh_.subscribe("current_path", 1, &Bomb::currentPathCallback, this);
   drop_bomb_client_       = nh_.serviceClient<std_srvs::Trigger>("actuate_drop_bomb");
+  arm_bomb_client_        = nh_.serviceClient<std_srvs::Trigger>("arm_bomb");
   update_timer_           = nh_.createTimer(ros::Duration(1.0/update_rate), &Bomb::updateMissDistance, this);
   current_path_.drop_bomb = false;
   already_dropped_        = false;
+  bomb_armed_             = false;
 
   Vwind_n_     = 0.0;
   Vwind_e_     = 0.0;
@@ -38,7 +40,10 @@ void Bomb::currentPathCallback(const rosplane_msgs::Current_PathConstPtr &msg)
 {
   current_path_ = *msg;
   if (already_dropped_ && current_path_.drop_bomb == false) // this resets it so it can drop multiple times...
+  {
     already_dropped_ = false;
+    bomb_armed_      = false;
+  }
 }
 void Bomb::updateMissDistance(const ros::TimerEvent& event)
 {
@@ -59,22 +64,26 @@ void Bomb::updateMissDistance(const ros::TimerEvent& event)
     R = Rt - Rp;
     double d_drop = (drop_point - Rp).dot(q);
     double d_go   = R.dot(q);
-    ROS_WARN("Calculating bomb drop location, d_drop %f, d_go: %f", d_drop, d_go);
+    // ROS_WARN("Calculating bomb drop location, d_drop %f, d_go: %f", d_drop, d_go);
+    if (bomb_armed_ == false && d_go <= d_drop + 50.0)
+      armBomb();
     if (d_go <= d_drop)
+    {
       dropNow();
+    }
   }
 }
 NED_t Bomb::calculateDropPoint(NED_t Vg3, double chi, double Va, double target_height)
 {
-  ROS_INFO("target height %f", target_height);
+  // ROS_INFO("target height %f", target_height);
   double height = -vehicle_state_.position[2] - target_height;
-  ROS_INFO("height to drop: %f", height);
+  // ROS_INFO("height to drop: %f", height);
   // Initial airspeed seen by bottle
 	double Va0_n  = Vg3.N - Vwind_n_;
 	double Va0_e  = Vg3.E - Vwind_e_;
 	// Calculate falling time of the bottle
 	double t_fall = acosh(exp(height*k_z_/m_))/sqrt(g_*k_z_/m_); // time for bottle to fall from height
-  ROS_INFO("t_fall: %f", t_fall);
+  // ROS_INFO("t_fall: %f", t_fall);
 	// Calculate North component of airspeed and ground speed as a function of time for THE BOTTLE.
 
   double Va_n1, Vg_n1, Va_e1, Vg_e1, Va_n2, Vg_n2, Va_e2, Vg_e2, north_final, east_final;
@@ -118,7 +127,7 @@ void Bomb::dropNow()
     already_dropped_ = true;
 
   // Do some post calculations
-  ROS_FATAL("DROPPING THE BOMB from bomb.cpp");
+  ROS_WARN("DROPPING THE BOMB from bomb.cpp");
   float Vg2 = vehicle_state_.Vg;
   float chi = vehicle_state_.chi;
   NED_t Vg3(Vg2*cos(chi), Vg2*sin(chi), 0.0); //estimate a down velocity of 0
@@ -127,6 +136,16 @@ void Bomb::dropNow()
   double miss_distance = (target_location - drop_point).norm();
   ROS_WARN("Estimated miss distance: %f", miss_distance);
   ROS_WARN("N: %f, E: %f, D: %f", drop_point.N, drop_point.E, drop_point.D);
+}
+void Bomb::armBomb()
+{
+  // signal the okay to arm the bomb.
+  std_srvs::Trigger ping;
+  bool called = arm_bomb_client_.call(ping);
+  if (called == false)
+    ROS_FATAL("Bomb arming service failed");
+  else
+    bomb_armed_ = true;
 }
 } //end namespace rosplane
 int main(int argc, char **argv)

@@ -21,7 +21,6 @@ void path_follower_example::follow(const params_s &params, const input_s &input,
       while (chi_c - input.chi > M_PI)
         chi_c -= 2.0*M_PI;
       output.chi_c = chi_c;
-      ROS_WARN("Pursuit chi_c: %f", chi_c);
     }
     else
     {

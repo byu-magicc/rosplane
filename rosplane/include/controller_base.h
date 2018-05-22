@@ -124,6 +124,7 @@ private:
   ros::Publisher internals_pub_;
   ros::Timer act_pub_timer_;
   ros::ServiceServer bomb_drop_srv_;
+  ros::ServiceServer bomb_arm_srv_;
 
   struct params_s params_;            /**< params */
   rosplane_msgs::Controller_Commands controller_commands_;
@@ -131,6 +132,7 @@ private:
 	rosflight_msgs::Command prev_actuators_;
 	rosflight_msgs::Status status_;
   bool dropBomb(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+  bool armBomb(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
   void vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg);
   void controller_commands_callback(const rosplane_msgs::Controller_CommandsConstPtr &msg);
 	void actuators_callback(const rosflight_msgs::CommandConstPtr &msg);
@@ -138,6 +140,7 @@ private:
   bool command_recieved_;
 protected:
   bool drop_bomb_;
+  bool bomb_armed_;
 private:
   ros::Time drop_time_ = ros::Time::now();
   dynamic_reconfigure::Server<rosplane::ControllerConfig> server_;
