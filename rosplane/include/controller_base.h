@@ -139,6 +139,7 @@ private:
 protected:
   bool drop_bomb_;
 private:
+  ros::Time drop_time_ = ros::Time::now();
   dynamic_reconfigure::Server<rosplane::ControllerConfig> server_;
   dynamic_reconfigure::Server<rosplane::ControllerConfig>::CallbackType func_;
 
