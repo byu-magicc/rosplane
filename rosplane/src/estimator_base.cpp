@@ -97,7 +97,7 @@ void estimator_base::inertialSenseCallback(const nav_msgs::Odometry &msg_in)
   float Ve       = R[1][0]*u + R[1][1]*v + R[1][2]*w;
 
   msg.Va         = Vahat_;
-  msg.Va         = msg_in.twist.twist.linear.x;
+  //msg.Va         = msg_in.twist.twist.linear.x;
   msg.alpha      = 0.0;
   msg.beta       = 0.0;
   msg.phi        = phi;
@@ -128,8 +128,10 @@ void estimator_base::updateAirspeed(const ros::TimerEvent &)
   if (lpf_diff_base_ <= 0.00001)
     lpf_diff_base_ = 0.000001;
   //Vahat_ = sqrtf(2.0f/params_.rho*lpf_diff_base_);
-	Vahat_ = sqrtf(2.0f/params_.rho*input_.diff_pres);
-	estimator_base::filterAirspeed(Vahat_);
+  if (input_.diff_pres < 0.0f)
+    input_.diff_pres = 0.0f;
+  Vahat_ = sqrtf(2.0f/params_.rho*input_.diff_pres);
+  estimator_base::filterAirspeed(Vahat_);
 }
 void estimator_base::filterAirspeed(float &Va){
 	for(int NN = FILTER_LENGTH-1; NN > 0; NN--){
