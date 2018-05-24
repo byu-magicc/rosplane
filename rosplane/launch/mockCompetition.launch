@@ -7,7 +7,9 @@
  </node>
  <node name="uINS" pkg="inertial_sense" type="inertial_sense_node" output="screen">
  <param name="~port" value="/dev/uINS"/>
-   <rosparam param="~GPS_ref_lla"> [39.9706002, -111.9684566, 1430.999]</rosparam>
+ <param name="~lat_ref" value="40.2679779"/>
+ <param name="~lon_ref" value="-111.6344569"/>
+ <param name="~h_ref" value="1470.0"/>
  </node>
 
  <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen">
@@ -33,6 +35,7 @@
    <param name="MAX_T" value="0.70"/>
    <param name="groundD" value="0.0"/>
  </node>
+
  <node pkg="rosservice" type="rosservice" name="calibration_of_imu" args="call --wait /calibrate_imu"/>
  <node pkg="rosservice" type="rosservice" name="calibration_of_baro" args="call --wait /calibrate_baro"/>
  <node pkg="rosservice" type="rosservice" name="calibration_of_airspeed" args="call --wait /calibrate_airspeed"/>
