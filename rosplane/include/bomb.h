@@ -8,6 +8,8 @@
 #include <ned_t.h>
 #include <std_srvs/Trigger.h>
 
+#include <visualization_msgs/Marker.h>
+
 namespace rosplane
   {
   class Bomb
@@ -20,9 +22,12 @@ namespace rosplane
 
     ros::Subscriber vehicle_state_sub_;
     ros::Subscriber current_path_sub_;
+    ros::Subscriber truth_sub_;
     ros::ServiceClient drop_bomb_client_;
     ros::ServiceClient arm_bomb_client_;
     rosplane_msgs::State vehicle_state_;
+    rosplane_msgs::State truth_;
+    bool has_truth_;
     rosplane_msgs::Current_Path current_path_;
     void vehicleStateCallback(const rosplane_msgs::StateConstPtr &msg);
     void currentPathCallback(const rosplane_msgs::Current_PathConstPtr &msg);
@@ -41,6 +46,12 @@ namespace rosplane
     double k_x_;     // drag constant (fudge factor in parenthesis())
     bool already_dropped_;
     bool bomb_armed_;
+
+    ros::Publisher marker_pub_;
+    visualization_msgs::Marker odom_mkr_;
+    void odomCallback(geometry_msgs::Point p);
+    void animateDrop(NED_t Vg3, double chi, double Va, double target_height);
+    void truthCallback(const rosplane_msgs::StateConstPtr &msg);
   };
 } //end namespace rosplane
 #endif // BOMB_H

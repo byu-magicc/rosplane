@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   uav_msgs
   nav_msgs
   std_srvs
+  visualization_msgs
 )
 find_package(Eigen3 REQUIRED)
 
