@@ -17,7 +17,10 @@ import matplotlib.animation as animation
 class plotter():
 
 	def __init__(self):
-
+		self.recieved_cmd  = True
+		self.recieved_cmd2 = True
+		self.recieved_state = True
+		self.recieved_actuators = True
 		# RC boolean True if safety pilot has control
 		self.RC = True
 
@@ -104,36 +107,36 @@ class plotter():
 			self.fig.suptitle('RC', fontsize=self.fontsize)
 		else:
 			self.fig.suptitle('Autopilot', fontsize=self.fontsize, color='r')
+		if (self.recieved_state and self.recieved_cmd and self.recieved_cmd2):
+			self.ax1.clear()
+			self.ax1.plot(list(self.cmd_t_q), list(self.Va_c_q), 'r')
+			self.ax1.plot(list(self.state_t_q), list(self.Va_q), 'b')
+			self.ax1.set_xlim(self.state_t_q[0], self.state_t_q[-1])
 
-		self.ax1.clear()
-		self.ax1.plot(list(self.cmd_t_q), list(self.Va_c_q), 'r')
-		self.ax1.plot(list(self.state_t_q), list(self.Va_q), 'b')
-		self.ax1.set_xlim(self.state_t_q[0], self.state_t_q[-1])
 
+			self.ax2.clear()
+			self.ax2.plot(list(self.cmd_t_q), list(self.h_c_q), 'r')
+			self.ax2.plot(list(self.state_t_q), list(self.h_q), 'b')
+			self.ax2.set_xlim(self.state_t_q[0], self.state_t_q[-1])
 
-		self.ax2.clear()
-		self.ax2.plot(list(self.cmd_t_q), list(self.h_c_q), 'r')
-		self.ax2.plot(list(self.state_t_q), list(self.h_q), 'b')
-		self.ax2.set_xlim(self.state_t_q[0], self.state_t_q[-1])
+			self.ax3.clear()
+			self.ax3.plot(list(self.cmd_t_q), list(self.chi_c_q), 'r')
+			self.ax3.plot(list(self.state_t_q), list(self.chi_q), 'b')
+			self.ax3.set_xlim(self.state_t_q[0], self.state_t_q[-1])
 
-		self.ax3.clear()
-		self.ax3.plot(list(self.cmd_t_q), list(self.chi_c_q), 'r')
-		self.ax3.plot(list(self.state_t_q), list(self.chi_q), 'b')
-		self.ax3.set_xlim(self.state_t_q[0], self.state_t_q[-1])
+			self.ax4.clear()
+			self.ax4.plot(list(self.cmd2_t_q), list(self.phi_c_q), 'r')
+			self.ax4.plot(list(self.state_t_q), list(self.phi_q), 'b')
+			self.ax1.set_xlim(self.state_t_q[0], self.state_t_q[-1])
 
-		self.ax4.clear()
-		self.ax4.plot(list(self.cmd2_t_q), list(self.phi_c_q), 'r')
-		self.ax4.plot(list(self.state_t_q), list(self.phi_q), 'b')
-		self.ax1.set_xlim(self.state_t_q[0], self.state_t_q[-1])
+			self.ax5.clear()
+			self.ax5.plot(list(self.cmd2_t_q), list(self.theta_c_q), 'r')
+			self.ax5.plot(list(self.state_t_q), list(self.theta_q), 'b')
+			self.ax1.set_xlim(self.state_t_q[0], self.state_t_q[-1])
 
-		self.ax5.clear()
-		self.ax5.plot(list(self.cmd2_t_q), list(self.theta_c_q), 'r')
-		self.ax5.plot(list(self.state_t_q), list(self.theta_q), 'b')
-		self.ax1.set_xlim(self.state_t_q[0], self.state_t_q[-1])
-
-		self.ax6.clear()
-		self.ax6.plot(list(self.state_t_q), list(self.psi_q), 'b')
-		self.ax1.set_xlim(self.state_t_q[0], self.state_t_q[-1])
+			self.ax6.clear()
+			self.ax6.plot(list(self.state_t_q), list(self.psi_q), 'b')
+			self.ax1.set_xlim(self.state_t_q[0], self.state_t_q[-1])
 
 		# Rotational Velocity States
 		# self.ax7.clear()
@@ -149,17 +152,18 @@ class plotter():
 		# self.ax9.set_title('r')
 
 		# Raw Actuator Data
-		self.ax7.clear()
-		self.ax7.plot(list(self.actuator_t_q), list(self.e_q), 'b')
-		self.ax1.set_xlim(self.actuator_t_q[0], self.actuator_t_q[-1])
+		if (self.recieved_actuators):
+			self.ax7.clear()
+			self.ax7.plot(list(self.actuator_t_q), list(self.e_q), 'b')
+			self.ax1.set_xlim(self.actuator_t_q[0], self.actuator_t_q[-1])
 
-		self.ax8.clear()
-		self.ax8.plot(list(self.actuator_t_q), list(self.a_q), 'b')
-		self.ax1.set_xlim(self.actuator_t_q[0], self.actuator_t_q[-1])
+			self.ax8.clear()
+			self.ax8.plot(list(self.actuator_t_q), list(self.a_q), 'b')
+			self.ax1.set_xlim(self.actuator_t_q[0], self.actuator_t_q[-1])
 
-		self.ax9.clear()
-		self.ax9.plot(list(self.actuator_t_q), list(self.t_q), 'b')
-		self.ax1.set_xlim(self.actuator_t_q[0], self.actuator_t_q[-1])
+			self.ax9.clear()
+			self.ax9.plot(list(self.actuator_t_q), list(self.t_q), 'b')
+			self.ax1.set_xlim(self.actuator_t_q[0], self.actuator_t_q[-1])
 
 		self.ax1.set_ylim(-5, 30.0)
 		self.ax2.set_ylim(-5, 200)
@@ -187,6 +191,7 @@ class plotter():
 		self.Va_c_q.append(msg.Va_c)
 		self.h_c_q.append(msg.h_c)
 		self.chi_c_q.append(msg.chi_c)
+		self.recieved_cmd = True
 
 		# Record the ROS time
 		self.cmd_t_q.append(rospy.get_time())
@@ -197,6 +202,7 @@ class plotter():
 
 		# Record the ROS time
 		self.cmd2_t_q.append(rospy.get_time())
+		self.recieved_cmd2 = True
 
 	def state_callback(self, msg):
 		# Collect the states
@@ -221,6 +227,7 @@ class plotter():
 
 		# Record the ROS time
 		self.state_t_q.append(rospy.get_time())
+		self.recieved_state = True
 
 	def RC_callback(self, msg):
 		# Record RC override status
@@ -231,9 +238,9 @@ class plotter():
 		self.e_q.append(msg.y)
 		self.r_q.append(msg.z)
 		self.t_q.append(msg.F)
-
 		# Record the ROS time
 		self.actuator_t_q.append(rospy.get_time())
+		self.recieved_actuators = True
 
 if __name__ == '__main__':
 	rospy.init_node('plotter')

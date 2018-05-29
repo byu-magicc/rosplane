@@ -30,14 +30,6 @@ class gps_writer:
         self.old_rho = -1.0
         self.old_c_n = 999999999.0
         self.rho_p  = 1
-        self.fig = plt.figure()
-        self.gps_sub_ = rospy.Subscriber("state" , State , self.stateCallback, queue_size=1)
-        self.rc_sub_  = rospy.Subscriber("status", Status, self.rcCallback  , queue_size=1)
-        # self.wp_sub_  = rospy.Subscriber("waypoint_path", Waypoint, self.waypointCallback, queue_size=1)
-        self.path_sub_  = rospy.Subscriber("current_path", Current_Path, self.currentPathCallback, queue_size=1)
-        self.anim = animation.FuncAnimation(self.fig, self.plot_path, interval=1.0)
-
-        # WAYPOINT DATA
         self.wps = [[], []]
         self.last_index = 0
         self.num_wps = 0
@@ -51,6 +43,14 @@ class gps_writer:
         self.theta = np.linspace(0,2.0*np.pi,200)
         self.RC = True
         self.initial = True
+        self.fig = plt.figure()
+        self.gps_sub_ = rospy.Subscriber("state" , State , self.stateCallback, queue_size=1)
+        self.rc_sub_  = rospy.Subscriber("status", Status, self.rcCallback  , queue_size=1)
+        # self.wp_sub_  = rospy.Subscriber("waypoint_path", Waypoint, self.waypointCallback, queue_size=1)
+        self.path_sub_  = rospy.Subscriber("current_path", Current_Path, self.currentPathCallback, queue_size=1)
+        self.anim = animation.FuncAnimation(self.fig, self.plot_path, interval=1.0)
+
+        # WAYPOINT DATA
         plt.scatter([0],[0])
         plt.axis('equal')
         plt.draw()
