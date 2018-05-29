@@ -7,9 +7,9 @@
  </node>
  <node name="uINS" pkg="inertial_sense" type="inertial_sense_node" output="screen">
  <param name="~port" value="/dev/uINS"/>
- <param name="~lat_ref" value="40.2679779"/>
- <param name="~lon_ref" value="-111.6344569"/>
- <param name="~h_ref" value="1470.0"/>
+ <param name="~lat_ref" value="39.969582"/> <!-- 40.2679779 -->
+ <param name="~lon_ref" value="-111.96711"/> <!-- -111.6344569 -->
+ <param name="~h_ref" value="1426.681"/> <!--1470.0 -->
  </node>
 
  <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen">
