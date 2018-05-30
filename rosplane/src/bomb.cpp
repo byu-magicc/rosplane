@@ -33,8 +33,8 @@ Bomb::Bomb():
   Vwind_e_     = 0.0;
   double conv  = 0.0283495;       // convert from oz to kg
   double conv2 = 0.0254;          // convert from inches to meters
-  m_           = 10.0*conv;       // mass of the water bottle (output is kg, input oz)
-  double D     = 2.5*conv2;       // diameter of bottle in inches (output is meters, input is inches)
+  m_           = 0.266;           // mass of the water bottle (kg) // 266 grams
+  double D     = 2.33*conv2;      // diameter of bottle in inches (output is meters, input is inches)
   g_           = 9.80665;         // gravity (m/s^2)
   double rho   = 1.225;           // density (kg/m^3)
   double A_z   = 0.25*M_PI*(D*D); // reference area of the bottle
@@ -42,8 +42,8 @@ Bomb::Bomb():
   double A_x   = 0.00025;         // side reference area of bottle (m^2)
   // there were two occasions where A_x and Cd_x were used, and the numbers were different. Which is correct?
   double Cd_x  = 0.7;             // drag coefficient measured in wind tunnel
-  k_z_ = (2)*0.5*rho*A_z*Cd_z;  // drag constant (fudge factor in parenthesis())
-  k_x_ = (10)*0.5*rho*A_x*Cd_x; // drag constant (fudge factor in parenthesis())
+  k_z_ = (2)*0.5*rho*A_z*Cd_z;    // drag constant (fudge factor in parenthesis())
+  k_x_ = (10)*0.5*rho*A_x*Cd_x;   // drag constant (fudge factor in parenthesis())
 
 
   marker_pub_                  = nh_.advertise<visualization_msgs::Marker>("/theseus/visualization_marker", 10);
@@ -173,6 +173,10 @@ void Bomb::dropNow()
   NED_t target_location(current_path_.c[0], current_path_.c[1], current_path_.rho);
   NED_t drop_point = calculateDropPoint(Vg3, chi, vehicle_state_.Va, -target_location.D);
   double miss_distance = (target_location - drop_point).norm();
+  ROS_FATAL("Velocity of the UAV: N: %f, E: %f, D: %f", Vg3.N, Vg3.E, Vg3.D);
+  ROS_FATAL("Airspeed of the UAV: Va: %f", vehicle_state_.Va);
+  ROS_FATAL("Height: UAV:%f Target: %f", -vehicle_state_.position[2], -target_location.D);
+  ROS_FATAL("UAV position: N: %f E: %f", vehicle_state_.position[0], vehicle_state_.position[1]);
   ROS_WARN("Estimated miss distance: %f", miss_distance);
   ROS_WARN("N: %f, E: %f, D: %f", drop_point.N, drop_point.E, drop_point.D);
 
