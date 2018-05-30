@@ -53,7 +53,8 @@ controller_base::controller_base():
   nh_private_.param<double>("MAX_A", params_.max_a, 0.523);
   nh_private_.param<double>("MAX_R", params_.max_r, 0.523);
   nh_private_.param<double>("MAX_T", params_.max_t, 1.0);
-
+  nh_private_.param<double>("CLIMB_THROTTLE", params_.climb_throttle, 1.0);
+  nh_private_.param<double>("CLIMB_ANGLE_DEG", params_.climb_angle_deg, 12.5);
   func_ = boost::bind(&controller_base::reconfigure_callback, this, _1, _2);
   server_.setCallback(func_);
 
@@ -138,6 +139,9 @@ void controller_base::reconfigure_callback(rosplane::ControllerConfig &config, u
   params_.b_kp = config.BETA_KP;
   params_.b_kd = config.BETA_KD;
   params_.b_ki = config.BETA_KI;
+
+  params_.climb_throttle = config.CLIMB_THROTTLE;
+  params_.climb_angle_deg = config.CLIMB_ANGLE_DEG;
   ROS_WARN("GAINS RESET");
 }
 

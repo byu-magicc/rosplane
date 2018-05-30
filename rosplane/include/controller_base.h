@@ -109,6 +109,8 @@ protected:
     double pwm_rad_e;
     double pwm_rad_a;
     double pwm_rad_r;
+    double climb_throttle;
+    double climb_angle_deg;
   };
 
   virtual void control(const struct params_s &params, const struct input_s &input, struct output_s &output) = 0;

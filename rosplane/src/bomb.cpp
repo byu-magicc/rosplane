@@ -5,6 +5,22 @@ namespace rosplane
 Bomb::Bomb():
   nh_(ros::NodeHandle())
 {
+  bool found_service = ros::service::waitForService("actuate_drop_bomb", ros::Duration(1.0));
+  while (found_service == false)
+  {
+    ROS_WARN("No drop bomb server found. Checking again.");
+    found_service = ros::service::waitForService("actuate_drop_bomb", ros::Duration(1.0));
+  }
+  found_service = ros::service::waitForService("arm_bomb", ros::Duration(1.0));
+  while (found_service == false)
+  {
+    ROS_WARN("No arm bomb server found. Checking again.");
+    found_service = ros::service::waitForService("arm_bomb", ros::Duration(1.0));
+  }
+
+  current_path_.drop_bomb = false;
+  already_dropped_        = false;
+  bomb_armed_             = false;
   double update_rate      = 100.0; // Hz of update
   vehicle_state_sub_      = nh_.subscribe("state", 10, &Bomb::vehicleStateCallback, this);
   current_path_sub_       = nh_.subscribe("current_path", 1, &Bomb::currentPathCallback, this);
@@ -12,9 +28,6 @@ Bomb::Bomb():
   drop_bomb_client_       = nh_.serviceClient<std_srvs::Trigger>("actuate_drop_bomb");
   arm_bomb_client_        = nh_.serviceClient<std_srvs::Trigger>("arm_bomb");
   update_timer_           = nh_.createTimer(ros::Duration(1.0/update_rate), &Bomb::updateMissDistance, this);
-  current_path_.drop_bomb = false;
-  already_dropped_        = false;
-  bomb_armed_             = false;
 
   Vwind_n_     = 0.0;
   Vwind_e_     = 0.0;

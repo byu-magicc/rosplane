@@ -24,7 +24,7 @@
  </node>
 
  <!--Path Follower-->
- <node name="path_follower" pkg="rosplane" type="rosplane_path_follower"/>
+ <node name="path_follower" pkg="rosplane" type="rosplane_path_follower" output="screen"/>
 
  <node name="controller" pkg="rosplane" type="rosplane_controller" output="screen">
    <param name="PWM_RAD_E" value="2.8"/>

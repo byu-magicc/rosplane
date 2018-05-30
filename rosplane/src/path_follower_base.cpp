@@ -16,7 +16,11 @@ path_follower_base::path_follower_base():
   nh_private_.param<double>("CHI_INFTY", params_.chi_infty, 1.0472);
   nh_private_.param<double>("K_PATH", params_.k_path, 0.025);
   nh_private_.param<double>("K_ORBIT", params_.k_orbit, 4.0);
-
+  nh_private_.param<bool>("use_pursuit", use_pursuit_, false);
+  if (use_pursuit_)
+    ROS_WARN("will use pursuit guidance on bomb drop waypoint");
+  else
+    ROS_INFO("will track line towards bomb drop waypoint");
   func_ = boost::bind(&path_follower_base::reconfigure_callback, this, _1, _2);
   server_.setCallback(func_);
 

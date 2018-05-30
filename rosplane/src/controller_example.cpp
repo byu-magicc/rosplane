@@ -72,8 +72,8 @@ void controller_example::control(const params_s &params, const input_s &input, o
 	    }
 	    break;
 	  case alt_zones::CLIMB:
-	    output.delta_t = params.max_t;
-	    output.theta_c = 12.5*3.1415926539/180.0; //airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
+	    output.delta_t = params.climb_throttle;
+	    output.theta_c = params.climb_angle_deg*3.1415926539/180.0; //airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
 	    if (input.h >= input.h_c - params.alt_hz + params.alt_hys)
 	    {
 	      ROS_INFO("hold");

@@ -59,6 +59,7 @@ protected:
     double k_path;
     double k_orbit;
   };
+  bool use_pursuit_;
 
   virtual void follow(const struct params_s &params, const struct input_s &input, struct output_s &output) = 0;
 

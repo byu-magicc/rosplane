@@ -12,7 +12,7 @@ void path_follower_example::follow(const params_s &params, const input_s &input,
 {
   if (input.p_type == path_type::Line) // follow straight line path specified by r and q
   {
-    if (input.drop_bomb)
+    if (input.drop_bomb && use_pursuit_)
     {
       // use pursuit guidance to get the velocity vector to point at the target pole
       float chi_c = atan2f(input.c_orbit[1] - input.pe, input.c_orbit[0] - input.pn);
