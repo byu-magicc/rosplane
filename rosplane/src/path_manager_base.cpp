@@ -11,8 +11,10 @@ path_manager_base::path_manager_base():
   nh_private_.param<double>("R_min", params_.R_min, 75.0);
   nh_private_.param<double>("update_rate", update_rate_, 10.0);
 
-  vehicle_state_sub_ = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
+  vehicle_state_sub_    = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
   new_waypoint_service_ = nh_.advertiseService("/waypoint_path", &rosplane::path_manager_base::new_waypoint_callback, this);
+  return_to_home_srv_   = nh_.advertiseService("/return_to_home", &rosplane::path_manager_base::returnToHome, this);
+  resume_path_srv_      = nh_.advertiseService("/resume_path", &rosplane::path_manager_base::resumePath, this);
 
   current_path_pub_ = nh_.advertise<rosplane_msgs::Current_Path>("current_path", 10);
 
@@ -22,7 +24,71 @@ path_manager_base::path_manager_base():
 
   state_init_ = false;
 }
+bool path_manager_base::returnToHome(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+{
+  ROS_FATAL("EXECUTING RETURN TO HOME");
 
+  // save the old stuff so that we can return to it.
+  old_waypoints_     = waypoints_;
+  old_num_waypoints_ = num_waypoints_;
+  old_idx_a_         = idx_a_;
+  float Va;
+  if (waypoints_.size() > 0)
+    Va               = waypoints_[0].Va_d;
+  else
+    Va               = 20.0;
+
+  float home_north, home_east, loiter_down;
+  nh_private_.param<float>("home_north", home_north, 0.0);
+  nh_private_.param<float>("home_east", home_east, 0.0);
+  nh_private_.param<float>("loiter_down", loiter_down, -150.0);
+
+  ROS_WARN("Returning to N: %f. E: %f, D: %f", home_north, home_east, loiter_down);
+
+  // give it new waypoints
+  waypoints_.clear();
+  waypoint_s nextwp;
+  nextwp.w[0]         = vehicle_state_.position[0];
+  nextwp.w[1]         = vehicle_state_.position[1];
+  nextwp.w[2]         = loiter_down;
+  nextwp.Va_d         = Va;
+  nextwp.drop_bomb    = false;
+  nextwp.landing      = false;
+  nextwp.priority     = 4;
+  nextwp.loiter_point = false;
+  waypoints_.push_back(nextwp);
+  num_waypoints_      = 1;
+  idx_a_              = 0;
+
+  float d             = sqrtf(powf(nextwp.w[0] - home_north,2.0f) + powf(nextwp.w[1] - home_east,2.0f));
+  float ds            = 0.1;
+  float dn            = (nextwp.w[0] - home_north)*ds/d;
+  float de            = (nextwp.w[1] - home_east)*ds/d;
+
+  nextwp.w[0]         = home_north + dn;
+  nextwp.w[1]         = home_east + de;
+  nextwp.w[2]         = loiter_down;
+  waypoints_.push_back(nextwp);
+  num_waypoints_++;
+  nextwp.w[0]         = home_north;
+  nextwp.w[1]         = home_east;
+  nextwp.w[2]         = loiter_down;
+  nextwp.loiter_point = true;
+  waypoints_.push_back(nextwp);
+  num_waypoints_++;
+
+  res.success = true;
+  return true;
+}
+bool path_manager_base::resumePath(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+{
+  ROS_FATAL("ENDING RETURN TO HOME, RESUMING PATH");
+  waypoints_         = old_waypoints_;
+  num_waypoints_     = old_num_waypoints_;
+  idx_a_             = old_idx_a_;
+  res.success = true;
+  return true;
+}
 void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg)
 {
   vehicle_state_ = *msg;
@@ -51,6 +117,7 @@ bool path_manager_base::new_waypoint_callback(rosplane_msgs::NewWaypoints::Reque
       currentwp.w[1]         = vehicle_state_.position[1];
       currentwp.w[2]         = (vehicle_state_.position[2] > -25 ? req.waypoints[i].w[2] : vehicle_state_.position[2]);
       currentwp.Va_d         = req.waypoints[i].Va_d;
+      currentwp.drop_bomb    = false;
       currentwp.landing      = false;
       currentwp.priority     = 5;
       currentwp.loiter_point = false;

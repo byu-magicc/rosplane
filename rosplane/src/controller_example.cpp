@@ -132,6 +132,15 @@ void controller_example::control(const params_s &params, const input_s &input, o
 	}
   output.current_zone = current_zone;
   output.delta_e = pitch_hold(output.theta_c, input.theta, input.q, params, input.Ts);
+
+  if (terminate_flight_)
+  {
+    // these might need to be adjusted.
+    output.delta_t = 0.0;
+    output.delta_e = 1.0;
+    // output.delta_r = 1.0; // how do we get rudder??? uh oh... TODO
+    output.delta_a = 1.0;
+  }
 }
 
 float controller_example::course_hold(float chi_c, float chi, float phi_ff, float r, const params_s &params, float Ts)

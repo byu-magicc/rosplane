@@ -127,6 +127,8 @@ private:
   ros::Timer act_pub_timer_;
   ros::ServiceServer bomb_drop_srv_;
   ros::ServiceServer bomb_arm_srv_;
+  ros::ServiceServer terminate_srv_;
+  ros::ServiceServer save_flt_srv_;
 
   struct params_s params_;            /**< params */
   rosplane_msgs::Controller_Commands controller_commands_;
@@ -140,9 +142,12 @@ private:
 	void actuators_callback(const rosflight_msgs::CommandConstPtr &msg);
 	void status_callback(const rosflight_msgs::StatusConstPtr &msg);
   bool command_recieved_;
+  bool saveFlight(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+  bool terminateFlight(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
 protected:
   bool drop_bomb_;
   bool bomb_armed_;
+  bool terminate_flight_;
 private:
   ros::Time drop_time_ = ros::Time::now();
   dynamic_reconfigure::Server<rosplane::ControllerConfig> server_;

@@ -46,6 +46,9 @@
       <param name="R_min" value="25.0"/>
       <param name="loiter_radius" value="125.0"/>
       <param name="groundD" value="0.0"/>
+      <param name="home_north" value="0.0"/>
+      <param name="home_east" value="0.0"/>
+      <param name="loiter_down" value="-150.0"/>
     </node>
 
     <!-- <node name="pathplanner" pkg="rosplane" type="rosplane_path_planner" output="screen"/>  -->

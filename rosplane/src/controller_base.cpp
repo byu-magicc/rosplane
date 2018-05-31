@@ -8,6 +8,7 @@ controller_base::controller_base():
   nh_(),
   nh_private_("~")
 {
+  terminate_flight_ = false;
   vehicle_state_sub_ = nh_.subscribe("state", 10, &controller_base::vehicle_state_callback, this);
   controller_commands_sub_ = nh_.subscribe("controller_commands", 10, &controller_base::controller_commands_callback,
                              this);
@@ -62,11 +63,27 @@ controller_base::controller_base():
   internals_pub_ = nh_.advertise<rosplane_msgs::Controller_Internals>("controller_inners", 10);
   bomb_drop_srv_ = nh_.advertiseService("actuate_drop_bomb", &rosplane::controller_base::dropBomb, this);
   bomb_arm_srv_  = nh_.advertiseService("arm_bomb", &rosplane::controller_base::armBomb, this);
+  terminate_srv_ = nh_.advertiseService("/terminate_flight", &rosplane::controller_base::terminateFlight, this);
+  save_flt_srv_  = nh_.advertiseService("/save_flight", &rosplane::controller_base::saveFlight, this);
   act_pub_timer_ = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
 
   command_recieved_ = false;
   drop_bomb_        = false;
   bomb_armed_       = false;
+}
+bool controller_base::saveFlight(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+{
+  ROS_FATAL("SAVING FLIGHT");
+  terminate_flight_ = false;
+  res.success = true;
+  return true;
+}
+bool controller_base::terminateFlight(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+{
+  ROS_FATAL("TERMINATE FLIGHT");
+  terminate_flight_ = true;
+  res.success = true;
+  return true;
 }
 bool controller_base::armBomb(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
 {

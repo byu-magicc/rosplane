@@ -22,6 +22,7 @@
 #include <math.h>
 #include <Eigen/Eigen>
 #include <rosplane/ControllerConfig.h>
+#include <std_srvs/Trigger.h>
 
 namespace rosplane
   {
@@ -45,6 +46,10 @@ namespace rosplane
     std::vector<waypoint_s> waypoints_;
     int num_waypoints_;
     int idx_a_;                 /** index to the waypoint that was most recently achieved */
+
+    std::vector<waypoint_s> old_waypoints_;
+    int old_num_waypoints_;
+    int old_idx_a_;             /** index to the waypoint that was most recently achieved */
 
     struct input_s
     {
@@ -82,6 +87,8 @@ namespace rosplane
     ros::Subscriber new_waypoint_sub_;        /**< new waypoint subscription */
     ros::Publisher  current_path_pub_;        /**< controller commands publication */
     ros::ServiceServer new_waypoint_service_;
+    ros::ServiceServer return_to_home_srv_;
+    ros::ServiceServer resume_path_srv_;
 
     struct params_s params_;
 
@@ -94,6 +101,8 @@ namespace rosplane
     bool state_init_;
     bool new_waypoint_callback(rosplane_msgs::NewWaypoints::Request &req, rosplane_msgs::NewWaypoints::Response &res);
     void current_path_publish(const ros::TimerEvent &);
+    bool returnToHome(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+    bool resumePath(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
   };
 } //end namespace
 #endif // PATH_MANAGER_BASE_H
