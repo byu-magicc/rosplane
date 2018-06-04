@@ -18,7 +18,7 @@
 
    <param name="~lat_ref" value="39.969582"/>
    <param name="~lon_ref" value="-111.96711"/>
-   <param name="~h_ref" value="1415.0"/>
+   <param name="~h_ref" value="1422.0"/>
 
 
   <!-- ROCK CANYON PARK -->
@@ -37,7 +37,7 @@
  <node name="path_manager" pkg="rosplane" type="rosplane_path_manager" output="screen">
   <param name="R_min" value="50.0"/>
   <param name="loiter_radius" value="75.0"/>
-  <param name="groundD" value="0.0"/>
+  <param name="groundD" value="-6.0"/>
   <param name="home_north" value="-150.0"/>
   <param name="home_east" value="-150.0"/>
   <param name="loiter_down" value="-150.0"/>
@@ -50,10 +50,10 @@
    <param name="PWM_RAD_E" value="2.8"/>
    <param name="PWM_RAD_A" value="-1.6"/>
    <param name="PWM_RAD_R" value="1.8"/>
-   <param name="ALT_TOZ" value="20"/>
-   <param name="ALT_HZ" value="10"/>
+   <param name="ALT_TOZ" value="30.0"/>
+   <param name="ALT_HZ" value="5.0"/>
    <param name="MAX_T" value="0.70"/>
-   <param name="groundD" value="0.0"/>
+   <param name="groundD" value="-6.0"/>
  </node>
  <node name="bomber" pkg="rosplane" type="bomb_dropper" output="screen"/>
 
