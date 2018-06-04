@@ -89,6 +89,7 @@ namespace rosplane
     ros::ServiceServer new_waypoint_service_;
     ros::ServiceServer return_to_home_srv_;
     ros::ServiceServer resume_path_srv_;
+    ros::ServiceServer finish_loiter_srv_;
 
     struct params_s params_;
 
@@ -103,6 +104,7 @@ namespace rosplane
     void current_path_publish(const ros::TimerEvent &);
     bool returnToHome(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
     bool resumePath(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+    bool finishLoiter(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
   };
 } //end namespace
 #endif // PATH_MANAGER_BASE_H

@@ -43,8 +43,8 @@
 
     <node name="pathmanager" pkg="rosplane" type="rosplane_path_manager" output="screen">
       <remap from="state" to="truth"/>
-      <param name="R_min" value="25.0"/>
-      <param name="loiter_radius" value="125.0"/>
+      <param name="R_min" value="50.0"/>
+      <param name="loiter_radius" value="75.0"/>
       <param name="groundD" value="0.0"/>
       <param name="home_north" value="0.0"/>
       <param name="home_east" value="0.0"/>

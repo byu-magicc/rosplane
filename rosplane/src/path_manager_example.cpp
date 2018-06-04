@@ -71,7 +71,7 @@ namespace rosplane
       idx_b = idx_a_ + 1;
       idx_c = idx_b + 1;
     }
-    if (idx_b == num_waypoints_ - 1 && waypoints_[idx_b].loiter_point == true)
+    if (waypoints_[idx_b].loiter_point == true)
     {
       output.flag    = false;                  // fly an orbit
       output.Va_d    = waypoints_[idx_b].Va_d;
@@ -224,7 +224,7 @@ namespace rosplane
     case fillet_state::ORBIT:  //this is when the plane follows the orbit that defines the fillet
       //implement lines 15-25 in UAVbook pg 193
       output.drop_bomb = false;
-      if (idx_c == num_waypoints_ - 1 && waypoints_[idx_c].loiter_point == true)
+      if (waypoints_[idx_c].loiter_point == true)
       {
         output.flag    = false;                  // fly an orbit
         output.Va_d    = waypoints_[idx_c].Va_d;

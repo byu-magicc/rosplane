@@ -13,6 +13,7 @@ path_manager_base::path_manager_base():
 
   vehicle_state_sub_    = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
   new_waypoint_service_ = nh_.advertiseService("/waypoint_path", &rosplane::path_manager_base::new_waypoint_callback, this);
+  finish_loiter_srv_    = nh_.advertiseService("/finish_loiter", &rosplane::path_manager_base::finishLoiter, this);
   return_to_home_srv_   = nh_.advertiseService("/return_to_home", &rosplane::path_manager_base::returnToHome, this);
   resume_path_srv_      = nh_.advertiseService("/resume_path", &rosplane::path_manager_base::resumePath, this);
 
@@ -89,6 +90,18 @@ bool path_manager_base::resumePath(std_srvs::Trigger::Request &req, std_srvs::Tr
   res.success = true;
   return true;
 }
+bool path_manager_base::finishLoiter(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+{
+  ROS_FATAL("ENDING LOITER MISSION, RESUMING PATH");
+  idx_a_++;
+  if (idx_a_ == num_waypoints_ - 1)
+  {
+    idx_a_ = 0;
+    ROS_INFO("Restarting the path");
+  }
+  res.success = true;
+  return true;
+}
 void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg)
 {
   vehicle_state_ = *msg;
@@ -106,6 +119,7 @@ bool path_manager_base::new_waypoint_callback(rosplane_msgs::NewWaypoints::Reque
     if (waypoints_[i].priority < priority_level)
     {
       waypoints_.erase(waypoints_.begin() + i);
+      num_waypoints_--;
       i--;
     }
   for (int i = 0; i < req.waypoints.size(); i++)
@@ -152,6 +166,8 @@ bool path_manager_base::new_waypoint_callback(rosplane_msgs::NewWaypoints::Reque
       num_waypoints_ = 0;
       idx_a_ = 0;
     }
+    if (num_waypoints_ != waypoints_.size())
+      ROS_FATAL("incorrect number of waypoints");
   }
   return true;
 }
