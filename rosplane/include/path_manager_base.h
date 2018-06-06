@@ -26,12 +26,18 @@
 
 namespace rosplane
   {
+    enum class fillet_state
+    {
+      STRAIGHT,
+      ORBIT
+    };
   class path_manager_base
   {
   public:
     path_manager_base();
 
   protected:
+    fillet_state fil_state_;
 
     struct waypoint_s
     {

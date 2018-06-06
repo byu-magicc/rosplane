@@ -92,14 +92,70 @@ bool path_manager_base::resumePath(std_srvs::Trigger::Request &req, std_srvs::Tr
 }
 bool path_manager_base::finishLoiter(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
 {
-  ROS_FATAL("ENDING LOITER MISSION, RESUMING PATH");
-  idx_a_++;
+  if (num_waypoints_ == 0)
+  {
+    ROS_FATAL("no waypoints recieved, can not finish loiter point");
+    res.success = false;
+    return true;
+  }
+  bool okay_to_end_mission = false;
+  int idx_b;
+  int idx_c;
   if (idx_a_ == num_waypoints_ - 1)
   {
-    idx_a_ = 0;
-    ROS_INFO("Restarting the path");
+    idx_b = 0;
+    idx_c = 1;
   }
-  res.success = true;
+  else if (idx_a_ == num_waypoints_ - 2)
+  {
+    idx_b = num_waypoints_ - 1;
+    idx_c = 0;
+  }
+  else
+  {
+    idx_b = idx_a_ + 1;
+    idx_c = idx_b + 1;
+  }
+  if (num_waypoints_ < 3)
+  {
+    if (waypoints_[idx_b].loiter_point == true && waypoints_[idx_b].priority == 4)
+    {
+      okay_to_end_mission = true;
+      if (idx_b == num_waypoints_)
+      {
+        ROS_WARN("no new waypoints after loiter, resuming loiter");
+        okay_to_end_mission = false;
+      }
+    }
+  }
+  else
+  {
+    if (fil_state_ == fillet_state::ORBIT && waypoints_[idx_c].loiter_point == true && waypoints_[idx_c].priority == 4)
+    {
+      okay_to_end_mission = true;
+      if (idx_c == num_waypoints_ - 1)
+      {
+        ROS_WARN("no new waypoints after loiter, resuming loiter");
+        okay_to_end_mission = false;
+      }
+    }
+  }
+  if (okay_to_end_mission)
+  {
+    ROS_FATAL("ENDING LOITER MISSION, RESUMING PATH");
+    idx_a_++;
+    res.success = true;
+    if (idx_a_ == num_waypoints_ - 1)
+    {
+      idx_a_ = 0;
+      ROS_INFO("Restarting the path");
+    }
+  }
+  else
+  {
+    ROS_FATAL("finish_loiter must have been called accidently, resuming flight as if it were not called");
+    res.success = false;
+  }
   return true;
 }
 void path_manager_base::vehicle_state_callback(const rosplane_msgs::StateConstPtr &msg)
