@@ -5,7 +5,7 @@ from std_msgs.msg import Bool
 from std_srvs.srv import Trigger
 from rosflight_msgs.msg import Status
 
-ROUTER = '10.10.10.2'
+ROUTER = '192.168.1.1'
 CMD = ['fping', '-r0', ROUTER] # use fping to ping the router ip address. -r0 retries 0 times to make it fail faster
 
 
