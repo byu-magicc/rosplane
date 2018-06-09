@@ -23,6 +23,8 @@
 #include <Eigen/Eigen>
 #include <rosplane/ControllerConfig.h>
 #include <std_srvs/Trigger.h>
+#include <rosflight_msgs/Status.h>
+#include <rosflight_msgs/RCRaw.h>
 
 namespace rosplane
   {
@@ -31,6 +33,17 @@ namespace rosplane
       STRAIGHT,
       ORBIT
     };
+    enum class flight_mode_state
+    {
+      FLY,
+      RETURN_TO_HOME,
+      TERMINATE_FLIGHT
+    };
+    enum class rx_state
+    {
+      RC,
+      ROS
+    };
   class path_manager_base
   {
   public:
@@ -38,7 +51,8 @@ namespace rosplane
 
   protected:
     fillet_state fil_state_;
-
+    flight_mode_state flight_mode_;
+    rx_state rx_mode_;
     struct waypoint_s
     {
       float w[3];
@@ -91,7 +105,11 @@ namespace rosplane
     ros::NodeHandle nh_private_;
     ros::Subscriber vehicle_state_sub_;       /**< vehicle state subscription */
     ros::Subscriber new_waypoint_sub_;        /**< new waypoint subscription */
+    ros::Subscriber failsafe_sub_;            /**< RC transmitter failesafe subscription, channels */
+    ros::Subscriber rx_status_sub_;           /**< RC transmitter failesafe subscription, status*/
     ros::Publisher  current_path_pub_;        /**< controller commands publication */
+    ros::ServiceClient terminate_client_;
+    ros::ServiceClient save_flight_client_;
     ros::ServiceServer new_waypoint_service_;
     ros::ServiceServer return_to_home_srv_;
     ros::ServiceServer resume_path_srv_;
@@ -108,9 +126,14 @@ namespace rosplane
     bool state_init_;
     bool new_waypoint_callback(rosplane_msgs::NewWaypoints::Request &req, rosplane_msgs::NewWaypoints::Response &res);
     void current_path_publish(const ros::TimerEvent &);
-    bool returnToHome(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
-    bool resumePath(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+    void failsafe_callback(const rosflight_msgs::RCRaw &msg);
+    bool returnToHomeSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+    void returnToHome();
+    bool resumePathSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+    void resumePath();
     bool finishLoiter(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+    void terminateFlight();
+    void rx_callback(const rosflight_msgs::Status &msg);
   };
 } //end namespace
 #endif // PATH_MANAGER_BASE_H

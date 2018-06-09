@@ -8,14 +8,20 @@ path_manager_base::path_manager_base():
   nh_(ros::NodeHandle()), /** nh_ stuff added here */
   nh_private_(ros::NodeHandle("~"))
 {
+  flight_mode_ = flight_mode_state::FLY;
+  rx_mode_     = rx_state::RC;
   nh_private_.param<double>("R_min", params_.R_min, 75.0);
   nh_private_.param<double>("update_rate", update_rate_, 10.0);
 
   vehicle_state_sub_    = nh_.subscribe("state", 10, &path_manager_base::vehicle_state_callback, this);
   new_waypoint_service_ = nh_.advertiseService("/waypoint_path", &rosplane::path_manager_base::new_waypoint_callback, this);
   finish_loiter_srv_    = nh_.advertiseService("/finish_loiter", &rosplane::path_manager_base::finishLoiter, this);
-  return_to_home_srv_   = nh_.advertiseService("/return_to_home", &rosplane::path_manager_base::returnToHome, this);
-  resume_path_srv_      = nh_.advertiseService("/resume_path", &rosplane::path_manager_base::resumePath, this);
+  return_to_home_srv_   = nh_.advertiseService("/return_to_home", &rosplane::path_manager_base::returnToHomeSRV, this);
+  resume_path_srv_      = nh_.advertiseService("/resume_path", &rosplane::path_manager_base::resumePathSRV, this);
+  failsafe_sub_         = nh_.subscribe("/rc_raw", 1, &rosplane::path_manager_base::failsafe_callback, this);
+  rx_status_sub_        = nh_.subscribe("/status", 1, &rosplane::path_manager_base::rx_callback, this);
+  terminate_client_     = nh_.serviceClient<std_srvs::Trigger>("/terminate_flight");
+  save_flight_client_   = nh_.serviceClient<std_srvs::Trigger>("/save_flight");
 
   current_path_pub_ = nh_.advertise<rosplane_msgs::Current_Path>("current_path", 10);
 
@@ -25,9 +31,76 @@ path_manager_base::path_manager_base():
 
   state_init_ = false;
 }
-bool path_manager_base::returnToHome(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+void path_manager_base::failsafe_callback(const rosflight_msgs::RCRaw &msg) // state machine
 {
-  ROS_FATAL("EXECUTING RETURN TO HOME");
+  if (rx_mode_ == rx_state::ROS)
+  {
+    float switch_us = msg.values[6];
+    switch (flight_mode_)
+    {
+      case flight_mode_state::FLY :
+        if (switch_us >= 1333 && switch_us <= 1666)
+        {
+          ROS_FATAL("CALLING RETURN TO HOME FROM RC TRANSMITTER");
+          //returnToHome();
+        }
+        else if (switch_us > 1666)
+        {
+          ROS_FATAL("CALLING TERMINATE FLIGHT FROM RC TRANSMITTER");
+          //returnToHome(); // this is called so that the current waypoints are saved, it should be here
+          //terminateFlight();
+        }
+
+      break;
+      case flight_mode_state::RETURN_TO_HOME :
+        if (switch_us < 1333)
+        {
+          ROS_FATAL("CALLING RESUME FLIGHT FROM RC TRANSMITTER");
+          //resumePath();
+        }
+        else if (switch_us > 1666)
+        {
+          ROS_FATAL("CALLING TERMINATE FLIGHT FROM RC TRANSMITTER");
+          //terminateFlight();
+        }
+
+      break;
+      case flight_mode_state::TERMINATE_FLIGHT :
+      if (switch_us < 1333)
+      {
+        ROS_FATAL("CALLING RESUME FLIGHT FROM RC TRANSMITTER");
+        std_srvs::Trigger ping;
+        //save_flight_client_.call(ping);
+        //resumePath();
+      }
+      else if (switch_us >= 1333 && switch_us <= 1666)
+      {
+        ROS_FATAL("CALLING RETURN TO HOME FROM RC TRANSMITTER");
+        std_srvs::Trigger ping;
+        //save_flight_client_.call(ping);
+        //resumePath();   // this puts the waypoints back in the queue, it should be here
+        //returnToHome();
+      }
+      break;
+    }
+  }
+}
+void path_manager_base::rx_callback(const rosflight_msgs::Status &msg)
+{
+  if (msg.rc_override)
+    rx_mode_ = rx_state::RC;
+  else
+    rx_mode_ = rx_state::ROS;
+}
+bool path_manager_base::returnToHomeSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+{
+  returnToHome();
+  res.success = true;
+  return true;
+}
+void path_manager_base::returnToHome()
+{
+  flight_mode_ = flight_mode_state::RETURN_TO_HOME;
 
   // save the old stuff so that we can return to it.
   old_waypoints_     = waypoints_;
@@ -77,18 +150,26 @@ bool path_manager_base::returnToHome(std_srvs::Trigger::Request &req, std_srvs::
   nextwp.loiter_point = true;
   waypoints_.push_back(nextwp);
   num_waypoints_++;
-
+}
+bool path_manager_base::resumePathSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+{
+  resumePath();
   res.success = true;
   return true;
 }
-bool path_manager_base::resumePath(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+void path_manager_base::resumePath()
 {
+  flight_mode_ = flight_mode_state::FLY;
   ROS_FATAL("ENDING RETURN TO HOME, RESUMING PATH");
   waypoints_         = old_waypoints_;
   num_waypoints_     = old_num_waypoints_;
   idx_a_             = old_idx_a_;
-  res.success = true;
-  return true;
+}
+void path_manager_base::terminateFlight()
+{
+  flight_mode_ = flight_mode_state::TERMINATE_FLIGHT;
+  std_srvs::Trigger ping;
+  terminate_client_.call(ping);
 }
 bool path_manager_base::finishLoiter(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
 {
