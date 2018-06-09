@@ -61,15 +61,11 @@ controller_base::controller_base():
 
   actuators_pub_ = nh_.advertise<rosflight_msgs::Command>("command", 10);
   internals_pub_ = nh_.advertise<rosplane_msgs::Controller_Internals>("controller_inners", 10);
-  bomb_drop_srv_ = nh_.advertiseService("actuate_drop_bomb", &rosplane::controller_base::dropBomb, this);
-  bomb_arm_srv_  = nh_.advertiseService("arm_bomb", &rosplane::controller_base::armBomb, this);
   terminate_srv_ = nh_.advertiseService("/terminate_flight", &rosplane::controller_base::terminateFlight, this);
   save_flt_srv_  = nh_.advertiseService("/save_flight", &rosplane::controller_base::saveFlight, this);
   act_pub_timer_ = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
 
   command_recieved_ = false;
-  drop_bomb_        = false;
-  bomb_armed_       = false;
 }
 bool controller_base::saveFlight(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
 {
@@ -82,21 +78,6 @@ bool controller_base::terminateFlight(std_srvs::Trigger::Request &req, std_srvs:
 {
   ROS_FATAL("TERMINATE FLIGHT");
   terminate_flight_ = true;
-  res.success = true;
-  return true;
-}
-bool controller_base::armBomb(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
-{
-  ROS_WARN("BOMB ARMED");
-  bomb_armed_ = true;
-  res.success = true;
-  return true;
-}
-bool controller_base::dropBomb(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
-{
-  ROS_FATAL("DROPPING THE BOMB");
-  drop_time_ = ros::Time::now();
-  drop_bomb_  = true;
   res.success = true;
   return true;
 }
@@ -205,20 +186,6 @@ void controller_base::actuator_controls_publish(const ros::TimerEvent &)
     actuators.y = output.delta_e;//(isfinite(output.delta_e)) ? output.delta_e : 0.0f;
     actuators.z = output.delta_r;//(isfinite(output.delta_r)) ? output.delta_r : 0.0f;
     actuators.F = output.delta_t;//(isfinite(output.delta_t)) ? output.delta_t : 0.0f;
-
-    if (drop_bomb_)
-    {
-      ros::Time new_time = ros::Time::now();
-      ros::Duration time_step = new_time - drop_time_;
-      float ts = time_step.toSec();
-      if (ts > 0.5)
-      {
-        drop_bomb_ = false;
-        bomb_armed_ = false;
-        ROS_INFO("bomb drop reset");
-      }
-    }
-
 
     // adding nan checks
     if (std::isnan(actuators.x)) {ROS_FATAL("caught nan 1 controller_base");}

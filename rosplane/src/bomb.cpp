@@ -5,19 +5,6 @@ namespace rosplane
 Bomb::Bomb():
   nh_(ros::NodeHandle())
 {
-  bool found_service = ros::service::waitForService("actuate_drop_bomb", ros::Duration(1.0));
-  while (found_service == false)
-  {
-    ROS_WARN("No drop bomb server found. Checking again.");
-    found_service = ros::service::waitForService("actuate_drop_bomb", ros::Duration(1.0));
-  }
-  found_service = ros::service::waitForService("arm_bomb", ros::Duration(1.0));
-  while (found_service == false)
-  {
-    ROS_WARN("No arm bomb server found. Checking again.");
-    found_service = ros::service::waitForService("arm_bomb", ros::Duration(1.0));
-  }
-
   current_path_.drop_bomb = false;
   already_dropped_        = false;
   bomb_armed_             = false;
@@ -25,8 +12,8 @@ Bomb::Bomb():
   vehicle_state_sub_      = nh_.subscribe("state", 10, &Bomb::vehicleStateCallback, this);
   current_path_sub_       = nh_.subscribe("current_path", 1, &Bomb::currentPathCallback, this);
   truth_sub_              = nh_.subscribe("truth", 1, &Bomb::truthCallback, this);
-  drop_bomb_client_       = nh_.serviceClient<std_srvs::Trigger>("actuate_drop_bomb");
-  arm_bomb_client_        = nh_.serviceClient<std_srvs::Trigger>("arm_bomb");
+  bomb_drop_srv_          = nh_.advertiseService("actuate_drop_bomb", &rosplane::Bomb::dropBombSRV, this);
+  bomb_arm_srv_           = nh_.advertiseService("arm_bomb", &rosplane::Bomb::armBombSRV, this);
   update_timer_           = nh_.createTimer(ros::Duration(1.0/update_rate), &Bomb::updateMissDistance, this);
 
   Vwind_n_     = 0.0;
@@ -79,10 +66,7 @@ void Bomb::currentPathCallback(const rosplane_msgs::Current_PathConstPtr &msg)
 {
   current_path_ = *msg;
   if (already_dropped_ && current_path_.drop_bomb == false) // this resets it so it can drop multiple times...
-  {
     already_dropped_ = false;
-    bomb_armed_      = false;
-  }
 }
 void Bomb::updateMissDistance(const ros::TimerEvent& event)
 {
@@ -107,9 +91,7 @@ void Bomb::updateMissDistance(const ros::TimerEvent& event)
     if (bomb_armed_ == false && d_go <= d_drop + 50.0)
       armBomb();
     if (d_go <= d_drop)
-    {
       dropNow();
-    }
   }
 }
 NED_t Bomb::calculateDropPoint(NED_t Vg3, double chi, double Va, double target_height)
@@ -157,19 +139,15 @@ NED_t Bomb::calculateDropPoint(NED_t Vg3, double chi, double Va, double target_h
 }
 void Bomb::dropNow()
 {
-  // signal the okay to drop the bomb.
-  std_srvs::Trigger ping;
-  bool called = drop_bomb_client_.call(ping);
-  if (called == false)
-    ROS_FATAL("Bomb drop service failed");
-  else
-    already_dropped_ = true;
+  // signal the okay to drop the bomb. GPIO CODE HERE
 
+
+
+  ROS_WARN("DROPPING THE BOMB");
   // Do some post calculations
-  ROS_WARN("DROPPING THE BOMB from bomb.cpp");
   float Vg2 = vehicle_state_.Vg;
   float chi = vehicle_state_.chi;
-  NED_t Vg3(Vg2*cos(chi), Vg2*sin(chi), 0.0); //estimate a down velocity of 0
+  NED_t Vg3(Vg2*cos(chi), Vg2*sin(chi), 0.0); // assume a down velocity of 0
   NED_t target_location(current_path_.c[0], current_path_.c[1], current_path_.rho);
   NED_t drop_point = calculateDropPoint(Vg3, chi, vehicle_state_.Va, -target_location.D);
   double miss_distance = (target_location - drop_point).norm();
@@ -184,7 +162,7 @@ void Bomb::dropNow()
   {
     float Vg2t = truth_.Vg;
     float chit = truth_.chi;
-    NED_t Vg3t(Vg2t*cos(chit), Vg2t*sin(chit), 0.0); //estimate a down velocity of 0
+    NED_t Vg3t(Vg2t*cos(chit), Vg2t*sin(chit), 0.0); //asume a down velocity of 0
     NED_t drop_pointt = calculateDropPoint(Vg3t, chit, truth_.Va, -target_location.D);
     double miss_distancet = (target_location - drop_pointt).norm();
     ROS_WARN("Actual miss distance: %f", miss_distancet);
@@ -193,16 +171,14 @@ void Bomb::dropNow()
   }
   else
     animateDrop(Vg3, chi, vehicle_state_.Va, -target_location.D);
+  bomb_armed_ = false;
 }
 void Bomb::armBomb()
 {
-  // signal the okay to arm the bomb.
-  std_srvs::Trigger ping;
-  bool called = arm_bomb_client_.call(ping);
-  if (called == false)
-    ROS_FATAL("Bomb arming service failed");
-  else
-    bomb_armed_ = true;
+  // GPIO CODE HERE
+
+
+  bomb_armed_ = true;
 }
 void Bomb::animateDrop(NED_t Vg3, double chi, double Va, double target_height)
 {
@@ -264,6 +240,21 @@ void Bomb::odomCallback(geometry_msgs::Point p)
   odom_mkr_.header.stamp = ros::Time::now();
   odom_mkr_.points.push_back(p);
   marker_pub_.publish(odom_mkr_);
+}
+bool Bomb::armBombSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+{
+  armBomb();
+  res.success = true;
+  return true;
+}
+bool Bomb::dropBombSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
+{
+  if (bomb_armed_)
+    dropNow();
+  else
+    ROS_WARN("bomb was not armed, call 'arm_bomb' service");
+  res.success = true;
+  return true;
 }
 } //end namespace rosplane
 int main(int argc, char **argv)

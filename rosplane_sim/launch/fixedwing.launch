@@ -24,7 +24,6 @@
     <node name="autopilot" pkg="rosplane" type="rosplane_controller" output="screen">
       <remap from="state" to="truth"/>
       <param name="groundD" value="0.0"/>
-      <param name="use_rudder_for_bomb_drop" value="false"/>
     </node>
 <!--  -->
     <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen"/>

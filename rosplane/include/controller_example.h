@@ -14,7 +14,6 @@ private:
   virtual void control(const struct params_s &params, const struct input_s &input, struct output_s &output);
   alt_zones current_zone;
   float groundD_;
-  bool use_rudder_for_bomb_drop_;
 
   float course_hold(float chi_c, float chi, float phi_ff, float r, const struct params_s &params, float Ts);
   float c_error_;

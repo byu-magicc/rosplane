@@ -145,8 +145,6 @@ private:
   bool saveFlight(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
   bool terminateFlight(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
 protected:
-  bool drop_bomb_;
-  bool bomb_armed_;
   bool terminate_flight_;
 private:
   ros::Time drop_time_ = ros::Time::now();

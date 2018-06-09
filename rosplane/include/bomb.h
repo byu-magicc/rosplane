@@ -23,8 +23,8 @@ namespace rosplane
     ros::Subscriber vehicle_state_sub_;
     ros::Subscriber current_path_sub_;
     ros::Subscriber truth_sub_;
-    ros::ServiceClient drop_bomb_client_;
-    ros::ServiceClient arm_bomb_client_;
+    ros::ServiceServer bomb_drop_srv_;
+    ros:: ServiceServer bomb_arm_srv_;
     rosplane_msgs::State vehicle_state_;
     rosplane_msgs::State truth_;
     bool has_truth_;
@@ -52,6 +52,8 @@ namespace rosplane
     void odomCallback(geometry_msgs::Point p);
     void animateDrop(NED_t Vg3, double chi, double Va, double target_height);
     void truthCallback(const rosplane_msgs::StateConstPtr &msg);
+    bool dropBombSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+    bool armBombSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
   };
 } //end namespace rosplane
 #endif // BOMB_H
