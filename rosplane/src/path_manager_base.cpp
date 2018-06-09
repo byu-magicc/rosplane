@@ -323,6 +323,8 @@ void path_manager_base::current_path_publish(const ros::TimerEvent &)
   {
     manage(params_, input, output);
   }
+  else
+    output.drop_bomb = false;
 
   rosplane_msgs::Current_Path current_path;
 
