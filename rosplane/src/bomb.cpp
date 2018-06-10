@@ -175,6 +175,7 @@ void Bomb::dropNow()
 }
 void Bomb::armBomb()
 {
+  ROS_WARN("DROPPING THE BOMB");
   // GPIO CODE HERE
   digitalWrite(0,HIGH);
 
