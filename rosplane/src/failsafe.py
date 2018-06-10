@@ -26,7 +26,7 @@ class failsafe():
         self.interopDiedTime = 0
 
         # Subscribe to state to see the RC status inputs
-        self.RC_sub = rospy.Subscriber("state", Status, self.statusCallback)
+        self.RC_sub = rospy.Subscriber("status", Status, self.statusCallback)
     
     def testInterop(self):
         """Tests the interop system for downtime"""
@@ -36,6 +36,7 @@ class failsafe():
                 self.wasInteropAlive = False
             else:
                 elapsedTime = self.interopDiedTime - time.time()
+                rospy.logwarn("INTEROP NOT RESPONDING FOR %d SECONDS", elapsedTime)
                 self.testElapsedTime(elapsedTime)
         else: # Not in failsafe
             self.wasInteropAlive = True
@@ -49,6 +50,7 @@ class failsafe():
                     self.wasRCAlive = False
                 else:
                     elapsedTime = self.RCDiedTime - msg.header.stamp
+                    rospy.logwarn("RC NOT RESPONDING FOR %d SECONDSS", elapsedTime)
                     self.testElapsedTime(elapsedTime)
         else: # Not in failsafe
             self.wasRCAlive = True
@@ -120,6 +122,8 @@ if __name__ == '__main__':
     rospy.wait_for_service('return_to_home')
     rospy.wait_for_service('terminate_flight')
 
+    rospy.loginfo("Failsafe Services Available; Starting Failsafe Manager")
+    
     r = rospy.Rate(10) # 10Hz
 
     while not rospy.is_shutdown():
