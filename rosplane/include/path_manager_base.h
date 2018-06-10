@@ -113,7 +113,11 @@ namespace rosplane
     ros::ServiceServer new_waypoint_service_;
     ros::ServiceServer return_to_home_srv_;
     ros::ServiceServer resume_path_srv_;
+    ros::ServiceServer terminate_flight_srv_;
     ros::ServiceServer finish_loiter_srv_;
+
+    bool flight_has_been_terminated_;
+    bool waypoints_saved_in_queue_;
 
     struct params_s params_;
 
@@ -127,13 +131,15 @@ namespace rosplane
     bool new_waypoint_callback(rosplane_msgs::NewWaypoints::Request &req, rosplane_msgs::NewWaypoints::Response &res);
     void current_path_publish(const ros::TimerEvent &);
     void failsafe_callback(const rosflight_msgs::RCRaw &msg);
-    bool returnToHomeSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
-    void returnToHome();
     bool resumePathSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
     void resumePath();
-    bool finishLoiter(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+    bool returnToHomeSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+    void returnToHome();
+    bool terminateFlightSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
     void terminateFlight();
+    bool finishLoiter(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
     void rx_callback(const rosflight_msgs::Status &msg);
+    void rthWaypoints();
   };
 } //end namespace
 #endif // PATH_MANAGER_BASE_H

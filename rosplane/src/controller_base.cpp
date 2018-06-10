@@ -61,8 +61,8 @@ controller_base::controller_base():
 
   actuators_pub_ = nh_.advertise<rosflight_msgs::Command>("command", 10);
   internals_pub_ = nh_.advertise<rosplane_msgs::Controller_Internals>("controller_inners", 10);
-  terminate_srv_ = nh_.advertiseService("/terminate_flight", &rosplane::controller_base::terminateFlight, this);
-  save_flt_srv_  = nh_.advertiseService("/save_flight", &rosplane::controller_base::saveFlight, this);
+  terminate_srv_ = nh_.advertiseService("/path_manager_terminate_flight", &rosplane::controller_base::terminateFlight, this);
+  save_flt_srv_  = nh_.advertiseService("/path_manager_save_flight", &rosplane::controller_base::saveFlight, this);
   act_pub_timer_ = nh_.createTimer(ros::Duration(1.0/100.0), &controller_base::actuator_controls_publish, this);
 
   command_recieved_ = false;
@@ -76,7 +76,6 @@ bool controller_base::saveFlight(std_srvs::Trigger::Request &req, std_srvs::Trig
 }
 bool controller_base::terminateFlight(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
 {
-  ROS_FATAL("TERMINATE FLIGHT");
   terminate_flight_ = true;
   res.success = true;
   return true;
