@@ -11,8 +11,8 @@ path_manager_base::path_manager_base():
   flight_mode_                = flight_mode_state::FLY;
   flight_has_been_terminated_ = false;
   waypoints_saved_in_queue_   = false;
-  rc_is_lost_                 = true;
-  rx_mode_                    = rx_state::RC;
+  switch_us_                  = 1;
+  switch_found_               = false;
   nh_private_.param<double>("R_min", params_.R_min, 75.0);
   nh_private_.param<double>("update_rate", update_rate_, 10.0);
 
@@ -37,34 +37,51 @@ path_manager_base::path_manager_base():
 }
 void path_manager_base::failsafe_callback(const rosflight_msgs::RCRaw &msg) // state machine
 {
-  if (rx_mode_ == rx_state::ROS && rc_is_lost_ == false)
+  switch_us_ = msg.values[6];
+  if (switch_found_ == false)
   {
-    float switch_us = msg.values[6];
-    flight_mode_state switch_state;
-    if (switch_us < 1333)
-      switch_state = flight_mode_state::FLY;
-    else if (switch_us >= 1333 && switch_us <= 1666)
-      switch_state = flight_mode_state::RETURN_TO_HOME;
-    else if (switch_us > 1666)
-      switch_state = flight_mode_state::TERMINATE_FLIGHT;
-    if (switch_state != flight_mode_)
+    if (switch_us_ >= 975 && switch_us_ < 1333)
+      switch_state_ = flight_mode_state::FLY;
+    else if (switch_us_ >= 1333 && switch_us_ < 1666)
+      switch_state_ = flight_mode_state::RETURN_TO_HOME;
+    else if (switch_us_ >= 1666 && switch_us_ <= 2025)
+      switch_state_ = flight_mode_state::TERMINATE_FLIGHT;
+    else
+      return;
+    if (switch_state_ != flight_mode_state::FLY)
     {
-      if (switch_state == flight_mode_state::FLY)
-        resumePath();
-      else if (switch_state == flight_mode_state::RETURN_TO_HOME)
-        returnToHome();
-      else if (switch_state == flight_mode_state::TERMINATE_FLIGHT)
-        terminateFlight();
+      ROS_WARN_THROTTLE(4,"Failsafe switch is not initially in FLY mode. Failsafe switch ignored");
+      return;
     }
+    ROS_INFO("Failsafe switch found and in FLY mode");
+    switch_found_ = true;
   }
 }
 void path_manager_base::rx_callback(const rosflight_msgs::Status &msg)
 {
-  if (msg.rc_override)
-    rx_mode_ = rx_state::RC;
-  else
-    rx_mode_ = rx_state::ROS;
-  rc_is_lost_ = msg.failsafe;
+  if (switch_found_)
+  {
+    if (msg.rc_override == false && msg.failsafe == false)
+    {
+      flight_mode_state switch_state;
+      if (switch_us_ >= 975 && switch_us_ < 1333)
+        switch_state = flight_mode_state::FLY;
+      else if (switch_us_ >= 1333 && switch_us_ < 1666)
+        switch_state = flight_mode_state::RETURN_TO_HOME;
+      else if (switch_us_ >= 1666 && switch_us_ <= 2025)
+        switch_state = flight_mode_state::TERMINATE_FLIGHT;
+      if (switch_state != switch_state_)
+      {
+        if (switch_state == flight_mode_state::FLY)
+          resumePath();
+        else if (switch_state == flight_mode_state::RETURN_TO_HOME)
+          returnToHome();
+        else if (switch_state == flight_mode_state::TERMINATE_FLIGHT)
+          terminateFlight();
+        switch_state_ = switch_state;
+      }
+    }
+  }
 }
 bool path_manager_base::resumePathSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
 {

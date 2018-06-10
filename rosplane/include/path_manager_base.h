@@ -39,11 +39,6 @@ namespace rosplane
       RETURN_TO_HOME,
       TERMINATE_FLIGHT
     };
-    enum class rx_state
-    {
-      RC,
-      ROS
-    };
   class path_manager_base
   {
   public:
@@ -52,7 +47,7 @@ namespace rosplane
   protected:
     fillet_state fil_state_;
     flight_mode_state flight_mode_;
-    rx_state rx_mode_;
+    flight_mode_state switch_state_;
     struct waypoint_s
     {
       float w[3];
@@ -118,7 +113,8 @@ namespace rosplane
 
     bool flight_has_been_terminated_;
     bool waypoints_saved_in_queue_;
-    bool rc_is_lost_;
+    float switch_us_;
+    bool switch_found_;
 
     struct params_s params_;
 
