@@ -118,6 +118,7 @@ namespace rosplane
 
     bool flight_has_been_terminated_;
     bool waypoints_saved_in_queue_;
+    bool rc_is_lost_;
 
     struct params_s params_;
 

@@ -11,6 +11,7 @@ path_manager_base::path_manager_base():
   flight_mode_                = flight_mode_state::FLY;
   flight_has_been_terminated_ = false;
   waypoints_saved_in_queue_   = false;
+  rc_is_lost_                 = true;
   rx_mode_                    = rx_state::RC;
   nh_private_.param<double>("R_min", params_.R_min, 75.0);
   nh_private_.param<double>("update_rate", update_rate_, 10.0);
@@ -36,7 +37,7 @@ path_manager_base::path_manager_base():
 }
 void path_manager_base::failsafe_callback(const rosflight_msgs::RCRaw &msg) // state machine
 {
-  if (rx_mode_ == rx_state::ROS)
+  if (rx_mode_ == rx_state::ROS && rc_is_lost_ == false)
   {
     float switch_us = msg.values[6];
     flight_mode_state switch_state;
@@ -63,6 +64,7 @@ void path_manager_base::rx_callback(const rosflight_msgs::Status &msg)
     rx_mode_ = rx_state::RC;
   else
     rx_mode_ = rx_state::ROS;
+  rc_is_lost_ = msg.failsafe;
 }
 bool path_manager_base::resumePathSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
 {
