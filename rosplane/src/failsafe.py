@@ -6,7 +6,7 @@ from std_srvs.srv import Trigger
 from rosflight_msgs.msg import Status
 
 ROUTER = '192.168.1.1'
-CMD = ['fping', '-r0', ROUTER] # use fping to ping the router ip address. -r0 retries 0 times to make it fail faster
+CMD = ['fping', '-r0', '-q', ROUTER] # use fping to ping the router ip address. -r0 retries 0 times to make it fail faster
 
 
 # This will test for interop and RC failures
@@ -35,8 +35,8 @@ class failsafe():
                 self.interopDiedTime = time.time() # get the time it went down
                 self.wasInteropAlive = False
             else:
-                elapsedTime = self.interopDiedTime - time.time()
-                rospy.logwarn("INTEROP NOT RESPONDING FOR %d SECONDS", elapsedTime)
+                elapsedTime = time.time() - self.interopDiedTime
+                rospy.logerr("INTEROP NOT RESPONDING FOR %d SECONDS", elapsedTime)
                 self.testElapsedTime(elapsedTime)
         else: # Not in failsafe
             self.wasInteropAlive = True
@@ -46,11 +46,11 @@ class failsafe():
         """Status message callback. Tests for RC downtime. \n\nIs automatically called when the state topic is updated"""
         if msg.failsafe: # If in Failsafe mode
                 if self.wasRCAlive: # If RC was alive last check
-                    self.RCDiedTime = msg.header.stamp # get the time it went down
+                    self.RCDiedTime = time.time() # msg.header.stamp # get the time it went down
                     self.wasRCAlive = False
                 else:
-                    elapsedTime = self.RCDiedTime - msg.header.stamp
-                    rospy.logwarn("RC NOT RESPONDING FOR %d SECONDSS", elapsedTime)
+                    elapsedTime = time.time() - self.interopDiedTime # self.RCDiedTime - msg.header.stamp
+                    rospy.logerr("RC NOT RESPONDING FOR %d SECONDSS", elapsedTime)
                     self.testElapsedTime(elapsedTime)
         else: # Not in failsafe
             self.wasRCAlive = True
@@ -64,9 +64,11 @@ class failsafe():
         """
         if elapsedTime > 30 and not self.calledRTH: # If in failsafe for more than 30s and we haven't already told it to RTH
             self.calledRTH = True
+            rospy.logerr("TRIGGERING FAILSAFE: RTH")
             self.returnToHome()
         if elapsedTime > 180 and not self.calledTerminate: # If in failsafe for 3 mins and haven't already told it to terminate
             self.calledTerminate = True
+            rospy.logerr("TRIGGERING FAILSAFE: TERMINATE")
             self.terminateFlight()
     
 
@@ -123,7 +125,7 @@ if __name__ == '__main__':
     rospy.wait_for_service('terminate_flight')
 
     rospy.loginfo("Failsafe Services Available; Starting Failsafe Manager")
-    
+
     r = rospy.Rate(10) # 10Hz
 
     while not rospy.is_shutdown():

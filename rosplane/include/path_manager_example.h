@@ -12,12 +12,6 @@
 #define M_PI_2_F 1.57079632679489661923f
 namespace rosplane
 {
-
-  enum class fillet_state
-  {
-    STRAIGHT,
-    ORBIT
-  };
   struct fillet_s
   {
     fillet_s()
@@ -49,7 +43,6 @@ namespace rosplane
 
     void manage_line(const struct params_s &params, const struct input_s &input, struct output_s &output);
     void manage_fillet(const struct params_s &params, const struct input_s &input, struct output_s &output);
-    fillet_state fil_state_;
 
     float loiter_radius_;
     float groundD_;

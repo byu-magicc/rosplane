@@ -8,8 +8,6 @@ controller_example::controller_example() : controller_base()
   current_zone = alt_zones::TAKE_OFF;
   if (!(ros::param::get("~groundD",groundD_)))
     ROS_FATAL("No param named 'groundD'");
-  if (!(ros::param::get("~use_rudder_for_bomb_drop",use_rudder_for_bomb_drop_)))
-    use_rudder_for_bomb_drop_ = true;
 
   c_error_ = 0;
   c_integrator_ = 0;
@@ -22,16 +20,7 @@ controller_example::controller_example() : controller_base()
 
 void controller_example::control(const params_s &params, const input_s &input, output_s &output)
 {
-  // use the rudder to drop the bomb... Yeah this is odd but wayyyy easier than doing it properly through rosflight (feature_191 is the best option, worth trying for 2019)
-  if (use_rudder_for_bomb_drop_ == false)
-    output.delta_r = 0.0/params.pwm_rad_r;
-  else if (bomb_armed_ == false)
-    output.delta_r = 0.0/params.pwm_rad_r;
-  else if (bomb_armed_ && drop_bomb_ == false)
-    output.delta_r = 1.0/params.pwm_rad_r;
-  else if (bomb_armed_ && drop_bomb_)
-    output.delta_r = -1.0/params.pwm_rad_r;
-
+  output.delta_r = 0.0/params.pwm_rad_r;
   output.phi_c = course_hold(input.chi_c, input.chi, input.phi_ff, input.r, params, input.Ts);
   //output.phi_c = 0.0f;
   output.delta_a = roll_hold(output.phi_c, input.phi, input.p, params, input.Ts);
@@ -61,7 +50,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
 					output.delta_t = input.delta_t + params.max_t/500.0;
 				}
 		//ROS_WARN("%f", output.delta_t);
-	    output.theta_c = 15.0*3.14/180.0;
+	    output.theta_c = 20.0*3.14/180.0;
 	    if (input.h >= params.alt_toz + params.alt_hys + (-groundD_))
 	    {
 	      ROS_INFO("climb");
@@ -74,6 +63,11 @@ void controller_example::control(const params_s &params, const input_s &input, o
 	  case alt_zones::CLIMB:
 	    output.delta_t = params.climb_throttle;
 	    output.theta_c = params.climb_angle_deg*3.1415926539/180.0; //airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
+      if (input.h < input.h_c - params.alt_hz - 10.0)
+      {
+        output.delta_t = params.max_t;
+        output.theta_c = 22.5*3.1415926539/180.0; //airspeed_with_pitch_hold(input.Va_c, input.va, params, input.Ts);
+      }
 	    if (input.h >= input.h_c - params.alt_hz + params.alt_hys)
 	    {
 	      ROS_INFO("hold");
@@ -138,7 +132,7 @@ void controller_example::control(const params_s &params, const input_s &input, o
     // these might need to be adjusted.
     output.delta_t = 0.0;
     output.delta_e = 1.0;
-    // output.delta_r = 1.0; // how do we get rudder??? uh oh... TODO
+    output.delta_r = 1.0; // using the rudder for the failsafe, arduino actuates the bomb.
     output.delta_a = 1.0;
   }
 }
