@@ -52,6 +52,7 @@
 
     <!-- <node name="pathplanner" pkg="rosplane" type="rosplane_path_planner" output="screen"/>  -->
     <node name="bomber" pkg="rosplane" type="bomb_dropper" output="screen">
+      <param name="call_gpio" value="false"/>
     </node>
     <!-- <node name="position_plotter" pkg="rosplane" type="position_plotter.py" output="screen"> -->
     <!-- </node> -->

@@ -1,5 +1,4 @@
 #include <bomb.h>
-#include <wiringPi.h>
 
 namespace rosplane
 {
@@ -9,13 +8,20 @@ Bomb::Bomb():
   current_path_.drop_bomb = false;
   already_dropped_        = false;
   bomb_armed_             = false;
+  rc_armed_bomb_          = false;
+  found_bomb_switch_      = false;
   double update_rate      = 100.0; // Hz of update
   vehicle_state_sub_      = nh_.subscribe("state", 10, &Bomb::vehicleStateCallback, this);
   current_path_sub_       = nh_.subscribe("current_path", 1, &Bomb::currentPathCallback, this);
   truth_sub_              = nh_.subscribe("truth", 1, &Bomb::truthCallback, this);
+  rx_sub_                 = nh_.subscribe("/rc_raw", 1, &Bomb::rx_callback, this);
   bomb_drop_srv_          = nh_.advertiseService("actuate_drop_bomb", &rosplane::Bomb::dropBombSRV, this);
   bomb_arm_srv_           = nh_.advertiseService("arm_bomb", &rosplane::Bomb::armBombSRV, this);
   update_timer_           = nh_.createTimer(ros::Duration(1.0/update_rate), &Bomb::updateMissDistance, this);
+
+  gpio_0_high_client_     = nh_.serviceClient<std_srvs::Trigger>("gpio_0_high");
+  gpio_0_low_client_      = nh_.serviceClient<std_srvs::Trigger>("gpio_0_low");
+  nh_.param<bool>("call_gpio", call_gpio_, true);
 
   Vwind_n_     = 0.0;
   Vwind_e_     = 0.0;
@@ -53,7 +59,28 @@ Bomb::Bomb():
 
   has_truth_ = false;
 }
-
+void Bomb::rx_callback(const rosflight_msgs::RCRaw &msg)
+{
+  // if (msg.values[2] > 910) // this is a check to make sure that there is an RC connection.
+  // {
+  //   if (found_bomb_switch_ == false && msg.values[7] > 1800)
+  //     ROS_WARN_THROTTLE(4,"Bomb switch is in ARM MODE. Please disarm");
+  //   else if (found_bomb_switch_ == false && msg.values[7] < 1800)
+  //     found_bomb_switch_ = true;
+  //   else if (msg.values[7] > 1800 && bomb_armed_ == false)
+  //   {
+  //     ROS_WARN("RC TRANSMITTER BOMB ACTION:");
+  //     armBomb();
+  //     rc_armed_bomb_ = true;
+  //   }
+  //   else if (msg.values[7] < 1300 && bomb_armed_ && rc_armed_bomb_)
+  //   {
+  //     ROS_WARN("RC TRANSMITTER BOMB ACTION:");
+  //     dropNow();
+  //     rc_armed_bomb_ = false; // reset, this variable is here so that the RC transmitter doesn't accidently drop the bomb after the computer arms it.
+  //   }
+  // }
+}
 void Bomb::vehicleStateCallback(const rosplane_msgs::StateConstPtr &msg)
 {
   vehicle_state_ = *msg;
@@ -140,9 +167,9 @@ NED_t Bomb::calculateDropPoint(NED_t Vg3, double chi, double Va, double target_h
 }
 void Bomb::dropNow()
 {
-  // signal the okay to drop the bomb. GPIO CODE HERE
-  digitalWrite(0,LOW);
-
+  std_srvs::Trigger ping;
+  if (call_gpio_)
+    gpio_0_low_client_.call(ping);
   ROS_WARN("DROPPING THE BOMB");
   // Do some post calculations
   float Vg2 = vehicle_state_.Vg;
@@ -175,10 +202,10 @@ void Bomb::dropNow()
 }
 void Bomb::armBomb()
 {
-  ROS_WARN("DROPPING THE BOMB");
-  // GPIO CODE HERE
-  digitalWrite(0,HIGH);
-
+  std_srvs::Trigger ping;
+  if (call_gpio_)
+    gpio_0_high_client_.call(ping);
+  ROS_WARN("ARMING THE BOMB");
   bomb_armed_ = true;
 }
 void Bomb::animateDrop(NED_t Vg3, double chi, double Va, double target_height)
@@ -261,9 +288,6 @@ bool Bomb::dropBombSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Resp
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "bomb_drop");
-  wiringPiSetup ();
-  pinMode (0, OUTPUT);
-  digitalWrite(0, LOW);
   rosplane::Bomb b;
   ros::spin();
   return 0;

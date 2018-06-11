@@ -55,8 +55,10 @@
    <param name="MAX_T" value="0.70"/>
    <param name="groundD" value="-6.0"/>
  </node>
- <node name="bomber" pkg="rosplane" type="bomb_dropper" output="screen" launch-prefix="sudo -E"/>
- 
+ <node name="bomber" pkg="rosplane" type="bomb_dropper" output="screen"/>
+ <node name="gpio_node" pkg="rosplane" type="odroid_gpio" output="screen" launch-prefix="sudo -E"/>
+
+
  <node name="failsafe" pkg="rosplane" type="failsafe.py" output="screen"/>
 
  <node pkg="rosservice" type="rosservice" name="calibration_of_imu" args="call --wait /calibrate_imu"/>

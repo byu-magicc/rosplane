@@ -95,5 +95,11 @@ target_link_libraries(rosplane_path_planner ${catkin_LIBRARIES})
 ## Declare a C++ executable
 add_executable(bomb_dropper
             src/bomb.cpp)
-add_dependencies(bomb_dropper ${catkin_EXPORTED_TARGETS} wiringPi)
-target_link_libraries(bomb_dropper ${catkin_LIBRARIES} ${WIRINGPI_LIBRARY})
+add_dependencies(bomb_dropper ${catkin_EXPORTED_TARGETS})
+target_link_libraries(bomb_dropper ${catkin_LIBRARIES})
+
+## Declare a C++ executable
+add_executable(odroid_gpio
+            src/odroid_gpio.cpp)
+add_dependencies(odroid_gpio ${catkin_EXPORTED_TARGETS} wiringPi)
+target_link_libraries(odroid_gpio ${catkin_LIBRARIES} ${WIRINGPI_LIBRARY})

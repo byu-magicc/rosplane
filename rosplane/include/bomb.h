@@ -7,7 +7,8 @@
 #include <math.h>
 #include <ned_t.h>
 #include <std_srvs/Trigger.h>
-
+#include <rosflight_msgs/Status.h>
+#include <rosflight_msgs/RCRaw.h>
 #include <visualization_msgs/Marker.h>
 
 namespace rosplane
@@ -23,8 +24,11 @@ namespace rosplane
     ros::Subscriber vehicle_state_sub_;
     ros::Subscriber current_path_sub_;
     ros::Subscriber truth_sub_;
+    ros::Subscriber rx_sub_;
     ros::ServiceServer bomb_drop_srv_;
-    ros:: ServiceServer bomb_arm_srv_;
+    ros::ServiceServer bomb_arm_srv_;
+    ros::ServiceClient gpio_0_high_client_;
+    ros::ServiceClient gpio_0_low_client_;
     rosplane_msgs::State vehicle_state_;
     rosplane_msgs::State truth_;
     bool has_truth_;
@@ -46,6 +50,9 @@ namespace rosplane
     double k_x_;     // drag constant (fudge factor in parenthesis())
     bool already_dropped_;
     bool bomb_armed_;
+    bool call_gpio_;
+    bool rc_armed_bomb_;
+    bool found_bomb_switch_;
 
     ros::Publisher marker_pub_;
     visualization_msgs::Marker odom_mkr_;
@@ -54,6 +61,7 @@ namespace rosplane
     void truthCallback(const rosplane_msgs::StateConstPtr &msg);
     bool dropBombSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
     bool armBombSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
+    void rx_callback(const rosflight_msgs::RCRaw &msg);
   };
 } //end namespace rosplane
 #endif // BOMB_H
