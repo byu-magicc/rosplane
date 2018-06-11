@@ -25,6 +25,10 @@ class failsafe():
         self.wasInteropAlive = True
         self.interopDiedTime = 0
 
+        self.rthService = rospy.ServiceProxy('return_to_home', Trigger)
+        self.resumeService = rospy.ServiceProxy('resume_path', Trigger)
+        self.terminateService = rospy.ServiceProxy('terminate_flight', Trigger)
+
         # Subscribe to state to see the RC status inputs
         self.RC_sub = rospy.Subscriber("status", Status, self.statusCallback)
     
@@ -49,7 +53,7 @@ class failsafe():
                     self.RCDiedTime = time.time() # msg.header.stamp # get the time it went down
                     self.wasRCAlive = False
                 else:
-                    elapsedTime = time.time() - self.interopDiedTime # self.RCDiedTime - msg.header.stamp
+                    elapsedTime = time.time() - self.RCDiedTime # self.RCDiedTime - msg.header.stamp
                     rospy.logerr("RC NOT RESPONDING FOR %d SECONDSS", elapsedTime)
                     self.testElapsedTime(elapsedTime)
         else: # Not in failsafe
@@ -65,27 +69,21 @@ class failsafe():
         if elapsedTime > 30 and not self.calledRTH: # If in failsafe for more than 30s and we haven't already told it to RTH
             self.calledRTH = True
             rospy.logerr("TRIGGERING FAILSAFE: RTH")
-            self.returnToHome()
+            self.rthService()
         if elapsedTime > 180 and not self.calledTerminate: # If in failsafe for 3 mins and haven't already told it to terminate
             self.calledTerminate = True
             rospy.logerr("TRIGGERING FAILSAFE: TERMINATE")
-            self.terminateFlight()
+            self.terminateService()
     
 
     def resetFailsafe(self):
         """Resets previously called RTH (but not terminate) failsafes if RC and Interop are now alive"""
         if self.wasRCAlive and self.wasInteropAlive: # if both were alive last check
             if self.calledRTH: # if RTH had been called
-                try:
-                    rospy.ServiceProxy('resume_path', Trigger)
-                except rospy.ServiceException as e:
-                    print("resume_path service called failed: ", e)
+                self.resumeService()
             if self.calledTerminate: # if terminate had been called
-                pass # ONLY CALL IF WE KNOW IT'S STILL IN THE AIR. Leaving commented until we know how.
-                # try:
-                #     rospy.ServiceProxy('save_flight', Trigger)
-                # except rospy.ServiceException as e:
-                #     print("save_flight service called failed: ", e)
+                self.resumeService()
+                # May be a good idea to only call if it's still in the air
             
             # Reset all of the default values
             self.calledRTH = False
@@ -99,22 +97,6 @@ class failsafe():
         except subprocess.CalledProcessError:
             return False
         return True
-
-
-    def returnToHome(self):
-        """Calls the /return_to_home rosservice"""
-        try:
-            rospy.ServiceProxy('return_to_home', Trigger)
-        except rospy.ServiceException as e:
-            print("Return to home service called failed: ", e)
-
-
-    def terminateFlight(self):
-        """Calls the /terminate_flight rosservice"""
-        try:
-            rospy.ServiceProxy('terminate_flight', Trigger)
-        except rospy.ServiceException as e:
-            print("terminate_flight ervice called failed: ", e)
 
 if __name__ == '__main__':
     rospy.init_node('Status_Watcher')
