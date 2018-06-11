@@ -44,6 +44,7 @@ class failsafe():
                 self.testElapsedTime(elapsedTime)
         else: # Not in failsafe
             self.wasInteropAlive = True
+            resetFailsafe()
         
 
     def statusCallback(self, msg):
@@ -58,6 +59,7 @@ class failsafe():
                     self.testElapsedTime(elapsedTime)
         else: # Not in failsafe
             self.wasRCAlive = True
+            resetFailsafe()
 
 
     def testElapsedTime(self, elapsedTime):
