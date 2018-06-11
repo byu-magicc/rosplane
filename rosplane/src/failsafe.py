@@ -44,7 +44,7 @@ class failsafe():
                 self.testElapsedTime(elapsedTime)
         else: # Not in failsafe
             self.wasInteropAlive = True
-            resetFailsafe()
+            self.resetFailsafe()
         
 
     def statusCallback(self, msg):
@@ -59,7 +59,7 @@ class failsafe():
                     self.testElapsedTime(elapsedTime)
         else: # Not in failsafe
             self.wasRCAlive = True
-            resetFailsafe()
+            self.resetFailsafe()
 
 
     def testElapsedTime(self, elapsedTime):
@@ -105,6 +105,7 @@ if __name__ == '__main__':
 
     failsafeObj = failsafe()
 
+    rospy.wait_for_message("status", Status)
     rospy.wait_for_service('return_to_home')
     rospy.wait_for_service('terminate_flight')
 
