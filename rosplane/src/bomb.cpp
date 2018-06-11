@@ -261,6 +261,9 @@ bool Bomb::dropBombSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Resp
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "bomb_drop");
+  wiringPiSetup ();
+  pinMode (0, OUTPUT);
+  digitalWrite(0, LOW);
   rosplane::Bomb b;
   ros::spin();
   return 0;
