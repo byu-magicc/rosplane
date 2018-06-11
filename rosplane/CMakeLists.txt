@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
 )
 find_package(Eigen3 REQUIRED)
+FIND_LIBRARY(WIRINGPI_LIBRARY wiringPi ~/ws/src/wiringPi)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -94,5 +95,5 @@ target_link_libraries(rosplane_path_planner ${catkin_LIBRARIES})
 ## Declare a C++ executable
 add_executable(bomb_dropper
             src/bomb.cpp)
-add_dependencies(bomb_dropper ${catkin_EXPORTED_TARGETS})
-target_link_libraries(bomb_dropper ${catkin_LIBRARIES})
+add_dependencies(bomb_dropper ${catkin_EXPORTED_TARGETS} wiringPi)
+target_link_libraries(bomb_dropper ${catkin_LIBRARIES} ${WIRINGPI_LIBRARY})

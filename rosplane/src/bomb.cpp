@@ -1,4 +1,5 @@
 #include <bomb.h>
+#include <wiringPi.h>
 
 namespace rosplane
 {
@@ -140,8 +141,7 @@ NED_t Bomb::calculateDropPoint(NED_t Vg3, double chi, double Va, double target_h
 void Bomb::dropNow()
 {
   // signal the okay to drop the bomb. GPIO CODE HERE
-
-
+  digitalWrite(0,LOW);
 
   ROS_WARN("DROPPING THE BOMB");
   // Do some post calculations
@@ -175,8 +175,9 @@ void Bomb::dropNow()
 }
 void Bomb::armBomb()
 {
+  ROS_WARN("DROPPING THE BOMB");
   // GPIO CODE HERE
-
+  digitalWrite(0,HIGH);
 
   bomb_armed_ = true;
 }
