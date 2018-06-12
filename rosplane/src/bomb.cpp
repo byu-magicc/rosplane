@@ -61,25 +61,25 @@ Bomb::Bomb():
 }
 void Bomb::rx_callback(const rosflight_msgs::RCRaw &msg)
 {
-  // if (msg.values[2] > 910) // this is a check to make sure that there is an RC connection.
-  // {
-  //   if (found_bomb_switch_ == false && msg.values[7] > 1800)
-  //     ROS_WARN_THROTTLE(4,"Bomb switch is in ARM MODE. Please disarm");
-  //   else if (found_bomb_switch_ == false && msg.values[7] < 1800)
-  //     found_bomb_switch_ = true;
-  //   else if (msg.values[7] > 1800 && bomb_armed_ == false)
-  //   {
-  //     ROS_WARN("RC TRANSMITTER BOMB ACTION:");
-  //     armBomb();
-  //     rc_armed_bomb_ = true;
-  //   }
-  //   else if (msg.values[7] < 1300 && bomb_armed_ && rc_armed_bomb_)
-  //   {
-  //     ROS_WARN("RC TRANSMITTER BOMB ACTION:");
-  //     dropNow();
-  //     rc_armed_bomb_ = false; // reset, this variable is here so that the RC transmitter doesn't accidently drop the bomb after the computer arms it.
-  //   }
-  // }
+  if (msg.values[2] > 910) // this is a check to make sure that there is an RC connection.
+  {
+    if (found_bomb_switch_ == false && msg.values[7] > 1800)
+      ROS_WARN_THROTTLE(4,"Bomb switch is in ARM MODE. Please disarm");
+    else if (found_bomb_switch_ == false && msg.values[7] < 1800)
+      found_bomb_switch_ = true;
+    else if (msg.values[7] > 1800 && bomb_armed_ == false)
+    {
+      ROS_WARN("RC TRANSMITTER BOMB ACTION:");
+      armBomb();
+      rc_armed_bomb_ = true;
+    }
+    else if (msg.values[7] < 1300 && bomb_armed_ && rc_armed_bomb_)
+    {
+      ROS_WARN("RC TRANSMITTER BOMB ACTION:");
+      dropNow();
+      rc_armed_bomb_ = false; // reset, this variable is here so that the RC transmitter doesn't accidently drop the bomb after the computer arms it.
+    }
+  }
 }
 void Bomb::vehicleStateCallback(const rosplane_msgs::StateConstPtr &msg)
 {
