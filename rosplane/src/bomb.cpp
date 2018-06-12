@@ -41,6 +41,7 @@ Bomb::Bomb():
 
 
   marker_pub_                  = nh_.advertise<visualization_msgs::Marker>("/theseus/visualization_marker", 10);
+  ground_marker_pub_           = nh_.advertise<visualization_msgs::Marker>("/theseus/groundstation/visualization_marker", 10);
   odom_mkr_.header.frame_id    = "/local_ENU";
   odom_mkr_.ns                 = "bomb_odom";
   odom_mkr_.type               = visualization_msgs::Marker::POINTS;
@@ -171,6 +172,7 @@ void Bomb::dropNow()
   if (call_gpio_)
     gpio_0_low_client_.call(ping);
   ROS_WARN("DROPPING THE BOMB");
+  already_dropped_ = true;
   // Do some post calculations
   float Vg2 = vehicle_state_.Vg;
   float chi = vehicle_state_.chi;
@@ -268,6 +270,7 @@ void Bomb::odomCallback(geometry_msgs::Point p)
   odom_mkr_.header.stamp = ros::Time::now();
   odom_mkr_.points.push_back(p);
   marker_pub_.publish(odom_mkr_);
+  ground_marker_pub_.publish(odom_mkr_);
 }
 bool Bomb::armBombSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res)
 {

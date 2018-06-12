@@ -55,6 +55,7 @@ namespace rosplane
     bool found_bomb_switch_;
 
     ros::Publisher marker_pub_;
+    ros::Publisher ground_marker_pub_;
     visualization_msgs::Marker odom_mkr_;
     void odomCallback(geometry_msgs::Point p);
     void animateDrop(NED_t Vg3, double chi, double Va, double target_height);
