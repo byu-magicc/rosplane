@@ -8,10 +8,12 @@
  <node name="uINS" pkg="inertial_sense" type="inertial_sense_node" output="screen">
   <param name="~port" value="/dev/uINS"/>
 
-   <!-- St. Inigoes, MD -->
-   <!-- <param name="~lat_ref" value="38.145829"/>
-   <param name="~lon_ref" value="-76.428360"/>
-   <param name="~h_ref" value="0.0"/> -->
+  <!-- WEBSTER FIELD -->
+  <!--
+   <param name="~lat_ref" value="38.144692"/>
+   <param name="~lon_ref" value="-76.428007"/>
+   <param name="~h_ref" value="0.0"/>
+  -->
 
    <!-- Helwig Field Big, MD -->
    <param name="~lat_ref" value="38.367192"/>
