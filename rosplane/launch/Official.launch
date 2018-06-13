@@ -1,61 +1,62 @@
-<!--This is the official launch file for the competition -->
+<!--This launch file controls the plane to be level. -->
 <launch>
-
-  <!--##########################################################################
-  This is where we pull in the parameters for the aircraft that we'll be flying
-#############################################################################-->
-<arg name="mav_name"  default="MTD"/>
+ <arg name="mav_name"  default="MTD"/>
  <rosparam command="load" file="$(find rosplane)/param/MTD.yaml" ns="controller"/>
-
-<!--############################################################################
-            This is where all of the sensor nodes are initiated
-#############################################################################-->
-<!-- Naze : The naze is special because it will both receive command signals
-and use those to control the actuators of the aircraft. It will also return data
-from the gyro and accelerometer-->
  <node name="naze"  pkg="rosflight"  type="rosflight_io" output="screen">
-        <param name="port" value="/dev/naze"/>
+   <param name="port" value="/dev/naze"/>
+ </node>
+ <node name="uINS" pkg="inertial_sense" type="inertial_sense_node" output="screen">
+  <param name="~port" value="/dev/uINS"/>
+
+   <!-- St. Inigoes, MD -->
+   <!-- <param name="~lat_ref" value="38.145829"/>
+   <param name="~lon_ref" value="-76.428360"/>
+   <param name="~h_ref" value="0.0"/> -->
+
+   <!-- Helwig Field Big, MD -->
+   <param name="~lat_ref" value="38.367192"/>
+   <param name="~lon_ref" value="-76.523419"/>
+   <param name="~h_ref" value="0.0"/>
+
+   <!-- Helwig Field Small, MD -->
+   <!-- <param name="~lat_ref" value="38.365061"/>
+   <param name="~lon_ref" value="-76.536640"/>
+   <param name="~h_ref" value="0.0"/> -->
  </node>
 
- <!-- GPS -->
- <node name="gps_driver" pkg="rosflight_utils" type="gps">
- <param name="port" value="/dev/m8"/>
- <param name="baud" value="115200"/>
+ <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen">
+   <param name="~use_inertial_sense" type="bool" value="true"/>
  </node>
 
-<!-- ###########################################################################
-      This is where all of the nodes for the autopilot are initiated
-#############################################################################-->
-<!--Estimator-->
- <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen"/>
-
-<!--Controller: This is the node that sends pwm controls to the actuators -->-
- <node name="controller" pkg="rosplane" type="rosplane_controller">
-    <param name="PWM_RAD_E" value="2.8"/>
-	<param name="PWM_RAD_A" value="-1.6"/>
-	<param name="PWM_RAD_R" value="1.8"/>
+ <!--Path Manager-->
+ <node name="path_manager" pkg="rosplane" type="rosplane_path_manager" output="screen">
+  <param name="R_min" value="50.0"/>
+  <param name="loiter_radius" value="75.0"/>
+  <param name="groundD" value="-6.0"/>
+  <param name="home_north" value="-100.0"/>
+  <param name="home_east" value="-100.0"/>
+  <param name="loiter_down" value="-150.0"/>
  </node>
 
-<!--Path Manager-->
- <node name="path_manager" pkg="rosplane" type="rosplane_path_manager"/>
+ <!--Path Follower-->
+ <node name="path_follower" pkg="rosplane" type="rosplane_path_follower" output="screen"/>
 
-<!--Path Follower-->
- <node name="path_follower" pkg="rosplane" type="rosplane_path_follower"/>
+ <node name="controller" pkg="rosplane" type="rosplane_controller" output="screen">
+   <param name="PWM_RAD_E" value="2.8"/>
+   <param name="PWM_RAD_A" value="-1.6"/>
+   <param name="PWM_RAD_R" value="1.8"/>
+   <param name="ALT_TOZ" value="30.0"/>
+   <param name="ALT_HZ" value="5.0"/>
+   <param name="MAX_T" value="0.70"/>
+   <param name="groundD" value="-6.0"/>
+ </node>
+ <node name="bomber" pkg="rosplane" type="bomb_dropper" output="screen"/>
+ <node name="gpio_node" pkg="rosplane" type="odroid_gpio" output="screen" launch-prefix="sudo -E"/>
 
 
-<!--
- <node name="failsafe_checker" pkg="rosplane" type="failsafe.py" output="screen"/>-->
+ <node name="failsafe" pkg="rosplane" type="failsafe.py" output="screen"/>
 
-<!--Path Planner-->
-<node name="pathplanner" pkg="rosplane" type="rosplane_path_planner" output="screen"/>
-<!-- CALBRATION CALLS -->
-<node pkg="rosservice" type="rosservice" name="calibration_of_baro" args="call --wait /calibrate_baro"/>
-<node pkg="rosservice" type="rosservice" name="calibration_of_airspeed" args="call --wait /calibrate_airspeed"/>
-<node pkg="rosservice" type="rosservice" name="calibration_of_imu" args="call --wait /calibrate_imu"/>
-<!-- ###########################################################################
-    This is where we can decide what data we want to save from flights
-#############################################################################-->
-<!--
-<node name="rosbag_recorder" pkg="rosbag" type="record" args="-o $(arg name) /state /gps_state /gps/data /rc_raw" output="screen"/>
--->
+ <node pkg="rosservice" type="rosservice" name="calibration_of_imu" args="call --wait /calibrate_imu"/>
+ <node pkg="rosservice" type="rosservice" name="calibration_of_baro" args="call --wait /calibrate_baro"/>
+ <node pkg="rosservice" type="rosservice" name="calibration_of_airspeed" args="call --wait /calibrate_airspeed"/>
 </launch>
