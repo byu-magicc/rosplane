@@ -226,7 +226,7 @@ void Bomb::dropNow()
 {
   std_srvs::Trigger ping;
   if (call_gpio_)
-    gpio_0_high_client_.call(ping);
+    gpio_0_low_client_.call(ping);
   gpio_is_high_ = true;
   drop_time_ = ros::Time::now();
   ROS_WARN("DROPPING THE BOMB");
@@ -297,6 +297,9 @@ void Bomb::dropNow()
 void Bomb::armBomb()
 {
   ROS_WARN("ARMING THE BOMB");
+  std_srvs::Trigger ping;
+  if (call_gpio_)
+    gpio_0_high_client_.call(ping);
   bomb_armed_ = true;
 }
 void Bomb::animateDrop()
