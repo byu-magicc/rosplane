@@ -8,6 +8,11 @@ estimator_base::estimator_base():
   nh_(ros::NodeHandle()),
   nh_private_(ros::NodeHandle("~"))
 {
+  height_offset_     = 0.0;
+  calibrate_to_this_ = -6.7056;
+  calibration_sum_   = 0.0;
+  avg_this_many_     = 30;
+  counted_this_many_ = 0;
   bool use_inertial_sense;
   std::string inertial_sense_topic;
   nh_private_.param<std::string>("inertial_sense_topic", inertial_sense_topic, "ins");
@@ -54,13 +59,22 @@ estimator_base::estimator_base():
 }
 void estimator_base::inertialSenseCallback(const nav_msgs::Odometry &msg_in)
 {
+  if (counted_this_many_ <= avg_this_many_)
+  {
+    calibration_sum_ += msg_in.pose.pose.position.z;
+    counted_this_many_++;
+    if (counted_this_many_ == avg_this_many_)
+    {
+      height_offset_ = calibrate_to_this_ - calibration_sum_/counted_this_many_; // avg + height_offset_ = calibrate_to_this_;
+    }
+  }
   rosplane_msgs::State msg;
   msg.header.stamp    = ros::Time::now();
   msg.header.frame_id = 1; // Denotes global frame
 
   msg.position[0]     = msg_in.pose.pose.position.x;
   msg.position[1]     = msg_in.pose.pose.position.y;
-  msg.position[2]     = msg_in.pose.pose.position.z;
+  msg.position[2]     = msg_in.pose.pose.position.z + height_offset_;
   if (gps_init_)
   {
     msg.initial_lat   = init_lat_;

@@ -138,6 +138,13 @@ private:
 
   struct params_s                 params_;
   struct input_s                  input_;
+
+
+  double height_offset_;
+  double calibrate_to_this_;
+  double calibration_sum_;
+  int avg_this_many_;
+  int counted_this_many_ ;
 };
 
 } //end namespace
