@@ -10,7 +10,10 @@ Bomb::Bomb():
   bomb_armed_             = false;
   rc_armed_bomb_          = false;
   found_bomb_switch_      = false;
-  double update_rate      = 100.0; // Hz of update
+  releasing_period_       = false;
+  animating_now_          = false;
+  high_time_              = 3.0; // seconds of dropping
+  double update_rate      = 30.0; // Hz of update
   vehicle_state_sub_      = nh_.subscribe("state", 10, &Bomb::vehicleStateCallback, this);
   current_path_sub_       = nh_.subscribe("current_path", 1, &Bomb::currentPathCallback, this);
   truth_sub_              = nh_.subscribe("truth", 1, &Bomb::truthCallback, this);
@@ -21,7 +24,13 @@ Bomb::Bomb():
 
   gpio_0_high_client_     = nh_.serviceClient<std_srvs::Trigger>("gpio_0_high");
   gpio_0_low_client_      = nh_.serviceClient<std_srvs::Trigger>("gpio_0_low");
-  nh_.param<bool>("call_gpio", call_gpio_, true);
+  nh_.param<bool>("bomber/call_gpio", call_gpio_, true);
+
+  if (call_gpio_)
+    ROS_WARN("call_gpio = true");
+  else
+    ROS_WARN("call_gpio = false");
+
 
   Vwind_n_     = 0.0;
   Vwind_e_     = 0.0;
@@ -39,7 +48,7 @@ Bomb::Bomb():
   k_z_ = (2)*0.5*rho*A_z*Cd_z;    // drag constant (fudge factor in parenthesis())
   k_x_ = (10)*0.5*rho*A_x*Cd_x;   // drag constant (fudge factor in parenthesis())
 
-
+  DT_VIZ_                      = 0.25;
   marker_pub_                  = nh_.advertise<visualization_msgs::Marker>("/theseus/visualization_marker", 10);
   ground_marker_pub_           = nh_.advertise<visualization_msgs::Marker>("/theseus/groundstation/visualization_marker", 10);
   odom_mkr_.header.frame_id    = "/local_ENU";
@@ -59,6 +68,22 @@ Bomb::Bomb():
   odom_mkr_.scale.y            = 5.0; // point width
 
   has_truth_ = false;
+
+  if (call_gpio_)
+  {
+    bool found_service1 = ros::service::waitForService("gpio_0_high", ros::Duration(1.0));
+    bool found_service2 = ros::service::waitForService("gpio_0_low", ros::Duration(1.0));
+    while (found_service1 == false || found_service2 == false)
+    {
+      ROS_WARN("No GPIO pin server found. Checking again.");
+      found_service1 = ros::service::waitForService("gpio_0_high", ros::Duration(1.0));
+      found_service2 = ros::service::waitForService("gpio_0_low", ros::Duration(1.0));
+    }
+    std_srvs::Trigger ping;
+    gpio_0_low_client_.call(ping);
+  }
+  gpio_is_high_ = false;
+
 }
 void Bomb::rx_callback(const rosflight_msgs::RCRaw &msg)
 {
@@ -67,7 +92,10 @@ void Bomb::rx_callback(const rosflight_msgs::RCRaw &msg)
     if (found_bomb_switch_ == false && msg.values[7] > 1800)
       ROS_WARN_THROTTLE(4,"Bomb switch is in ARM MODE. Please disarm");
     else if (found_bomb_switch_ == false && msg.values[7] < 1800)
+    {
+      ROS_INFO("Bomb switch switch found and disarmed");
       found_bomb_switch_ = true;
+    }
     else if (msg.values[7] > 1800 && bomb_armed_ == false)
     {
       ROS_WARN("RC TRANSMITTER BOMB ACTION:");
@@ -78,6 +106,7 @@ void Bomb::rx_callback(const rosflight_msgs::RCRaw &msg)
     {
       ROS_WARN("RC TRANSMITTER BOMB ACTION:");
       dropNow();
+      already_dropped_ = false;
       rc_armed_bomb_ = false; // reset, this variable is here so that the RC transmitter doesn't accidently drop the bomb after the computer arms it.
     }
   }
@@ -122,6 +151,33 @@ void Bomb::updateMissDistance(const ros::TimerEvent& event)
     if (d_go <= d_drop)
       dropNow();
   }
+  if (animating_now_)
+  {
+    ros::Time time_ = ros::Time::now();
+    double time_falling = (time_ - animation_drop_time_).toSec();
+    if (time_falling < t_fall_animation_)
+    {
+      if (time_falling > T_VIZ_)
+      {
+        animateDrop();
+        T_VIZ_ += DT_VIZ_;
+      }
+    }
+    else
+      animating_now_ = false; // turns off the animator
+  }
+  if (gpio_is_high_)
+  {
+    if ((ros::Time::now() - drop_time_).toSec() > high_time_)
+    {
+      std_srvs::Trigger ping;
+      if (call_gpio_)
+        gpio_0_low_client_.call(ping);
+      ROS_WARN("Bomb drop no longer dropping");
+      gpio_is_high_ = false;
+    }
+  }
+
 }
 NED_t Bomb::calculateDropPoint(NED_t Vg3, double chi, double Va, double target_height)
 {
@@ -170,8 +226,11 @@ void Bomb::dropNow()
 {
   std_srvs::Trigger ping;
   if (call_gpio_)
-    gpio_0_low_client_.call(ping);
+    gpio_0_high_client_.call(ping);
+  gpio_is_high_ = true;
+  drop_time_ = ros::Time::now();
   ROS_WARN("DROPPING THE BOMB");
+  releasing_period_ = true;
   already_dropped_ = true;
   // Do some post calculations
   float Vg2 = vehicle_state_.Vg;
@@ -196,42 +255,69 @@ void Bomb::dropNow()
     double miss_distancet = (target_location - drop_pointt).norm();
     ROS_WARN("Actual miss distance: %f", miss_distancet);
     ROS_WARN("N: %f, E: %f, D: %f", drop_pointt.N, drop_pointt.E, drop_pointt.D);
-    animateDrop(Vg3t, chit, truth_.Va, -target_location.D);
+
+    if (animating_now_ == false) // this makes it so only one simulation at a time.
+    {
+      ROS_WARN("Animating the drop, with truth");
+      double height             = -truth_.position[2] + target_location.D;
+      t_fall_animation_         = acosh(exp(height*k_z_/m_))/sqrt(g_*k_z_/m_); // time for bottle to fall from height
+      Vg3_drop_                 = Vg3t;
+      chi_drop_                 = chit;
+      Va_drop_                  = truth_.Va;
+      target_height_            = -target_location.D;
+      uav_drop_position_.N      = truth_.position[0];
+      uav_drop_position_.E      = truth_.position[1];
+      uav_drop_position_.D      = truth_.position[2];
+      T_VIZ_                    = 0.0;
+      animation_drop_time_      = drop_time_;
+      animating_now_            = true;
+    }
   }
   else
-    animateDrop(Vg3, chi, vehicle_state_.Va, -target_location.D);
+  {
+    if (animating_now_ == false)
+    {
+      ROS_WARN("Animating the drop, on estimated states");
+      double height             = -vehicle_state_.position[2] + target_location.D;
+      t_fall_animation_         = acosh(exp(height*k_z_/m_))/sqrt(g_*k_z_/m_); // time for bottle to fall from height
+      Vg3_drop_                 = Vg3;
+      chi_drop_                 = chi;
+      Va_drop_                  = vehicle_state_.Va;
+      target_height_            = -target_location.D;
+      uav_drop_position_.N      = vehicle_state_.position[0];
+      uav_drop_position_.E      = vehicle_state_.position[1];
+      uav_drop_position_.D      = vehicle_state_.position[2];
+      T_VIZ_                    = 0.0;
+      animation_drop_time_      = drop_time_;
+      animating_now_            = true;
+    }
+  }
   bomb_armed_ = false;
 }
 void Bomb::armBomb()
 {
-  std_srvs::Trigger ping;
-  if (call_gpio_)
-    gpio_0_high_client_.call(ping);
   ROS_WARN("ARMING THE BOMB");
   bomb_armed_ = true;
 }
-void Bomb::animateDrop(NED_t Vg3, double chi, double Va, double target_height)
+void Bomb::animateDrop()
 {
-  ROS_WARN("Animating the drop");
-  double initial_drop_height = -vehicle_state_.position[2];
-  double height = -vehicle_state_.position[2] - target_height;
+  double height = -uav_drop_position_.D - target_height_;
   // ROS_INFO("height to drop: %f", height);
   // Initial airspeed seen by bottle
-	double Va0_n  = Vg3.N - Vwind_n_;
-	double Va0_e  = Vg3.E - Vwind_e_;
+	double Va0_n  = Vg3_drop_.N - Vwind_n_;
+	double Va0_e  = Vg3_drop_.E - Vwind_e_;
 	// Calculate falling time of the bottle
-	double t_fall = acosh(exp(height*k_z_/m_))/sqrt(g_*k_z_/m_); // time for bottle to fall from height
+  ros::Time now = ros::Time::now();
+	double t_fall = (now - animation_drop_time_).toSec(); // time for bottle to fall from height
   // ROS_INFO("t_fall: %f", t_fall);
 	// Calculate North component of airspeed and ground speed as a function of time for THE BOTTLE.
 
   double Va_n1, Vg_n1, Va_e1, Vg_e1, Va_n2, Vg_n2, Va_e2, Vg_e2, north_final, east_final;
-  double DT_VIZ = 0.1;
-  double  T_VIZ = 0.0;
   geometry_msgs::Point p;
-  double dt   = 0.001;
+  double dt   = 0.01;
   double t    = 0.0;
-  north_final = vehicle_state_.position[0];
-  east_final  = vehicle_state_.position[1];
+  north_final = uav_drop_position_.N;
+  east_final  = uav_drop_position_.E;
   Va_n2       = Va0_n*exp(-k_x_*t/m_);
   Vg_n2       = Va_n2 + Vwind_n_;
   Va_e2       = Va0_e*exp(-k_x_*t/m_);
@@ -249,25 +335,16 @@ void Bomb::animateDrop(NED_t Vg3, double chi, double Va, double target_height)
     north_final = north_final + (Vg_n1 + Vg_n2)/2.0*dt;
     east_final  = east_final  + (Vg_e1 + Vg_e2)/2.0*dt;
     t += dt;
-    if (t >= T_VIZ + DT_VIZ)
-    {
-      p.x = east_final;
-      p.y = north_final;
-      p.z = initial_drop_height - log(cosh(t*sqrt(g_*k_z_/m_)))*m_/k_z_;
-      odomCallback(p);
-      T_VIZ = t;
-      ros::Duration(DT_VIZ).sleep();
-    }
   }
 	// Calculate the estimated_drop_site
   p.x = east_final;
   p.y = north_final;
-  p.z = initial_drop_height - log(cosh(t*sqrt(g_*k_z_/m_)))*m_/k_z_;
+  p.z = -uav_drop_position_.D - log(cosh(t*sqrt(g_*k_z_/m_)))*m_/k_z_;
   odomCallback(p);
 }
 void Bomb::odomCallback(geometry_msgs::Point p)
 {
-  odom_mkr_.header.stamp = ros::Time::now();
+  // odom_mkr_.header.stamp = ros::Time::now();
   odom_mkr_.points.push_back(p);
   marker_pub_.publish(odom_mkr_);
   ground_marker_pub_.publish(odom_mkr_);

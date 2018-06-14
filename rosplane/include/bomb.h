@@ -51,6 +51,7 @@ namespace rosplane
     bool already_dropped_;
     bool bomb_armed_;
     bool call_gpio_;
+    bool gpio_is_high_;
     bool rc_armed_bomb_;
     bool found_bomb_switch_;
 
@@ -58,11 +59,28 @@ namespace rosplane
     ros::Publisher ground_marker_pub_;
     visualization_msgs::Marker odom_mkr_;
     void odomCallback(geometry_msgs::Point p);
-    void animateDrop(NED_t Vg3, double chi, double Va, double target_height);
+    void animateDrop();
     void truthCallback(const rosplane_msgs::StateConstPtr &msg);
     bool dropBombSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
     bool armBombSRV(std_srvs::Trigger::Request &req, std_srvs::Trigger:: Response &res);
     void rx_callback(const rosflight_msgs::RCRaw &msg);
+
+    bool releasing_period_;
+    bool animating_now_;
+    ros::Time drop_time_;
+    ros::Time animation_drop_time_;
+    double t_fall_animation_;
+    double DT_VIZ_;
+    double T_VIZ_;
+
+    NED_t uav_drop_position_;
+    NED_t Vg3_drop_;
+    float chi_drop_;
+    float Va_drop_;
+    float target_height_;
+    float initial_drop_height_drop_;
+    float high_time_;
+
   };
 } //end namespace rosplane
 #endif // BOMB_H
