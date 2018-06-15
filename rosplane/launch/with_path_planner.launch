@@ -6,27 +6,25 @@
    <param name="port" value="/dev/naze"/>
  </node>
  <node name="uINS" pkg="inertial_sense" type="inertial_sense_node" output="screen">
-   <param name="~port" value="/dev/uINS"/>
-   <!-- WEBSTER FIELD -->
+  <param name="~port" value="/dev/uINS"/>
+
+  <!-- WEBSTER FIELD -->
+  <!--
+   <param name="~lat_ref" value="38.144692"/>
+   <param name="~lon_ref" value="-76.428007"/>
+   <param name="~h_ref" value="0.0"/>
+  -->
+
+   <!-- Helwig Field Big, MD -->
    <!--
-    <param name="~lat_ref" value="38.144692"/>
-    <param name="~lon_ref" value="-76.428007"/>
-    <param name="~h_ref" value="0.0"/>
+   <param name="~lat_ref" value="38.367192"/>
+   <param name="~lon_ref" value="-76.523419"/>
+   <param name="~h_ref" value="0.0"/>
    -->
-
-   <!-- ELBERTA, UT -->
-
-    <param name="~lat_ref" value="39.969582"/>
-    <param name="~lon_ref" value="-111.96711"/>
-    <param name="~h_ref" value="1415.0"/>
-
-
-   <!-- ROCK CANYON PARK -->
-   <!--
-    <param name="~lat_ref" value="40.2679779"/>
-    <param name="~lon_ref" value="-111.6344569"/>
-    <param name="~h_ref" value="1450.0"/>
-   -->
+   <!-- Helwig Field Small, MD -->
+   <param name="~lat_ref" value="38.3649293"/>
+   <param name="~lon_ref" value="-76.5366214"/>
+   <param name="~h_ref" value="0.0"/>
  </node>
 
  <node name="estimator" pkg="rosplane" type="rosplane_estimator" output="screen">
@@ -35,19 +33,16 @@
 
  <!--Path Manager-->
  <node name="path_manager" pkg="rosplane" type="rosplane_path_manager" output="screen">
-   <param name="R_min" value="50.0"/>
-   <param name="loiter_radius" value="75.0"/>
-   <param name="groundD" value="-6.0"/>
-   <param name="home_north" value="-150.0"/>
-   <param name="home_east" value="-150.0"/>
-   <param name="loiter_down" value="-150.0"/>
+  <param name="R_min" value="50.0"/>
+  <param name="loiter_radius" value="75.0"/>
+  <param name="groundD" value="-6.7056"/>
+  <param name="home_north" value="-100.0"/>
+  <param name="home_east" value="-100.0"/>
+  <param name="loiter_down" value="-150.0"/>
  </node>
 
  <!--Path Follower-->
- <node name="path_follower" pkg="rosplane" type="rosplane_path_follower"/>
-
- <!--Path Planner-->
- <node name="pathplanner" pkg="rosplane" type="rosplane_path_planner" output="screen"/>
+ <node name="path_follower" pkg="rosplane" type="rosplane_path_follower" output="screen"/>
 
  <node name="controller" pkg="rosplane" type="rosplane_controller" output="screen">
    <param name="PWM_RAD_E" value="2.8"/>
@@ -56,10 +51,18 @@
    <param name="ALT_TOZ" value="30.0"/>
    <param name="ALT_HZ" value="5.0"/>
    <param name="MAX_T" value="0.70"/>
-   <param name="groundD" value="-6.0"/>
+   <param name="groundD" value="-6.7056"/>
  </node>
+
+ <!--Path Planner-->
+ <node name="pathplanner" pkg="rosplane" type="rosplane_path_planner" output="screen"/>
+ 
  <node name="bomber" pkg="rosplane" type="bomb_dropper" output="screen"/>
  <node name="gpio_node" pkg="rosplane" type="odroid_gpio" output="screen" launch-prefix="sudo -E"/>
+
+
+ <node name="failsafe" pkg="rosplane" type="failsafe.py" output="screen"/>
+
  <node pkg="rosservice" type="rosservice" name="calibration_of_imu" args="call --wait /calibrate_imu"/>
  <node pkg="rosservice" type="rosservice" name="calibration_of_baro" args="call --wait /calibrate_baro"/>
  <node pkg="rosservice" type="rosservice" name="calibration_of_airspeed" args="call --wait /calibrate_airspeed"/>

@@ -148,7 +148,7 @@ void Bomb::updateMissDistance(const ros::TimerEvent& event)
     // ROS_WARN("Calculating bomb drop location, d_drop %f, d_go: %f", d_drop, d_go);
     if (bomb_armed_ == false && d_go <= d_drop + 50.0)
       armBomb();
-    if (d_go <= d_drop)
+    if (d_go <= d_drop && miss_distance < 30.0)
       dropNow();
   }
   if (animating_now_)
@@ -226,7 +226,11 @@ void Bomb::dropNow()
 {
   std_srvs::Trigger ping;
   if (call_gpio_)
+  {
+    gpio_0_high_client_.call(ping);
+    ros::Duration(0.12).sleep();
     gpio_0_low_client_.call(ping);
+  }
   gpio_is_high_ = true;
   drop_time_ = ros::Time::now();
   ROS_WARN("DROPPING THE BOMB");
@@ -297,9 +301,9 @@ void Bomb::dropNow()
 void Bomb::armBomb()
 {
   ROS_WARN("ARMING THE BOMB");
-  std_srvs::Trigger ping;
-  if (call_gpio_)
-    gpio_0_high_client_.call(ping);
+  //std_srvs::Trigger ping;
+  //if (call_gpio_)
+  //  gpio_0_high_client_.call(ping);
   bomb_armed_ = true;
 }
 void Bomb::animateDrop()
