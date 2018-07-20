@@ -1,3 +1,7 @@
+#if GAZEBO_MAJOR_VERSION >= 8
+#include <numeric>
+//I don't know why this seems to work with Gazebo 7
+#endif
 #include "estimator_base.h"
 #include "estimator_example.h"
 
