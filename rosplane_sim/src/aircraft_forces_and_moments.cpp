@@ -25,7 +25,11 @@ AircraftForcesAndMoments::AircraftForcesAndMoments() {}
 
 AircraftForcesAndMoments::~AircraftForcesAndMoments()
 {
+#if GAZEBO_MAJOR_VERSION >=8
+  updateConnection_.reset();
+#else
   event::Events::DisconnectWorldUpdateBegin(updateConnection_);
+#endif
   if (nh_)
   {
     nh_->shutdown();
@@ -173,7 +177,11 @@ void AircraftForcesAndMoments::Load(physics::ModelPtr _model, sdf::ElementPtr _s
   wind_speed_sub_ = nh_->subscribe(wind_speed_topic_, 1, &AircraftForcesAndMoments::WindSpeedCallback, this);
 
   // Pull off initial pose so we can reset to it
+#if GAZEBO_MAJOR_VERSION >=8
+  initial_pose_ = link_->WorldCoGPose();
+#else
   initial_pose_ = link_->GetWorldCoGPose();
+#endif
 }
 
 // This gets called by the world update event.
@@ -220,6 +228,16 @@ void AircraftForcesAndMoments::UpdateForcesAndMoments()
   /* Get state information from Gazebo (in NED)                 *
    * C denotes child frame, P parent frame, and W world frame.  *
   //   * Further C_pose_W_P denotes pose of P wrt. W expressed in C.*/
+#if GAZEBO_MAJOR_VERSION >= 8
+  ignition::math::Vector3d C_linear_velocity_W_C = link_->RelativeLinearVel();
+  double u = C_linear_velocity_W_C.X();
+  double v = -C_linear_velocity_W_C.Y();
+  double w = -C_linear_velocity_W_C.Z();
+  ignition::math::Vector3d C_angular_velocity_W_C = link_->RelativeAngularVel();
+  double p = C_angular_velocity_W_C.X();
+  double q = -C_angular_velocity_W_C.Y();
+  double r = -C_angular_velocity_W_C.Z();
+#else
   math::Vector3 C_linear_velocity_W_C = link_->GetRelativeLinearVel();
   double u = C_linear_velocity_W_C.x;
   double v = -C_linear_velocity_W_C.y;
@@ -228,6 +246,7 @@ void AircraftForcesAndMoments::UpdateForcesAndMoments()
   double p = C_angular_velocity_W_C.x;
   double q = -C_angular_velocity_W_C.y;
   double r = -C_angular_velocity_W_C.z;
+#endif
 
   // wind info is available in the wind_ struct
   /// TODO: This is wrong. Wind is being applied in the body frame, not inertial frame
@@ -316,8 +335,13 @@ void AircraftForcesAndMoments::SendForces()
   if (std::isfinite(forces_.Fx + forces_.Fy + forces_.Fz + forces_.l + forces_.m + forces_.n))
   {
     // apply the forces and torques to the joint
+#if GAZEBO_MAJOR_VERSION >= 8
+    link_->AddRelativeForce(ignition::math::Vector3d(forces_.Fx, -forces_.Fy, -forces_.Fz));
+    link_->AddRelativeTorque(ignition::math::Vector3d(forces_.l, -forces_.m, -forces_.n));
+#else
     link_->AddRelativeForce(math::Vector3(forces_.Fx, -forces_.Fy, -forces_.Fz));
     link_->AddRelativeTorque(math::Vector3(forces_.l, -forces_.m, -forces_.n));
+#endif
   }
 }
 

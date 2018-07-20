@@ -157,7 +157,11 @@ private:
   double prev_sim_time_ = 0;
 
   // For reset handling
+#if GAZEBO_MAJOR_VERSION >=8
+  ignition::math::Pose3d initial_pose_;
+#else
   math::Pose initial_pose_;
+#endif
 
   ros::NodeHandle *nh_;
   ros::Subscriber command_sub_;
@@ -167,7 +171,11 @@ private:
   void WindSpeedCallback(const geometry_msgs::Vector3 &wind);
   void CommandCallback(const rosflight_msgs::CommandConstPtr &msg);
 
+#if GAZEBO_MAJOR_VERSION >=8
+  ignition::math::Vector3d wind_speed_W_;
+#else
   math::Vector3 wind_speed_W_;
+#endif
 };
 }
 
