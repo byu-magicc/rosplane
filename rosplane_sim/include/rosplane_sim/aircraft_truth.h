@@ -92,11 +92,7 @@ private:
   void WindSpeedCallback(const geometry_msgs::Vector3 &wind);
 
   std::unique_ptr<FirstOrderFilter<double>>  rotor_velocity_filter_;
-#if GAZEBO_MAJOR_VERSION >=8
-  ignition::math::Vector3d wind_speed_W_;
-#else
-  math::Vector3 wind_speed_W_;
-#endif
+  GazeboVector wind_speed_W_;
 };
 }
 
