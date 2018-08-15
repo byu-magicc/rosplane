@@ -34,6 +34,8 @@
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Vector3.h>
 
+#include "rosplane_sim/gazebo_compat.h"
+
 namespace gazebo
 {
 static const std::string kDefaultWindSpeedSubTopic = "gazebo/wind_speed";
