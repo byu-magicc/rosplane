@@ -28,11 +28,7 @@ AircraftTruth::AircraftTruth() :
 
 AircraftTruth::~AircraftTruth()
 {
-#if GAZEBO_MAJOR_VERSION >=8
-  updateConnection_.reset();
-#else
-  event::Events::DisconnectWorldUpdateBegin(updateConnection_);
-#endif
+  DISCONNECT_WORLD_UPDATE_BEGIN(updateConnection_);
   if (nh_)
   {
     nh_->shutdown();
@@ -105,43 +101,23 @@ void AircraftTruth::PublishTruth()
   msg.initial_lon = 0;
   msg.initial_alt = 0;
 
-#if GAZEBO_MAJOR_VERSION >= 8
-  ignition::math::Pose3d W_pose_W_C = link_->WorldCoGPose();
-  msg.position[0] = W_pose_W_C.Pos().X(); // We should check to make sure that this is right
-  msg.position[1] = -W_pose_W_C.Pos().Y();
-  msg.position[2] = -W_pose_W_C.Pos().Z();
-  ignition::math::Vector3d euler_angles = W_pose_W_C.Rot().Euler();
-  msg.phi = euler_angles.X();
-  msg.theta = -euler_angles.Y();
-  msg.psi = -euler_angles.Z();
-  ignition::math::Vector3d C_linear_velocity_W_C = link_->RelativeLinearVel();
-  double u = C_linear_velocity_W_C.X();
-  double v = -C_linear_velocity_W_C.Y();
-  double w = -C_linear_velocity_W_C.Z();
+  GazeboPose W_pose_W_C = GET_WORLD_COG_POSE(link_);
+  msg.position[0] = GET_X(GET_POS(W_pose_W_C)); // We should check to make sure that this is right
+  msg.position[1] = -GET_Y(GET_POS(W_pose_W_C));
+  msg.position[2] = -GET_Z(GET_POS(W_pose_W_C));
+  GazeboVector euler_angles = GET_EULER(GET_ROT(W_pose_W_C));
+  msg.phi = GET_X(euler_angles);
+  msg.theta = -GET_Y(euler_angles);
+  msg.psi = -GET_Z(euler_angles);
+  GazeboVector C_linear_velocity_W_C = GET_RELATIVE_LINEAR_VEL(link_);
+  double u = GET_X(C_linear_velocity_W_C);
+  double v = -GET_Y(C_linear_velocity_W_C);
+  double w = -GET_Z(C_linear_velocity_W_C);
   msg.Vg = sqrt(pow(u, 2.0) + pow(v, 2.0) + pow(w, 2.0));
-  ignition::math::Vector3d C_angular_velocity_W_C = link_->RelativeAngularVel();
-  msg.p = C_angular_velocity_W_C.X();
-  msg.q = -C_angular_velocity_W_C.Y();
-  msg.r = -C_angular_velocity_W_C.Z();
-#else
-  math::Pose W_pose_W_C = link_->GetWorldCoGPose();
-  msg.position[0] = W_pose_W_C.pos.x; // We should check to make sure that this is right
-  msg.position[1] = -W_pose_W_C.pos.y;
-  msg.position[2] = -W_pose_W_C.pos.z;
-  math::Vector3 euler_angles = W_pose_W_C.rot.GetAsEuler();
-  msg.phi = euler_angles.x;
-  msg.theta = -euler_angles.y;
-  msg.psi = -euler_angles.z;
-  math::Vector3 C_linear_velocity_W_C = link_->GetRelativeLinearVel();
-  double u = C_linear_velocity_W_C.x;
-  double v = -C_linear_velocity_W_C.y;
-  double w = -C_linear_velocity_W_C.z;
-  msg.Vg = sqrt(pow(u, 2.0) + pow(v, 2.0) + pow(w, 2.0));
-  math::Vector3 C_angular_velocity_W_C = link_->GetRelativeAngularVel();
-  msg.p = C_angular_velocity_W_C.x;
-  msg.q = -C_angular_velocity_W_C.y;
-  msg.r = -C_angular_velocity_W_C.z;
-#endif
+  GazeboVector C_angular_velocity_W_C = GET_RELATIVE_ANGULAR_VEL(link_);
+  msg.p = GET_X(C_angular_velocity_W_C);
+  msg.q = -GET_Y(C_angular_velocity_W_C);
+  msg.r = -GET_Z(C_angular_velocity_W_C);
 
   msg.wn = wind_.N;
   msg.we = wind_.E;
@@ -161,18 +137,10 @@ void AircraftTruth::PublishTruth()
   msg.quat[1] = v;
   msg.quat[2] = w;
 
-#if GAZEBO_MAJOR_VERSION >=8
-  msg.header.stamp.fromSec(world_->SimTime().Double());
-#else
-  msg.header.stamp.fromSec(world_->GetSimTime().Double());
-#endif
+  msg.header.stamp.fromSec(GET_SIM_TIME(world_).Double());
   msg.header.frame_id = 1; // Denotes global frame
 
-#if GAZEBO_MAJOR_VERSION >=8
-  msg.psi_deg = fmod(euler_angles.X(), 2.0*M_PI)*180.0 / M_PI; //-360 to 360
-#else
-  msg.psi_deg = fmod(euler_angles.x, 2.0*M_PI)*180.0 / M_PI; //-360 to 360
-#endif
+  msg.psi_deg = fmod(GET_X(euler_angles), 2.0*M_PI)*180.0 / M_PI; //-360 to 360
   msg.psi_deg += (msg.psi_deg < -180.0 ? 360.0 : 0.0);
   msg.psi_deg -= (msg.psi_deg > 180.0 ? 360.0 : 0.0);
   msg.chi_deg = fmod(msg.chi, 2.0*M_PI)*180.0 / M_PI; //-360 to 360
