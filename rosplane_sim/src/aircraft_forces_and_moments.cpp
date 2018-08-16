@@ -173,7 +173,7 @@ void AircraftForcesAndMoments::Load(physics::ModelPtr _model, sdf::ElementPtr _s
   wind_speed_sub_ = nh_->subscribe(wind_speed_topic_, 1, &AircraftForcesAndMoments::WindSpeedCallback, this);
 
   // Pull off initial pose so we can reset to it
-  initial_pose_ = GZ_COMPAT_GZ_COMPAT_GET_WORLD_COG_POSE(link_);
+  initial_pose_ = GZ_COMPAT_GET_WORLD_COG_POSE(link_);
 }
 
 // This gets called by the world update event.

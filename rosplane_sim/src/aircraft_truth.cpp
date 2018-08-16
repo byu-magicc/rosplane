@@ -101,7 +101,7 @@ void AircraftTruth::PublishTruth()
   msg.initial_lon = 0;
   msg.initial_alt = 0;
 
-  GazeboPose W_pose_W_C = GZ_COMPAT_GZ_COMPAT_GET_WORLD_COG_POSE(link_);
+  GazeboPose W_pose_W_C = GZ_COMPAT_GET_WORLD_COG_POSE(link_);
   msg.position[0] = GZ_COMPAT_GET_X(GZ_COMPAT_GET_POS(W_pose_W_C)); // We should check to make sure that this is right
   msg.position[1] = -GZ_COMPAT_GET_Y(GZ_COMPAT_GET_POS(W_pose_W_C));
   msg.position[2] = -GZ_COMPAT_GET_Z(GZ_COMPAT_GET_POS(W_pose_W_C));
