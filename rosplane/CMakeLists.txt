@@ -23,7 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
 )
 find_package(Eigen3 REQUIRED)
-FIND_LIBRARY(WIRINGPI_LIBRARY wiringPi ~/ws/src/wiringPi)
+FIND_LIBRARY(WIRINGPI_LIBRARY wiringPi ~/Documents/plane_ws/src/wiringPi)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
