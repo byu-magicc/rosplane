@@ -3,10 +3,12 @@
 
 <launch>
   <arg name="mav_name"            default="fixedwing"/>
+  <arg name="show_gui"            default="true"/>
+  <arg name="sim_paused"          default="true"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="paused" value="true"/>
-    <arg name="gui" value="true"/>
+    <arg name="paused" value="$(arg sim_paused)"/>
+    <arg name="gui" value="$(arg show_gui)"/>
     <arg name="verbose" value="false"/>
     <arg name="debug" value="false"/>
   </include>
