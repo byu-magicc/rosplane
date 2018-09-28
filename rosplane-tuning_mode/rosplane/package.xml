@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package>
+  <name>rosplane</name>
+  <version>0.0.0</version>
+  <description>The ROSplane package</description>
+
+  <maintainer email="gary.ellingson@byu.edu">Gary Ellingson</maintainer>
+
+  <author email="gary.ellingson@byu.edu">Gary Ellingson</author>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cmake_modules</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>rosflight_msgs</build_depend>
+  <build_depend>rosplane_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>rosflight_msgs</run_depend>
+  <run_depend>rosplane_msgs</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+
+
+  <export>
+  </export>
+</package>

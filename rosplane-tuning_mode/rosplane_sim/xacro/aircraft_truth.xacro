@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Configure Aircraft Truth Macro -->
+    <xacro:macro
+      name="aircraft_truth"
+      params="namespace parent_link">
+      <gazebo>
+        <plugin filename="libaircraft_truth_plugin.so" name="${namespace}_aircraft_truth_plugin">
+          <namespace>${namespace}</namespace>
+          <linkName>${namespace}/base_link</linkName>
+        </plugin>
+      </gazebo>
+  </xacro:macro>
+
+</robot>
