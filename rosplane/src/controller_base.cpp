@@ -189,7 +189,7 @@ namespace rosplane
                 tuning_input.theta_c = controller_commands_.aux[0];
                 tuning_input.phi_c = controller_commands_.aux[1];
                 tuning_input.thr_c = controller_commands_.aux[2];
-                tune(params_, input, tuning_input, output);
+                //tune(params_, input, tuning_input, output);
             }
 
 
