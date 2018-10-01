@@ -20,7 +20,7 @@
   <depend>roscpp</depend>
   <depend>rosplane_msgs</depend>
   <depend>rosflight_plugins</depend>
-
+  <depend>visualization_msgs</depend>
   <depend>eigen</depend>
   <depend>gazebo</depend>
 

@@ -1,0 +1,19 @@
+<!-- This launch file controls the plane to be level. -->
+<launch>
+
+  <!-- opens the connection to the flight controller--> 
+  <node name="naze"  pkg="rosflight"  type="rosflight_io" output="screen">
+      <param name="port" value="/dev/naze"/>
+  </node>
+  
+  <!-- starts the GPS unit-->
+  <node name="uINS" pkg="inertial_sense" type="inertial_sense_node" output="screen">
+    <param name="~port" value="/dev/uINS"/>
+  </node> 
+
+  <!-- run all of the necessary sensor calibration--> 
+  <node pkg="rosservice" type="rosservice" name="calibration_of_imu" args="call --wait /calibrate_imu"/>
+  <node pkg="rosservice" type="rosservice" name="calibration_of_baro" args="call --wait /calibrate_baro"/>
+  <node pkg="rosservice" type="rosservice" name="calibration_of_airspeed" args="call --wait /calibrate_airspeed"/>
+ </launch>
+

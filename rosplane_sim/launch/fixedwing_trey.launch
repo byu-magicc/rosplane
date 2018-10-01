@@ -3,8 +3,8 @@
 
 <launch>
   <arg name="mav_name"            default="fixedwing"/>
-  <arg name="show_gui"            default="true"/>
-  <arg name="sim_paused"          default="true"/>
+  <arg name="show_gui"            default="false"/>
+  <arg name="sim_paused"          default="false"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="paused" value="$(arg sim_paused)"/>
@@ -56,7 +56,16 @@
     <node name="bomber" pkg="rosplane" type="bomb_dropper" output="screen">
       <param name="call_gpio" value="false"/>
     </node>
+
+    <node name="dynamic_reconfigure_gui" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
     <!-- <node name="position_plotter" pkg="rosplane" type="position_plotter.py" output="screen"> -->
     <!-- </node> -->
+
+    <!-- <node name="groundstation" pkg="ros_groundstation" type="ros_groundstation"/> -->
+
   </group>
+
+  <rosparam command="load" file="$(find ros_groundstation)/params/fixedwing_topics.yaml"/>
+  <node name="ground_station" pkg="ros_groundstation" type="ros_groundstation" output="screen"/>
+
 </launch>

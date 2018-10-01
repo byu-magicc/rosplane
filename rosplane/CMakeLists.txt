@@ -17,8 +17,13 @@ find_package(catkin REQUIRED COMPONENTS
   rosplane_msgs
   dynamic_reconfigure
   sensor_msgs
+  uav_msgs
+  nav_msgs
+  std_srvs
+  visualization_msgs
 )
 find_package(Eigen3 REQUIRED)
+FIND_LIBRARY(WIRINGPI_LIBRARY wiringPi ~/auvsi_2018_ws/src/wiringPi)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -43,7 +48,7 @@ generate_dynamic_reconfigure_options(
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES
-  CATKIN_DEPENDS roscpp rospy rosflight_msgs rosplane_msgs
+  CATKIN_DEPENDS roscpp rospy rosflight_msgs rosplane_msgs uav_msgs std_srvs
 #  DEPENDS system_lib
 )
 
@@ -86,3 +91,9 @@ add_executable(rosplane_path_planner
             src/path_planner.cpp)
 add_dependencies(rosplane_path_planner ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rosplane_path_planner ${catkin_LIBRARIES})
+
+## Declare a C++ executable
+add_executable(bomb_dropper
+            src/bomb.cpp)
+add_dependencies(bomb_dropper ${catkin_EXPORTED_TARGETS})
+target_link_libraries(bomb_dropper ${catkin_LIBRARIES})

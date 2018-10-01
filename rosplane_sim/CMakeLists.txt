@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rosplane_sim)
 
+find_package(gazebo)
+
+IF(gazebo_FOUND)
+
 set(CMAKE_CXX_STANDARD 11)
 if (NOT CMAKE_BUILD_TYPE)
     # Options: Debug, Release, MinSizeRel, RelWithDebInfo
@@ -22,7 +26,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
-find_package(gazebo REQUIRED)
 link_directories(${GAZEBO_LIBRARY_DIRS})
 
 catkin_package(
@@ -45,3 +48,5 @@ add_dependencies(aircraft_truth_plugin ${catkin_EXPORTED_TARGETS})
 add_library(aircraft_forces_and_moments_plugin src/aircraft_forces_and_moments.cpp)
 target_link_libraries(aircraft_forces_and_moments_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
 add_dependencies(aircraft_forces_and_moments_plugin ${catkin_EXPORTED_TARGETS})
+
+ENDIF()
