@@ -1,4 +1,3 @@
-#include <numeric>
 #include "estimator_base.h"
 #include "estimator_example.h"
 
