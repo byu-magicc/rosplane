@@ -28,7 +28,7 @@ AircraftTruth::AircraftTruth() :
 
 AircraftTruth::~AircraftTruth()
 {
-  event::Events::DisconnectWorldUpdateBegin(updateConnection_);
+  GZ_COMPAT_DISCONNECT_WORLD_UPDATE_BEGIN(updateConnection_);
   if (nh_)
   {
     nh_->shutdown();
@@ -100,23 +100,24 @@ void AircraftTruth::PublishTruth()
   msg.initial_lat = 0;
   msg.initial_lon = 0;
   msg.initial_alt = 0;
-  math::Pose W_pose_W_C = link_->GetWorldCoGPose();
-  msg.position[0] = W_pose_W_C.pos.x; // We should check to make sure that this is right
-  msg.position[1] = -W_pose_W_C.pos.y;
-  msg.position[2] = -W_pose_W_C.pos.z;
-  math::Vector3 euler_angles = W_pose_W_C.rot.GetAsEuler();
-  msg.phi = euler_angles.x;
-  msg.theta = -euler_angles.y;
-  msg.psi = -euler_angles.z;
-  math::Vector3 C_linear_velocity_W_C = link_->GetRelativeLinearVel();
-  double u = C_linear_velocity_W_C.x;
-  double v = -C_linear_velocity_W_C.y;
-  double w = -C_linear_velocity_W_C.z;
+
+  GazeboPose W_pose_W_C = GZ_COMPAT_GET_WORLD_COG_POSE(link_);
+  msg.position[0] = GZ_COMPAT_GET_X(GZ_COMPAT_GET_POS(W_pose_W_C)); // We should check to make sure that this is right
+  msg.position[1] = -GZ_COMPAT_GET_Y(GZ_COMPAT_GET_POS(W_pose_W_C));
+  msg.position[2] = -GZ_COMPAT_GET_Z(GZ_COMPAT_GET_POS(W_pose_W_C));
+  GazeboVector euler_angles = GZ_COMPAT_GET_EULER(GZ_COMPAT_GET_ROT(W_pose_W_C));
+  msg.phi = GZ_COMPAT_GET_X(euler_angles);
+  msg.theta = -GZ_COMPAT_GET_Y(euler_angles);
+  msg.psi = -GZ_COMPAT_GET_Z(euler_angles);
+  GazeboVector C_linear_velocity_W_C = GZ_COMPAT_GET_RELATIVE_LINEAR_VEL(link_);
+  double u = GZ_COMPAT_GET_X(C_linear_velocity_W_C);
+  double v = -GZ_COMPAT_GET_Y(C_linear_velocity_W_C);
+  double w = -GZ_COMPAT_GET_Z(C_linear_velocity_W_C);
   msg.Vg = sqrt(pow(u, 2.0) + pow(v, 2.0) + pow(w, 2.0));
-  math::Vector3 C_angular_velocity_W_C = link_->GetRelativeAngularVel();
-  msg.p = C_angular_velocity_W_C.x;
-  msg.q = -C_angular_velocity_W_C.y;
-  msg.r = -C_angular_velocity_W_C.z;
+  GazeboVector C_angular_velocity_W_C = GZ_COMPAT_GET_RELATIVE_ANGULAR_VEL(link_);
+  msg.p = GZ_COMPAT_GET_X(C_angular_velocity_W_C);
+  msg.q = -GZ_COMPAT_GET_Y(C_angular_velocity_W_C);
+  msg.r = -GZ_COMPAT_GET_Z(C_angular_velocity_W_C);
 
   msg.wn = wind_.N;
   msg.we = wind_.E;
@@ -136,10 +137,10 @@ void AircraftTruth::PublishTruth()
   msg.quat[1] = v;
   msg.quat[2] = w;
 
-  msg.header.stamp.fromSec(world_->GetSimTime().Double());
+  msg.header.stamp.fromSec(GZ_COMPAT_GET_SIM_TIME(world_).Double());
   msg.header.frame_id = 1; // Denotes global frame
 
-  msg.psi_deg = fmod(euler_angles.x, 2.0*M_PI)*180.0 / M_PI; //-360 to 360
+  msg.psi_deg = fmod(GZ_COMPAT_GET_X(euler_angles), 2.0*M_PI)*180.0 / M_PI; //-360 to 360
   msg.psi_deg += (msg.psi_deg < -180.0 ? 360.0 : 0.0);
   msg.psi_deg -= (msg.psi_deg > 180.0 ? 360.0 : 0.0);
   msg.chi_deg = fmod(msg.chi, 2.0*M_PI)*180.0 / M_PI; //-360 to 360

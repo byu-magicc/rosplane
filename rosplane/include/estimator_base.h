@@ -18,6 +18,7 @@
 #include <rosflight_msgs/Status.h>
 #include <math.h>
 #include <Eigen/Eigen>
+#include <numeric>
 
 #define EARTH_RADIUS 6378145.0f
 

@@ -35,6 +35,7 @@
 #include <geometry_msgs/Vector3.h>
 
 #include "rosplane_sim/common.h"
+#include "rosplane_sim/gz_compat.h"
 
 namespace gazebo
 {
@@ -92,7 +93,7 @@ private:
   void WindSpeedCallback(const geometry_msgs::Vector3 &wind);
 
   std::unique_ptr<FirstOrderFilter<double>>  rotor_velocity_filter_;
-  math::Vector3 wind_speed_W_;
+  GazeboVector wind_speed_W_;
 };
 }
 

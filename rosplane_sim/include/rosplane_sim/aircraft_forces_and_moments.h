@@ -34,6 +34,8 @@
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Vector3.h>
 
+#include "rosplane_sim/gz_compat.h"
+
 namespace gazebo
 {
 static const std::string kDefaultWindSpeedSubTopic = "gazebo/wind_speed";
@@ -157,7 +159,7 @@ private:
   double prev_sim_time_ = 0;
 
   // For reset handling
-  math::Pose initial_pose_;
+  GazeboPose initial_pose_;
 
   ros::NodeHandle *nh_;
   ros::Subscriber command_sub_;
@@ -167,7 +169,7 @@ private:
   void WindSpeedCallback(const geometry_msgs::Vector3 &wind);
   void CommandCallback(const rosflight_msgs::CommandConstPtr &msg);
 
-  math::Vector3 wind_speed_W_;
+  GazeboVector wind_speed_W_;
 };
 }
 
