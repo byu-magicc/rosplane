@@ -4,7 +4,7 @@ ROSplane is limited-feature fixed-wing autopilot built around ROS. It is intende
 
 This repository features three ROS packages: rosplane, rosplane\_msgs, and rosplane\_sim. The contents of each of these three packages are described below.
 
-To fly in hardware, ROSplane is intended to be used with [ROSflight](https://github.com/rosflight/rosflight) and a flip32/naze32 running the ROSflight [firmware](https://github.com/rosflight/firmware).
+To fly in hardware, ROSplane is intended to be used with [ROSflight](https://github.com/rosflight/rosflight) and a flight controller (F1 or F4) running the ROSflight [firmware](https://github.com/rosflight/firmware).
 
 To fly in simulation, simply build these packages in a catkin workspace and launch fixedwing.launch:
 
