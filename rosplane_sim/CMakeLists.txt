@@ -20,6 +20,7 @@ add_definitions(-DROS_ASSERT_ENABLED)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   geometry_msgs
+  rosflight_msgs
   rosplane_msgs
   gazebo_plugins
   gazebo_ros
@@ -30,7 +31,7 @@ link_directories(${GAZEBO_LIBRARY_DIRS})
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp gazebo_plugins gazebo_ros rosplane_msgs
+  CATKIN_DEPENDS roscpp gazebo_plugins gazebo_ros rosflight_msgs rosplane_msgs
   DEPENDS EIGEN3 GAZEBO
 )
 
