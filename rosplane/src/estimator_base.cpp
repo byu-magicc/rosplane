@@ -1,5 +1,6 @@
 #include "estimator_base.h"
 #include "estimator_example.h"
+#include <sensor_msgs/NavSatStatus.h>
 
 namespace rosplane
 {
@@ -8,7 +9,7 @@ estimator_base::estimator_base():
   nh_(ros::NodeHandle()),
   nh_private_(ros::NodeHandle("~"))
 {
-  nh_private_.param<std::string>("gps_topic", gps_topic_, "gps");
+  nh_private_.param<std::string>("gps_topic", gps_topic_, "navsat_fix");
   nh_private_.param<std::string>("imu_topic", imu_topic_, "imu/data");
   nh_private_.param<std::string>("baro_topic", baro_topic_, "baro");
   nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "airspeed");
@@ -92,9 +93,10 @@ void estimator_base::update(const ros::TimerEvent &)
   vehicle_state_pub_.publish(msg);
 }
 
-void estimator_base::gpsCallback(const rosflight_msgs::GPS &msg)
+void estimator_base::gpsCallback(const sensor_msgs::NavSatFix &msg)
 {
-  if (msg.fix != true || msg.NumSat < 4 || !std::isfinite(msg.latitude))
+  bool has_fix = msg.status.status >= sensor_msgs::NavSatStatus::STATUS_FIX; // Higher values refer to augmented fixes
+  if (!has_fix || !std::isfinite(msg.latitude))
   {
     input_.gps_new = false;
     return;
@@ -112,7 +114,7 @@ void estimator_base::gpsCallback(const rosflight_msgs::GPS &msg)
     input_.gps_e = EARTH_RADIUS*cos(init_lat_*M_PI/180.0)*(msg.longitude - init_lon_)*M_PI/180.0;
     input_.gps_h = msg.altitude - init_alt_;
     input_.gps_Vg = msg.speed;
-    if (msg.speed > 0.3)
+    if (msg.speed > 0.3) // Magic number?
       input_.gps_course = msg.ground_course;
     input_.gps_new = true;
   }
