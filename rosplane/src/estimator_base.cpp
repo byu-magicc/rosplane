@@ -9,7 +9,8 @@ estimator_base::estimator_base():
   nh_(ros::NodeHandle()),
   nh_private_(ros::NodeHandle("~"))
 {
-  nh_private_.param<std::string>("gps_topic", gps_topic_, "navsat_fix");
+  nh_private_.param<std::string>("gps_topic", gps_topic_, "navsat_compat/fix");
+  nh_private_.param<std::string>("vel_topic", vel_topic_, "navsat_compat/vel");
   nh_private_.param<std::string>("imu_topic", imu_topic_, "imu/data");
   nh_private_.param<std::string>("baro_topic", baro_topic_, "baro");
   nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "airspeed");
@@ -24,7 +25,8 @@ estimator_base::estimator_base():
   nh_private_.param<double>("sigma_Vg_gps", params_.sigma_Vg_gps, 0.0500);
   nh_private_.param<double>("sigma_couse_gps", params_.sigma_course_gps, 0.0045);
 
-  gps_sub_ = nh_.subscribe(gps_topic_, 10, &estimator_base::gpsCallback, this);
+  nav_sat_fix_sub_ = nh_.subscribe(gps_topic_, 10, &estimator_base::navSatFixCallback, this);
+  twist_stamped_sub_ = nh_.subscribe(gps_topic_, 10, &estimator_base::twistStampedCallback, this);
   imu_sub_ = nh_.subscribe(imu_topic_, 10, &estimator_base::imuCallback, this);
   baro_sub_ = nh_.subscribe(baro_topic_, 10, &estimator_base::baroAltCallback, this);
   airspeed_sub_ = nh_.subscribe(airspeed_topic_, 10, &estimator_base::airspeedCallback, this);
@@ -93,7 +95,7 @@ void estimator_base::update(const ros::TimerEvent &)
   vehicle_state_pub_.publish(msg);
 }
 
-void estimator_base::gpsCallback(const sensor_msgs::NavSatFix &msg)
+void estimator_base::navSatFixCallback(const sensor_msgs::NavSatFix &msg)
 {
   bool has_fix = msg.status.status >= sensor_msgs::NavSatStatus::STATUS_FIX; // Higher values refer to augmented fixes
   if (!has_fix || !std::isfinite(msg.latitude))
@@ -118,6 +120,15 @@ void estimator_base::gpsCallback(const sensor_msgs::NavSatFix &msg)
       input_.gps_course = msg.ground_course;
     input_.gps_new = true;
   }
+}
+void estimator_base::twistStampedCallback(const geometry_msgs::TwistStamped &msg)
+{
+  double v_n = msg.twist.linear.x;
+  double v_e = msg.twist.linear.y;
+  double v_d = msg.twist.linear.z;
+  double ground_speed = sqrt(v_n * v_n + v_e * v_e);
+  double course = atan2(v_n, -v_e); //TODO check this math. Also, degrees or radians. From North, right? What range?
+  //TODO finish this function
 }
 
 void estimator_base::imuCallback(const sensor_msgs::Imu &msg)
