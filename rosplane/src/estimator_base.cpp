@@ -26,7 +26,7 @@ estimator_base::estimator_base():
   nh_private_.param<double>("sigma_couse_gps", params_.sigma_course_gps, 0.0045);
 
   nav_sat_fix_sub_ = nh_.subscribe(gps_topic_, 10, &estimator_base::navSatFixCallback, this);
-  twist_stamped_sub_ = nh_.subscribe(gps_topic_, 10, &estimator_base::twistStampedCallback, this);
+  twist_stamped_sub_ = nh_.subscribe(vel_topic_, 10, &estimator_base::twistStampedCallback, this);
   imu_sub_ = nh_.subscribe(imu_topic_, 10, &estimator_base::imuCallback, this);
   baro_sub_ = nh_.subscribe(baro_topic_, 10, &estimator_base::baroAltCallback, this);
   airspeed_sub_ = nh_.subscribe(airspeed_topic_, 10, &estimator_base::airspeedCallback, this);
