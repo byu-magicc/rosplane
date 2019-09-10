@@ -115,9 +115,6 @@ void estimator_base::navSatFixCallback(const sensor_msgs::NavSatFix &msg)
     input_.gps_n = EARTH_RADIUS*(msg.latitude - init_lat_)*M_PI/180.0;
     input_.gps_e = EARTH_RADIUS*cos(init_lat_*M_PI/180.0)*(msg.longitude - init_lon_)*M_PI/180.0;
     input_.gps_h = msg.altitude - init_alt_;
-    input_.gps_Vg = msg.speed;
-    if (msg.speed > 0.3) // Magic number?
-      input_.gps_course = msg.ground_course;
     input_.gps_new = true;
   }
 }
@@ -128,7 +125,9 @@ void estimator_base::twistStampedCallback(const geometry_msgs::TwistStamped &msg
   double v_d = msg.twist.linear.z;
   double ground_speed = sqrt(v_n * v_n + v_e * v_e);
   double course = atan2(v_n, -v_e); //TODO check this math. Also, degrees or radians. From North, right? What range?
-  //TODO finish this function
+  input_.gps_Vg = ground_speed;
+  if(ground_speed > 0.3) //this is a magic number. What is it determined from?
+    input_.gps_course = course;
 }
 
 void estimator_base::imuCallback(const sensor_msgs::Imu &msg)
