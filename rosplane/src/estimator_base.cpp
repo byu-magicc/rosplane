@@ -124,7 +124,7 @@ void estimator_base::twistStampedCallback(const geometry_msgs::TwistStamped &msg
   double v_e = msg.twist.linear.y;
   double v_d = msg.twist.linear.z;
   double ground_speed = sqrt(v_n * v_n + v_e * v_e);
-  double course = atan2(v_n, -v_e); //TODO check this math. Also, degrees or radians. From North, right? What range?
+  double course = atan2(v_e, v_n); //TODO check this math. Also, degrees or radians. From North, right? What range?
   input_.gps_Vg = ground_speed;
   if(ground_speed > 0.3) //this is a magic number. What is it determined from?
     input_.gps_course = course;
