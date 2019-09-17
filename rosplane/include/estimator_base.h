@@ -92,16 +92,16 @@ private:
   ros::NodeHandle nh_;
   ros::NodeHandle nh_private_;
   ros::Publisher vehicle_state_pub_;
-  ros::Subscriber nav_sat_fix_sub_;
-  ros::Subscriber twist_stamped_sub_; //used in conjunction with the nav_sat_fix_sub_
+  ros::Subscriber gnss_fix_sub_;
+  ros::Subscriber gnss_vel_sub_; //used in conjunction with the gnss_fix_sub_
   ros::Subscriber imu_sub_;
   ros::Subscriber baro_sub_;
   ros::Subscriber airspeed_sub_;
   ros::Subscriber status_sub_;
 
   void update(const ros::TimerEvent &);
-  void navSatFixCallback(const sensor_msgs::NavSatFix &msg);
-  void twistStampedCallback(const geometry_msgs::TwistStamped &msg);
+  void gnssFixCallback(const sensor_msgs::NavSatFix &msg);
+  void gnssVelCallback(const geometry_msgs::TwistStamped &msg);
   void imuCallback(const sensor_msgs::Imu &msg);
   void baroAltCallback(const rosflight_msgs::Barometer &msg);
   void airspeedCallback(const rosflight_msgs::Airspeed &msg);
@@ -109,8 +109,8 @@ private:
 
   double update_rate_;
   ros::Timer update_timer_;
-  std::string gps_topic_;
-  std::string vel_topic_;
+  std::string gnss_fix_topic_;
+  std::string gnss_vel_topic_;
   std::string imu_topic_;
   std::string baro_topic_;
   std::string airspeed_topic_;
