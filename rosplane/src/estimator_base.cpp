@@ -1,5 +1,6 @@
 #include "estimator_base.h"
 #include "estimator_example.h"
+#include <sensor_msgs/NavSatStatus.h>
 
 namespace rosplane
 {
@@ -8,7 +9,8 @@ estimator_base::estimator_base():
   nh_(ros::NodeHandle()),
   nh_private_(ros::NodeHandle("~"))
 {
-  nh_private_.param<std::string>("gps_topic", gps_topic_, "gps");
+  nh_private_.param<std::string>("gps_topic", gnss_fix_topic_, "navsat_compat/fix");
+  nh_private_.param<std::string>("vel_topic", gnss_vel_topic_, "navsat_compat/vel");
   nh_private_.param<std::string>("imu_topic", imu_topic_, "imu/data");
   nh_private_.param<std::string>("baro_topic", baro_topic_, "baro");
   nh_private_.param<std::string>("airspeed_topic", airspeed_topic_, "airspeed");
@@ -23,7 +25,8 @@ estimator_base::estimator_base():
   nh_private_.param<double>("sigma_Vg_gps", params_.sigma_Vg_gps, 0.0500);
   nh_private_.param<double>("sigma_couse_gps", params_.sigma_course_gps, 0.0045);
 
-  gps_sub_ = nh_.subscribe(gps_topic_, 10, &estimator_base::gpsCallback, this);
+  gnss_fix_sub_ = nh_.subscribe(gnss_fix_topic_, 10, &estimator_base::gnssFixCallback, this);
+  gnss_vel_sub_ = nh_.subscribe(gnss_vel_topic_, 10, &estimator_base::gnssVelCallback, this);
   imu_sub_ = nh_.subscribe(imu_topic_, 10, &estimator_base::imuCallback, this);
   baro_sub_ = nh_.subscribe(baro_topic_, 10, &estimator_base::baroAltCallback, this);
   airspeed_sub_ = nh_.subscribe(airspeed_topic_, 10, &estimator_base::airspeedCallback, this);
@@ -92,9 +95,10 @@ void estimator_base::update(const ros::TimerEvent &)
   vehicle_state_pub_.publish(msg);
 }
 
-void estimator_base::gpsCallback(const rosflight_msgs::GPS &msg)
+void estimator_base::gnssFixCallback(const sensor_msgs::NavSatFix &msg)
 {
-  if (msg.fix != true || msg.NumSat < 4 || !std::isfinite(msg.latitude))
+  bool has_fix = msg.status.status >= sensor_msgs::NavSatStatus::STATUS_FIX; // Higher values refer to augmented fixes
+  if (!has_fix || !std::isfinite(msg.latitude))
   {
     input_.gps_new = false;
     return;
@@ -111,11 +115,19 @@ void estimator_base::gpsCallback(const rosflight_msgs::GPS &msg)
     input_.gps_n = EARTH_RADIUS*(msg.latitude - init_lat_)*M_PI/180.0;
     input_.gps_e = EARTH_RADIUS*cos(init_lat_*M_PI/180.0)*(msg.longitude - init_lon_)*M_PI/180.0;
     input_.gps_h = msg.altitude - init_alt_;
-    input_.gps_Vg = msg.speed;
-    if (msg.speed > 0.3)
-      input_.gps_course = msg.ground_course;
     input_.gps_new = true;
   }
+}
+void estimator_base::gnssVelCallback(const geometry_msgs::TwistStamped &msg)
+{
+  double v_n = msg.twist.linear.x;
+  double v_e = msg.twist.linear.y;
+  double v_d = msg.twist.linear.z;
+  double ground_speed = sqrt(v_n * v_n + v_e * v_e);
+  double course = atan2(v_e, v_n); //Does this need to be in a specific range? All uses seem to accept anything.
+  input_.gps_Vg = ground_speed;
+  if(ground_speed > 0.3) //this is a magic number. What is it determined from?
+    input_.gps_course = course;
 }
 
 void estimator_base::imuCallback(const sensor_msgs::Imu &msg)
