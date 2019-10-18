@@ -17,6 +17,8 @@
 #include <rosflight_msgs/Barometer.h>
 #include <rosflight_msgs/Airspeed.h>
 #include <rosflight_msgs/Status.h>
+#include <rosflight_msgs/GNSSRaw.h>
+#include <rosflight_msgs/GNSS.h>
 #include <math.h>
 #include <Eigen/Eigen>
 #include <numeric>
@@ -93,6 +95,7 @@ private:
   ros::NodeHandle nh_private_;
   ros::Publisher vehicle_state_pub_;
   ros::Subscriber gnss_fix_sub_;
+  ros::Subscriber rf_gnss_sub_;
   ros::Subscriber gnss_vel_sub_; //used in conjunction with the gnss_fix_sub_
   ros::Subscriber imu_sub_;
   ros::Subscriber baro_sub_;
@@ -102,15 +105,21 @@ private:
   void update(const ros::TimerEvent &);
   void gnssFixCallback(const sensor_msgs::NavSatFix &msg);
   void gnssVelCallback(const geometry_msgs::TwistStamped &msg);
+  void rfGnssCallback(const rosflight_msgs::GNSSRaw& msg);
   void imuCallback(const sensor_msgs::Imu &msg);
   void baroAltCallback(const rosflight_msgs::Barometer &msg);
   void airspeedCallback(const rosflight_msgs::Airspeed &msg);
   void statusCallback(const rosflight_msgs::Status &msg);
 
+  // Common entry point for LLA (both rf::GNSSRaw and NavSatFix supply LLA, so we have a common
+  // place to add this information))
+  void addLLA(double lat, double lon, double alt);
+
   double update_rate_;
   ros::Timer update_timer_;
   std::string gnss_fix_topic_;
   std::string gnss_vel_topic_;
+  std::string rf_gnss_topic_;
   std::string imu_topic_;
   std::string baro_topic_;
   std::string airspeed_topic_;

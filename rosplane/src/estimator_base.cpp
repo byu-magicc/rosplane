@@ -10,6 +10,7 @@ estimator_base::estimator_base():
   nh_private_(ros::NodeHandle("~"))
 {
   nh_private_.param<std::string>("gps_topic", gnss_fix_topic_, "navsat_compat/fix");
+  nh_private_.param<std::string>("rf_gps_topic", rf_gnss_topic_, "gps_raw");
   nh_private_.param<std::string>("vel_topic", gnss_vel_topic_, "navsat_compat/vel");
   nh_private_.param<std::string>("imu_topic", imu_topic_, "imu/data");
   nh_private_.param<std::string>("baro_topic", baro_topic_, "baro");
@@ -95,6 +96,25 @@ void estimator_base::update(const ros::TimerEvent &)
   vehicle_state_pub_.publish(msg);
 }
 
+void estimator_base::rfGnssCallback(const rosflight_msgs::GNSSRaw& msg)
+{
+  bool has_fix = (msg.fix_type == rosflight_msgs::GNSS::FIX_TYPE_3D);
+
+  if (!has_fix)
+  {
+    input_.gps_new = false;
+    return;
+  }
+
+  double latitude = msg.lat * 1e-7;
+  double longitude = msg.lon * 1e-7;
+  double altitude = msg.height * 1e-3;
+  addLLA(latitude, longitude, altitude);
+
+  input_.Vg = msg.g_speed*1e-3;
+  input_.gps_course = msg.head_mot * (M_PI/180.0) * 1e-5;
+}
+
 void estimator_base::gnssFixCallback(const sensor_msgs::NavSatFix &msg)
 {
   bool has_fix = msg.status.status >= sensor_msgs::NavSatStatus::STATUS_FIX; // Higher values refer to augmented fixes
@@ -103,31 +123,39 @@ void estimator_base::gnssFixCallback(const sensor_msgs::NavSatFix &msg)
     input_.gps_new = false;
     return;
   }
-  if (!gps_init_)
-  {
-    gps_init_ = true;
-    init_alt_ = msg.altitude;
-    init_lat_ = msg.latitude;
-    init_lon_ = msg.longitude;
-  }
   else
   {
-    input_.gps_n = EARTH_RADIUS*(msg.latitude - init_lat_)*M_PI/180.0;
-    input_.gps_e = EARTH_RADIUS*cos(init_lat_*M_PI/180.0)*(msg.longitude - init_lon_)*M_PI/180.0;
-    input_.gps_h = msg.altitude - init_alt_;
+    addLLA(msg.latitude, msg.longitude, msg.altitude);
+  }  
+}
+
+void estimator_base::addLLA(double lat, double lon, double alt)
+{
+  if (!gps_init_) {
+    gps_init_ = true;
+    init_lat_ = lat;
+    init_lon_ = lon;
+    init_alt_ = alt;
+  } else {
+    input_.gps_n = EARTH_RADIUS * (lat - init_lat_) * M_PI / 180.0;
+    input_.gps_e = EARTH_RADIUS * cos(init_lat_ * M_PI / 180.0) * (lon - init_lon_) * M_PI / 180.0;
+    input_.gps_h = alt - init_alt_;
     input_.gps_new = true;
   }
 }
+
 void estimator_base::gnssVelCallback(const geometry_msgs::TwistStamped &msg)
 {
-  double v_n = msg.twist.linear.x;
-  double v_e = msg.twist.linear.y;
-  double v_d = msg.twist.linear.z;
   double ground_speed = sqrt(v_n * v_n + v_e * v_e);
-  double course = atan2(v_e, v_n); //Does this need to be in a specific range? All uses seem to accept anything.
+  // Does this need to be in a specific range? All uses seem to accept anything.
+  double course = atan2(v_e, v_n); 
   input_.gps_Vg = ground_speed;
-  if(ground_speed > 0.3) //this is a magic number. What is it determined from?
+
+  // If ground speed is too low, then the course measurement will vary wildly.
+  // Only fuse this if ground speed is high enough to be reliable
+  if (ground_speed > 0.3) {
     input_.gps_course = course;
+  }
 }
 
 void estimator_base::imuCallback(const sensor_msgs::Imu &msg)
